@@ -10,6 +10,8 @@ environment:
 
 
 dependencies:
+  kakao_flutter_sdk: ^1.9.7+3
+  kakao_flutter_sdk_user: ^1.9.7+3
   firebase_core: ^3.13.1
   firebase_auth: ^5.5.4
   firebase_analytics: ^11.4.6
