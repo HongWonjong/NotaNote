@@ -34,3 +34,4 @@ Runner/GoogleService-Info.plist
 !default.pbxuser
 !default.perspectivev3
 /Podfile.lock
+/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved
