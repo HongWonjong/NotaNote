@@ -74,7 +74,7 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-              child: const Text('메모 페이지로 이동'),
+              child: const Text('메모 페이지로 이동'),),
             ElevatedButton(
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
@@ -87,7 +87,7 @@ class MyHomePage extends StatelessWidget {
               child: const Text('로그아웃'),
 
             ),
-          ],
+            ],
         ),
       ),
     );
