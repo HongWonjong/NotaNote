@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/firebase_options.dart';
+import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/test_page/test_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -12,11 +17,13 @@ void main() async {
   await dotenv.load(fileName: ".env");
   print('dotenv 로드 완료');
 
+  // Firebase 초기화
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   KakaoSdk.init(
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -30,7 +37,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(),
+      home:
+          FirebaseAuth.instance.currentUser != null
+              ? const MyHomePage()
+              : const LoginPage(),
     );
   }
 }
