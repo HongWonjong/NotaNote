@@ -10,6 +10,12 @@ class MainItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xffF4F4F4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(title),
+    );
   }
 }
