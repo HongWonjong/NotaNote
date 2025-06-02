@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/services/auth_service.dart';
+import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
 final googleAuthViewModelProvider = Provider((ref) => GoogleAuthViewmodel());
 
@@ -23,13 +24,13 @@ class GoogleAuthViewmodel {
     final userCredential = await _authService.signInWithGoogle();
     final user = userCredential?.user;
 
-    /// UID 기반 해시태그 생성기
-    /// UID로부터 SHA256 해시를 생성하고, 앞 6자리만 잘라서 해시태그 생성
-    String generateHashedTag(String uid) {
-      final bytes = utf8.encode(uid); // UID → byte로 인코딩
-      final digest = sha256.convert(bytes); // SHA256 해시 계산
-      return '#${digest.toString().substring(0, 6)}'; // 앞 6자리만 사용
-    }
+    // /// UID 기반 해시태그 생성기
+    // /// UID로부터 SHA256 해시를 생성하고, 앞 6자리만 잘라서 해시태그 생성
+    // String generateHashedTag(String uid) {
+    //   final bytes = utf8.encode(uid); // UID → byte로 인코딩
+    //   final digest = sha256.convert(bytes); // SHA256 해시 계산
+    //   return '#${digest.toString().substring(0, 6)}'; // 앞 6자리만 사용
+    // }
 
     if (user != null) {
       final userModel = UserModel(
@@ -61,9 +62,9 @@ class GoogleAuthViewmodel {
     }
   }
 
-  /// 로그아웃 처리
-  Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
-    // 나중에 카카오 로그아웃 추가
-  }
+  // /// 로그아웃 처리
+  // Future<void> signOut() async {
+  //   await FirebaseAuth.instance.signOut();
+  //   // 나중에 카카오 로그아웃 추가
+  // }
 }

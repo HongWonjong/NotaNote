@@ -2,8 +2,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/main.dart';
-import 'package:nota_note/viewmodels/google_auth_viewmodel.dart';
-import 'package:nota_note/viewmodels/kakao_auth_service.dart';
+import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
+import 'package:nota_note/viewmodels/auth/kakao_auth_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
