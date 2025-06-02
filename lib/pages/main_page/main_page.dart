@@ -46,6 +46,12 @@ class MainPage extends StatelessWidget {
                 fontSize: 15,
               ),
             ),
+            SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: [Text('data')],
+              ),
+            ),
           ],
         ),
       ),
