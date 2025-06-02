@@ -14,6 +14,48 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   @override
+  void initState() {
+    super.initState();
+    _checkAutoLogin(); // 자동 로그인 확인
+  }
+
+  // 자동 로그인 체크 함수
+  Future<void> _checkAutoLogin() async {
+    final kakaoViewModel = ref.read(kakaoAuthViewModelProvider);
+    final googleViewModel = ref.read(googleAuthViewModelProvider);
+
+    // 1. Firebase(Google) 로그인 여부 확인
+    final firebaseUser = googleViewModel.currentUser;
+    if (firebaseUser != null) {
+      log('[자동로그인] Firebase 로그인 감지됨: ${firebaseUser.uid}');
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MyHomePage()),
+        );
+      }
+      return;
+    }
+
+    // 2. Kakao 토큰 유무 확인 → 자동 로그인 시도
+    final hasToken = await kakaoViewModel.hasKakaoToken();
+    if (hasToken) {
+      log('[자동로그인] Kakao 토큰 유효함, 사용자 정보 조회 시작');
+      try {
+        await kakaoViewModel.signInWithKakao();
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MyHomePage()),
+          );
+        }
+      } catch (e) {
+        log('[자동로그인] Kakao 자동 로그인 실패: $e');
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final kakaoViewModel = ref.read(kakaoAuthViewModelProvider); // 카카오 로그인용
     final googleViewModel = ref.read(googleAuthViewModelProvider); // 구글 로그인용
@@ -95,11 +137,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
 
-                // 카카오 로그인 버튼 (현재는 UI만)
+                // 카카오 로그인 버튼
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: // 카카오 로그인 버튼 (구현 포함)
-                      ElevatedButton(
+                  child: ElevatedButton(
                     onPressed: () async {
                       try {
                         log('[로그인] 카카오 로그인 시도');
@@ -120,7 +161,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFEE500),
+                      backgroundColor: const Color(0xFFFEE500), // 카카오 배경
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -129,7 +170,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: const Text(
                       '카카오로 로그인',
                       style: TextStyle(
-                        color: Color(0xFF000000), //카카오로그인 텍스트
+                        color: Color(0xFF000000), //카카오 로그인 텍스트
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/models/user_model.dart';
@@ -25,13 +23,6 @@ class KakaoAuthViewmodel {
       final userId = user.id.toString();
 
       print('카카오 로그인 성공: ${kakaoAccount?.email}');
-
-      // //  UID 기반 해시태그 생성
-      // String generateHashedTag(String uid) {
-      //   final bytes = utf8.encode(uid);
-      //   final digest = sha256.convert(bytes);
-      //   return '#${digest.toString().substring(0, 6)}';
-      // }
 
       //  동의된 정보만 저장 (null-safe 처리)
       final nickname = kakaoAccount?.profile?.nickname;
@@ -63,5 +54,49 @@ class KakaoAuthViewmodel {
       print('카카오 로그인 실패: $e');
       rethrow;
     }
+  }
+
+  // 자동 로그인 처리
+  Future<bool> tryAutoLogin() async {
+    try {
+      final hasToken = await AuthApi.instance.hasToken();
+      if (!hasToken) return false;
+
+      await UserApi.instance.accessTokenInfo(); // 토큰 갱신
+      final user = await UserApi.instance.me();
+      final kakaoAccount = user.kakaoAccount;
+      final userId = user.id.toString();
+
+      print('카카오 자동 로그인 성공: ${kakaoAccount?.email}');
+
+      final userModel = UserModel(
+        userId: userId,
+        displayName: kakaoAccount?.profile?.nickname ?? 'NoName',
+        email: kakaoAccount?.email ?? 'unknown@email.com',
+        photoUrl: kakaoAccount?.profile?.profileImageUrl ?? '',
+        hashTag: generateHashedTag(userId),
+        loginProviders: 'kakao',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _firestore.collection('users').doc(userId).set(
+            userModel.toJson(),
+            SetOptions(merge: true),
+          );
+
+      await _firestore.collection('users').doc(userId).update({
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      print('카카오 자동 로그인 실패: $e');
+      return false;
+    }
+  }
+
+  Future<bool> hasKakaoToken() async {
+    return await AuthApi.instance.hasToken();
   }
 }
