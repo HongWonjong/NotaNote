@@ -61,7 +61,7 @@ class _SlidingMenuScaffoldState extends State<SlidingMenuScaffold> {
   Widget build(BuildContext context) {
     final menuWidth =
         widget.menuWidth ?? MediaQuery.of(context).size.width * 0.7;
-    final menuBgColor = widget.menuBackgroundColor ?? const Color(0xFFF5F5F5);
+    final menuBgColor = widget.menuBackgroundColor ?? const Color(0xFFEEEEEE);
     final contentBgColor = widget.contentBackgroundColor ?? Colors.white;
     final animDuration =
         widget.animationDuration ?? const Duration(milliseconds: 300);
@@ -85,9 +85,27 @@ class _SlidingMenuScaffoldState extends State<SlidingMenuScaffold> {
               0,
               0,
             ),
-            child: Container(
-              color: contentBgColor,
-              child: widget.contentWidget,
+            child: Stack(
+              children: [
+                // 실제 콘텐츠
+                Container(
+                  color: contentBgColor,
+                  child: widget.contentWidget,
+                ),
+
+                // 메뉴가 열렸을 때만 표시되는 탭 감지 오버레이
+                if (_isMenuOpen)
+                  Positioned.fill(
+                    child: Material(
+                      color: Colors.black.withOpacity(0.05),
+                      child: InkWell(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap: toggleMenu,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
