@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/pages/test_page/test_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';  // MemoGroupPage import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,10 +49,10 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const TestPage()),
+                  MaterialPageRoute(builder: (context) => const MemoGroupPage()),
                 );
               },
-              child: const Text('테스트 페이지로 이동'),
+              child: const Text('메모 그룹 페이지로 이동'),
             ),
           ],
         ),
