@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/pages/test_page/test_page.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'pages/memo_page/memo_page.dart';
+import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // .env 파일 로드
-  await dotenv.load(fileName: ".env");
-  print('dotenv 로드 완료');
+  // 초기화 로직 호출
+  await Initializer.initialize();
 
-  KakaoSdk.init(
-    nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
-    javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
-  );
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -26,7 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent),
+        appBarTheme: AppBarTheme(backgroundColor: Colors.white),
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: const MyHomePage(),
     );
@@ -53,6 +50,22 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: const Text('테스트 페이지로 이동'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MemoPage(
+                      groupId: 'group1', // 테스트용 값
+                      noteId: 'note1',   // 테스트용 값
+                      pageId: 'page1',   // 테스트용 값
+                    ),
+                  ),
+                );
+              },
+              child: const Text('메모 페이지로 이동'),
             ),
           ],
         ),
