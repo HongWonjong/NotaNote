@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
-import 'package:nota_note/pages/test_page/test_page.dart';
+import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
@@ -57,7 +57,8 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MemoGroupPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const MemoGroupPage()),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동'),
@@ -76,15 +77,16 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-              child: const Text('메모 페이지로 이동'),),
-            ElevatedButton(onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MainPage()),
-              );
-            },
-              child: const Text('메인 페이지로 이동'),),
               child: const Text('메모 페이지로 이동'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainPage()),
+                );
+              },
+              child: const Text('메인 페이지로 이동'),
             ),
             ElevatedButton(
               onPressed: () async {
