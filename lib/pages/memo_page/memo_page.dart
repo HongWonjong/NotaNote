@@ -92,7 +92,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               color: Colors.white,
               child: ListView(
                 padding: EdgeInsets.zero,
-                children: [12.0, 14.0, 16.0, 18.0, 20.0].map((size) {
+                children: [12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0].map((size) {
                   return GestureDetector(
                     onTap: () {
                       final selection = _controller.selection;
