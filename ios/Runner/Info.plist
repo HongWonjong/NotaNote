@@ -2,6 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+	    <dict>
+	        <key>CFBundleTypeRole</key>
+	        <string>Editor</string>
+	        <key>CFBundleURLSchemes</key>
+	        <array>
+	        	<string>com.googleusercontent.apps.3234048278-f994aq03pn890piit6qua8kv7vc77l7a</string>
+	        </array>
+	    </dict>
+	</array>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -30,6 +42,10 @@
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>로컬 네트워크를 사용하여 디버깅 및 개발 환경에서 Flutter VM 서비스에 연결해야 합니다.</string>
+	<key>NSBonjourServices</key>
+	<array>
+    <string>_dartobservatory._tcp</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>음성 녹음을 위해 마이크 권한이 필요합니다.</string>
 	<key>UILaunchStoryboardName</key>

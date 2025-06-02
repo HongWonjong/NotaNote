@@ -1,13 +1,12 @@
 name: nota_note
 description: "NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양한 장점을 섞어 만든 메모장 앱입니다."
 
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.0
-
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   kakao_flutter_sdk: ^1.9.7+3
@@ -16,11 +15,13 @@ dependencies:
   path_provider: ^2.1.0
   permission_handler: ^12.0.0+1
   kakao_flutter_sdk_user: ^1.9.7+3
+  flutter_keyboard_visibility: ^6.0.0
   http: ^1.4.0
   firebase_core: ^3.13.1
   flutter_dotenv: ^5.2.1
   firebase_auth: ^5.5.4
   share_plus: ^11.0.0
+  flutter_quill: ^11.4.1
   firebase_analytics: ^11.4.6
   firebase_storage: ^12.4.6
   cloud_firestore: ^5.6.8
@@ -28,13 +29,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-
   cupertino_icons: ^1.0.8
+  google_sign_in: ^6.3.0
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
   flutter_lints: ^5.0.0
 
@@ -42,6 +43,4 @@ flutter:
   assets:
     - .env
 
-
   uses-material-design: true
-
