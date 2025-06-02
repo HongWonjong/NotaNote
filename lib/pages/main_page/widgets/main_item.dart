@@ -4,31 +4,26 @@ class MainItem extends StatelessWidget {
   final String title;
 
   const MainItem({
-    Key? key,
     required this.title,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      width: double.infinity,
+      height: 62,
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
-        borderRadius: BorderRadius.circular(12),
+        color: Color(0xffF4F4F4),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Icon(
-            Icons.more_horiz,
-            color: Color(0xFFB5B5B5),
+          Padding(
+            padding: const EdgeInsets.only(left: 17),
+            child: Text(title),
           ),
         ],
       ),
