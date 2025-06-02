@@ -12,19 +12,20 @@
 // 메모장 CRUD 작업 처리
 // 권한 관리 및 공유 기능 구현
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<void> noteModel() async {
-  final firestore = FirebaseFirestore.instance;
-  final noteRef = firestore.collection('notes').doc('note001');
-  await noteRef.set({
-    'noteId': 'user001',
-    'title': '임시 메모장001',
-    'ownerId': 'user001',
-    'isPublic': true,
-    'tags': ['#플러터', '#과제'],
-    'permissions': {'user001': 'owner', 'user002': 'editor'},
-    'createdAt': FieldValue.serverTimestamp(),
-    'updatedAt': FieldValue.serverTimestamp(),
-  });
-}
+// //예시데이터
+// Future<void> noteModel() async {
+//   final firestore = FirebaseFirestore.instance;
+//   final noteRef = firestore.collection('notes').doc('note001');
+//   await noteRef.set({
+//     'noteId': 'user001',
+//     'title': '임시 메모장001',
+//     'ownerId': 'user001',
+//     'isPublic': true,
+//     'tags': ['#플러터', '#과제'],
+//     'permissions': {'user001': 'owner', 'user002': 'editor'},
+//     'createdAt': FieldValue.serverTimestamp(),
+//     'updatedAt': FieldValue.serverTimestamp(),
+//   });
+// }

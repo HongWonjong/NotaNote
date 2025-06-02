@@ -7,15 +7,15 @@
 // 페이지 정렬 및 인덱스 관리
 // 페이지 CRUD 작업 처리
 
-// 2. 메모지 페이지 생성
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<void> pageModel() async {
-  final pageRef = FirebaseFirestore.instance
-      .collection('notes')
-      .doc('note001')
-      .collection('pages')
-      .doc('page0');
+//예시데이터
+// Future<void> pageModel() async {
+//   final pageRef = FirebaseFirestore.instance
+//       .collection('notes')
+//       .doc('note001')
+//       .collection('pages')
+//       .doc('page0');
 
-  await pageRef.set({'noteId': 'note001', 'index': 0});
-}
+//   await pageRef.set({'noteId': 'note001', 'index': 0});
+// }

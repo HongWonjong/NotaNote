@@ -66,6 +66,17 @@ class MyHomePage extends StatelessWidget {
               },
               child: const Text('테스트 페이지로 이동'),
             ),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                if (!context.mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text('로그아웃'),
+            ),
           ],
         ),
       ),

@@ -10,24 +10,24 @@
 // 위젯 타입별 특수 기능 구현 (링크 미리보기, 이미지 처리, 책갈피 연결 등)
 // 위젯 위치 및 크기 변경 기능 구현
 
-// 3. 위젯 추가 (텍스트 타입)
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<void> widgetModel() async {
-  final widgetRef = FirebaseFirestore.instance
-      .collection('notes')
-      .doc('note001')
-      .collection('pages')
-      .doc('page0')
-      .collection('widgets')
-      .doc('widget001');
+//예시데이터
+// Future<void> widgetModel() async {
+//   final widgetRef = FirebaseFirestore.instance
+//       .collection('notes')
+//       .doc('note001')
+//       .collection('pages')
+//       .doc('page0')
+//       .collection('widgets')
+//       .doc('widget001');
 
-  await widgetRef.set({
-    'widgetId': 'widget001',
-    'pageIndex': 0,
-    'type': 'text',
-    'content': {'text': '이건 텍스트 위젯입니다.'},
-    'position': {'xFactor': 0.1, 'yFactor': 0.1},
-    'size': {'widthFactor': 0.4, 'heightFactor': 0.3},
-  });
-}
+//   await widgetRef.set({
+//     'widgetId': 'widget001',
+//     'pageIndex': 0,
+//     'type': 'text',
+//     'content': {'text': '이건 텍스트 위젯입니다.'},
+//     'position': {'xFactor': 0.1, 'yFactor': 0.1},
+//     'size': {'widthFactor': 0.4, 'heightFactor': 0.3},
+//   });
+// }
