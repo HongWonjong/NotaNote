@@ -1,5 +1,11 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/firebase_options.dart';
+import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/test_page/test_page.dart';
 import 'pages/memo_page/memo_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
@@ -25,7 +31,10 @@ class MyApp extends StatelessWidget {
         appBarTheme: AppBarTheme(backgroundColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const MyHomePage(),
+      home:
+          FirebaseAuth.instance.currentUser != null
+              ? const MyHomePage()
+              : const LoginPage(),
     );
   }
 }
@@ -66,6 +75,17 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: const Text('메모 페이지로 이동'),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                if (!context.mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text('로그아웃'),
+
             ),
           ],
         ),
