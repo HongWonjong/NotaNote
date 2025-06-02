@@ -7,14 +7,30 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {},
+          icon: Icon(
+            Icons.menu,
+            color: Color(0xffB5B5B5),
+            size: 24,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.search),
+            icon: const Icon(
+              Icons.search,
+              color: Color(0xffB1B1B1),
+              size: 24,
+            ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.notifications_none),
+            icon: const Icon(
+              Icons.notifications_none,
+              color: Color(0xffB5B5B5),
+              size: 24,
+            ),
           ),
         ],
       ),
