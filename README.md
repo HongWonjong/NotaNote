@@ -55,11 +55,13 @@ Master 브랜치에는 안정화된 출시 가능한 버전을 업로드 할 것
 
 **Firestore 경로**: `notegroups/{groupId}/notes/{noteId}/pages/{pageId}` 📑
 
-**설명**: 메모장은 여러 메모지 페이지로 구성됩니다. 각 페이지는 논리적 구분 단위로, 순서와 제목만 관리합니다. 📚
+**설명**: 메모장은 여러 메모지 페이지로 구성됩니다. 각 페이지는 논리적 구분 단위로, 순서, 제목, 콘텐츠를 관리합니다. 콘텐츠는 Quill Delta JSON 형식으로 저장되어 리치 텍스트 편집을 지원합니다. 📚
 
 **필드**:
 - **noteId** 🔗: `string` (상위 메모장 ID, notes 컬렉션의 noteId 참조)
 - **index** 🔢: `number` (페이지 순서, 0부터 시작하는 정수)
+- **title** 📜: `string` (페이지 제목, 텍스트, 예: "새 메모 페이지")
+- **content** ✍️: `array<map>` (Quill Delta JSON 형식의 콘텐츠, 예: [{"insert":"텍스트\n"}])
 
 ## 4. 메모지 페이지 내 위젯 데이터 🛠️
 
