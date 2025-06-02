@@ -12,9 +12,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/services/auth_service.dart';
 
-final authViewModelProvider = Provider((ref) => AuthViewmodel());
+final googleAuthViewModelProvider = Provider((ref) => GoogleAuthViewmodel());
 
-class AuthViewmodel {
+class GoogleAuthViewmodel {
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -57,7 +57,7 @@ class AuthViewmodel {
 
       return userCredential;
     } else {
-      throw Exception("로그인 실패");
+      throw Exception("구글 로그인 실패");
     }
   }
 
