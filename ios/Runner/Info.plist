@@ -9,9 +9,19 @@
 	        <string>Editor</string>
 	        <key>CFBundleURLSchemes</key>
 	        <array>
+				<string>kakao3994ba43bdfc5a2ac995b7743b33b320</string> <!-- kakao + 네이티브 키 -->
 	        	<string>com.googleusercontent.apps.3234048278-f994aq03pn890piit6qua8kv7vc77l7a</string>
 	        </array>
 	    </dict>
+	</array>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+  		<string>kakaokompassauth</string>
+  		<string>kakaolink</string>
+  		<string>kakaotalk</string>
+  		<string>kakaostory</string>
+  		<string>storykompassauth</string>
 	</array>
 
 	<key>CFBundleDevelopmentRegion</key>

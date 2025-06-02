@@ -2,7 +2,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/main.dart';
-import 'package:nota_note/viewmodels/auth_viewmodel.dart';
+import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
+import 'package:nota_note/viewmodels/auth/kakao_auth_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -14,7 +15,8 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.read(authViewModelProvider);
+    final kakaoViewModel = ref.read(kakaoAuthViewModelProvider); // 카카오 로그인용
+    final googleViewModel = ref.read(googleAuthViewModelProvider); // 구글 로그인용
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -46,21 +48,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       log('[로그인] 구글 로그인 버튼 클릭됨');
                       try {
                         final userCredential =
-                            await viewModel.signInWithGoogle();
-                        final user = userCredential?.user;
+                            await googleViewModel.signInWithGoogle();
 
-                        if (user == null) {
+                        if (userCredential == null ||
+                            userCredential.user == null) {
                           log('[로그인] 유저 정보 없음');
                           return;
                         }
 
-                        log('[로그인] 로그인 성공: ${user.uid}');
+                        log('[로그인] 로그인 성공: ${userCredential.user!.uid}');
 
                         if (!mounted) return;
                         log('[로그인] MyHomePage로 이동');
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const MyHomePage()),
+                          MaterialPageRoute(
+                            builder: (_) => const MyHomePage(),
+                          ),
                         );
 
                         ScaffoldMessenger.of(
@@ -94,12 +98,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 // 카카오 로그인 버튼 (현재는 UI만)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      log('[로그인] 카카오 로그인 버튼 클릭됨 (기능 없음)');
+                  child: // 카카오 로그인 버튼 (구현 포함)
+                      ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        log('[로그인] 카카오 로그인 시도');
+                        await kakaoViewModel.signInWithKakao();
+                        if (!context.mounted) return;
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MyHomePage()),
+                        );
+                      } catch (e) {
+                        log('[로그인] 카카오 로그인 실패: $e');
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('카카오 로그인 실패')),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFBE200), // 카카오로그인 텍스트
+                      backgroundColor: const Color(0xFFFEE500),
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
