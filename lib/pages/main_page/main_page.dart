@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota_note/pages/main_page/widgets/main_item.dart';
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
@@ -49,7 +50,13 @@ class MainPage extends StatelessWidget {
             SizedBox(height: 16),
             Expanded(
               child: ListView(
-                children: [Text('data')],
+                children: [
+                  MainItem(title: 'title'),
+                  SizedBox(height: 5),
+                  MainItem(title: 'title'),
+                  SizedBox(height: 5),
+                  MainItem(title: 'title'),
+                ],
               ),
             ),
           ],
