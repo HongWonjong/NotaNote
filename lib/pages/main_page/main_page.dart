@@ -18,6 +18,7 @@ class _MainPageState extends State<MainPage> {
       controller: _menuController,
       menuWidget: _buildMenu(),
       contentWidget: _buildContent(),
+      animationDuration: const Duration(milliseconds: 250),
     );
   }
 
