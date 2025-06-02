@@ -125,6 +125,7 @@ class _MainPageState extends State<MainPage> {
                 SizedBox(height: 16),
                 Expanded(
                   child: ListView(
+                    padding: EdgeInsets.zero,
                     children: [
                       MainItem(title: '그룹 이름 3'),
                       SizedBox(height: 5),
