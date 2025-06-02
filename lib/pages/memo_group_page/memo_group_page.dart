@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 
 class MemoGroupPage extends StatefulWidget {
   const MemoGroupPage({super.key});
@@ -207,6 +209,21 @@ class _MemoGroupPageState extends State<MemoGroupPage> {
             )
           : null,
       actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            setState(() {
+              isSearching = true;
+              filteredMemos = [];
+              _searchController.clear();
+              isDeleteMode = false;
+              selectedForDelete.clear();
+            });
+          },
+        ),
+
+        _buildSettingsMenuInline(),
+
         if (isDeleteMode)
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.red),
@@ -244,78 +261,7 @@ class _MemoGroupPageState extends State<MemoGroupPage> {
                       ),
                     );
                   },
-          )
-        else ...[
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              setState(() {
-                isSearching = true;
-                filteredMemos = [];
-                _searchController.clear();
-                isDeleteMode = false;
-                selectedForDelete.clear();
-              });
-            },
           ),
-          IconButton(
-            icon: Icon(isGrid ? Icons.grid_view : Icons.view_list),
-            onPressed: () {
-              setState(() {
-                isGrid = !isGrid;
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (_) => Container(
-                  padding: const EdgeInsets.all(16),
-                  child: const Center(
-                    child: Text('공유 기능 준비중', style: TextStyle(fontSize: 18)),
-                  ),
-                ),
-              );
-            },
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu),
-            onSelected: (value) {
-              switch (value) {
-                case '정렬':
-                  // 정렬 기능 처리
-                  break;
-                case '테마 설정':
-                  // 테마 설정 처리
-                  break;
-                case '백업':
-                  // 백업 처리
-                  break;
-                case '휴지통':
-                  // 휴지통 처리
-                  break;
-                case '삭제':
-                  setState(() {
-                    isDeleteMode = true;
-                    selectedForDelete.clear();
-                  });
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: '정렬', child: Text('정렬')),
-              const PopupMenuItem(value: '테마 설정', child: Text('테마 설정')),
-              const PopupMenuItem(value: '백업', child: Text('백업')),
-              const PopupMenuItem(value: '휴지통', child: Text('휴지통')),
-              const PopupMenuItem(
-                value: '삭제',
-                child: Text('삭제', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
-        ],
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(24),
@@ -331,60 +277,177 @@ class _MemoGroupPageState extends State<MemoGroupPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final currentMemos = isSearching ? filteredMemos : dummyMemos;
-
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: currentMemos.isEmpty
-          ? Center(
-              child: Text(
-                isSearching ? '검색 결과가 없습니다.' : '메모가 없습니다. 새 메모를 작성해보세요!',
-                style: const TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: isGrid
-                  ? GridView.builder(
-                      itemCount: currentMemos.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 1.1,
-                      ),
-                      itemBuilder: (context, index) {
-                        return _buildMemoItem(currentMemos[index], index);
-                      },
-                    )
-                  : ListView.builder(
-                      itemCount: currentMemos.length,
-                      itemBuilder: (context, index) {
-                        return _buildMemoItem(currentMemos[index], index);
-                      },
-                    ),
+  Widget _buildSettingsMenuInline() {
+    return PopupMenuButton<int>(
+      icon: const Icon(Icons.menu),
+      tooltip: '설정 메뉴',
+      onSelected: (value) {
+        switch (value) {
+          case 1:
+            _showSharingSettings();
+            break;
+          case 3:
+            setState(() {
+              isDeleteMode = true;
+              selectedForDelete.clear();
+            });
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 1,
+          child: ListTile(
+            leading: Icon(Icons.share),
+            title: Text('공유'),
+          ),
+        ),
+        PopupMenuItem(
+          // 보기설정은 value 안줘서 onSelected 호출 안되게 함
+          enabled: false,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isGrid = !isGrid;
+              });
+              // 메뉴 닫기
+              Navigator.of(context).pop();
+            },
+            child: Row(
+              children: [
+                Icon(isGrid ? Icons.view_list : Icons.grid_view),
+                const SizedBox(width: 8),
+                Text(isGrid ? '목록으로 보기' : '갤러리로 보기'),
+              ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // 새 메모 작성 기능 자리
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('새 메모 작성'),
-              content: const Text('새 메모 작성 기능은 아직 구현 중입니다.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('닫기'),
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: 3,
+          child: ListTile(
+            leading: Icon(Icons.delete),
+            title: Text('삭제'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showSharingSettings() {
+  String ownerEmail = 'owner@example.com';
+  String ownerName = '소유자 이름';
+  String selectedPermission = '읽기 전용'; // 초기 권한 값
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('공유'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: Text('이메일')),
+                    Expanded(child: Text(ownerEmail, style: const TextStyle(fontWeight: FontWeight.bold))),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(child: Text('소유자')),
+                    Expanded(child: Text(ownerName, style: const TextStyle(fontWeight: FontWeight.bold))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text('사용 권한'),
+                DropdownButton<String>(
+                  value: selectedPermission,
+                  items: const [
+                    DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용', style: TextStyle(color: Colors.grey))),
+                    DropdownMenuItem(value: '편집 전용', child: Text('편집 전용', style: TextStyle(color: Colors.grey))),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedPermission = value;
+                      });
+                    }
+                  },
                 ),
               ],
             ),
+            actions: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.link),
+                label: const Text('링크 복사'),
+                onPressed: () {
+                  final link = 'https://example.com/share/link';
+                  Clipboard.setData(ClipboardData(text: link));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('공유 링크가 복사되었습니다!')),
+                  );
+                },
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('닫기'),
+              ),
+            ],
           );
         },
-        child: const Icon(Icons.create),
+      );
+    },
+  );
+}
+  @override
+  Widget build(BuildContext context) {
+    final showList = isSearching ? filteredMemos : dummyMemos;
+
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: showList.isEmpty
+          ? Center(
+              child: Text(
+                isSearching ? '검색 결과가 없습니다.' : '새로운 메모를 생성해보세요!',
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            )
+          : isGrid
+              ? GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 6,
+                    crossAxisSpacing: 6,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemCount: showList.length,
+                  itemBuilder: (context, index) {
+                    return _buildMemoItem(showList[index], index);
+                  },
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: showList.length,
+                  itemBuilder: (context, index) {
+                    return _buildMemoItem(showList[index], index);
+                  },
+                ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // 메모 생성 기능 미구현, 임시 메시지 띄우기
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('메모 생성 기능은 구현되지 않았습니다.')),
+          );
+        },
+        child: const Icon(Icons.add),
+        tooltip: '메모 생성',
       ),
     );
   }
