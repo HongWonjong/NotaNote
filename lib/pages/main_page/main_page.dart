@@ -34,8 +34,20 @@ class MainPage extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('메인 페이지'),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20),
+            Text(
+              '총 1개',
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
