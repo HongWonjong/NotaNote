@@ -8,6 +8,7 @@ import 'package:nota_note/firebase_options.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/test_page/test_page.dart';
 import 'pages/memo_page/memo_page.dart';
+import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 
 void main() async {
@@ -75,6 +76,13 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: const Text('메모 페이지로 이동'),),
+            ElevatedButton(onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MainPage()),
+              );
+            },
+              child: const Text('메인 페이지로 이동'),),
             ElevatedButton(
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
