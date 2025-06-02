@@ -11,3 +11,20 @@
 // Firestore에서 메모장 데이터를 가져오고, 저장하는 기능 구현
 // 메모장 CRUD 작업 처리
 // 권한 관리 및 공유 기능 구현
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+Future<void> noteModel() async {
+  final firestore = FirebaseFirestore.instance;
+  final noteRef = firestore.collection('notes').doc('note001');
+  await noteRef.set({
+    'noteId': 'user001',
+    'title': '임시 메모장001',
+    'ownerId': 'user001',
+    'isPublic': true,
+    'tags': ['#플러터', '#과제'],
+    'permissions': {'user001': 'owner', 'user002': 'editor'},
+    'createdAt': FieldValue.serverTimestamp(),
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
