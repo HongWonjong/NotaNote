@@ -4,6 +4,8 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/widget_model.dart' as widget_model;
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
+import 'package:intl/intl.dart';
 import 'dart:async';
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -31,25 +33,30 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-      ref.read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier).loadFromFirestore(_controller);
-    });
-    _controller.addListener(() {
-      _autoSaveTimer?.cancel();
-      _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
+      if (mounted) {
+        _focusNode.requestFocus();
         ref.read(pageViewModelProvider({
           'groupId': widget.groupId,
           'noteId': widget.noteId,
           'pageId': widget.pageId,
-        }).notifier).saveToFirestore(_controller).then((_) {
-          print('Auto-save completed');
-        }).catchError((e) {
-          print('Auto-save failed: $e');
-        });
+        }).notifier).loadFromFirestore(_controller);
+      }
+    });
+    _controller.addListener(() {
+      if (!mounted) return;
+      _autoSaveTimer?.cancel();
+      _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
+        if (mounted) {
+          ref.read(pageViewModelProvider({
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier).saveToFirestore(_controller).then((_) {
+            print('Auto-save completed');
+          }).catchError((e) {
+            print('Auto-save failed: $e');
+          });
+        }
       });
     });
   }
@@ -140,6 +147,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return _defaultFontSize;
   }
 
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageViewModel = ref.watch(pageViewModelProvider({
@@ -147,6 +161,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       'noteId': widget.noteId,
       'pageId': widget.pageId,
     }));
+    final recordingState = ref.watch(recordingViewModelProvider);
+    final isBoxVisible = ref.watch(recordingBoxVisibilityProvider);
     final overlayWidgets = pageViewModel.widgets;
     final currentFontSize = _getCurrentFontSize();
     final screenWidth = MediaQuery.of(context).size.width;
@@ -165,11 +181,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           IconButton(
             icon: Icon(Icons.ios_share_outlined),
             onPressed: () {
-              ref.read(pageViewModelProvider({
-                'groupId': widget.groupId,
-                'noteId': widget.noteId,
-                'pageId': widget.pageId,
-              }).notifier).saveToFirestore(_controller);
+              if (mounted) {
+                ref.read(pageViewModelProvider({
+                  'groupId': widget.groupId,
+                  'noteId': widget.noteId,
+                  'pageId': widget.pageId,
+                }).notifier).saveToFirestore(_controller);
+              }
             },
           ),
           IconButton(
@@ -181,100 +199,244 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         ],
       ),
       body: KeyboardVisibilityBuilder(
-        builder: (context, isKeyboardVisible) => Column(
+        builder: (context, isKeyboardVisible) => Stack(
           children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: QuillEditor(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      scrollController: _scrollController,
-                    ),
-                  ),
-                  for (var widget in overlayWidgets)
-                    Positioned(
-                      left: widget.position['xFactor']! * screenWidth,
-                      top: widget.position['yFactor']! * screenHeight,
-                      child: Container(
-                        width: widget.size['widthFactor']! * screenWidth,
-                        height: widget.size['heightFactor']! * screenHeight,
-                        child: widget.type == 'image'
-                            ? Image.network(widget.content['imageUrl'] ?? '', fit: BoxFit.cover)
-                            : Text(widget.content['url'] ?? ''),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (isKeyboardVisible)
-              Container(
-                color: Colors.grey[200],
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+            Column(
+              children: [
+                Expanded(
+                  child: Stack(
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.camera_alt),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.mic),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: Row(
-                          children: [
-                            Icon(Icons.smart_toy),
-                            SizedBox(width: 4.0),
-                            Text('AI'),
-                          ],
-                        ),
-                        onPressed: () {
-                          print('AI 버튼 클릭');
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.format_bold),
-                        onPressed: () {
-                          _controller.formatSelection(Attribute.bold);
-                        },
-                      ),
-                      CompositedTransformTarget(
-                        link: _layerLink,
-                        child: GestureDetector(
-                          onTap: () => _toggleDropdown(context),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Text('$currentFontSize'),
-                          ),
+                      Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: QuillEditor(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          scrollController: _scrollController,
                         ),
                       ),
-                      SizedBox(width: 8.0),
-                      Row(
-                        children: List.generate(5, (index) => Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4.0),
+                      for (var widget in overlayWidgets)
+                        Positioned(
+                          left: widget.position['xFactor']! * screenWidth,
+                          top: widget.position['yFactor']! * screenHeight,
                           child: Container(
-                            width: 8.0,
-                            height: 8.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: index == 2 ? Colors.black : Colors.grey,
-                            ),
+                            width: widget.size['widthFactor']! * screenWidth,
+                            height: widget.size['heightFactor']! * screenHeight,
+                            child: widget.type == 'image'
+                                ? Image.network(widget.content['imageUrl'] ?? '', fit: BoxFit.cover)
+                                : Text(widget.content['url'] ?? ''),
                           ),
-                        )),
-                      ),
+                        ),
                     ],
                   ),
                 ),
+                if (isKeyboardVisible)
+                  Container(
+                    color: Colors.grey[200],
+                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.camera_alt),
+                            onPressed: () {},
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(recordingState.isRecording ? Icons.stop : Icons.mic),
+                                onPressed: () async {
+                                  final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
+                                  if (recordingState.isRecording) {
+                                    await recordingViewModel.stopRecording();
+                                    ref.read(recordingBoxVisibilityProvider.notifier).state = true;
+                                  } else {
+                                    await recordingViewModel.startRecording();
+                                  }
+                                },
+                              ),
+                              if (recordingState.isRecording)
+                                Text(
+                                  _formatDuration(recordingState.recordingDuration),
+                                  style: TextStyle(fontSize: 12.0, color: Colors.black),
+                                ),
+                            ],
+                          ),
+                          IconButton(
+                            icon: Row(
+                              children: [
+                                Icon(Icons.smart_toy),
+                                SizedBox(width: 4.0),
+                                Text('AI'),
+                              ],
+                            ),
+                            onPressed: () {
+                              print('AI 버튼 클릭');
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.format_bold),
+                            onPressed: () {
+                              _controller.formatSelection(Attribute.bold);
+                            },
+                          ),
+                          CompositedTransformTarget(
+                            link: _layerLink,
+                            child: GestureDetector(
+                              onTap: () => _toggleDropdown(context),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: Text('$currentFontSize'),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.0),
+                          Row(
+                            children: List.generate(5, (index) => Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4.0),
+                              child: Container(
+                                width: 8.0,
+                                height: 8.0,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: index == 2 ? Colors.black : Colors.grey,
+                                ),
+                              ),
+                            )),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            if (isBoxVisible && recordingState.recordings.isNotEmpty)
+              Positioned(
+                bottom: 100.0,
+                right: 16.0,
+                child: RecordingControllerBox(),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+final recordingBoxVisibilityProvider = StateProvider<bool>((ref) => false);
+
+class RecordingControllerBox extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recordingState = ref.watch(recordingViewModelProvider);
+    final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
+
+    return Material(
+      elevation: 4.0,
+      borderRadius: BorderRadius.circular(8.0),
+      child: Container(
+        width: 300,
+        height: 300,
+        padding: EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '녹음된 파일',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, size: 20.0),
+                  onPressed: () {
+                    ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8.0),
+            Expanded(
+              child: recordingState.recordings.isNotEmpty
+                  ? ListView.builder(
+                itemCount: recordingState.recordings.length,
+                itemBuilder: (context, index) {
+                  final recording = recordingState.recordings[index];
+                  final timestamp = DateFormat('HH:mm:ss').format(recording.createdAt);                  return ListTile(
+                    title: Text('$timestamp (${recording.duration.inSeconds}초)'),
+                    subtitle: recordingState.transcriptions.containsKey(recording.path)
+                        ? Text(
+                      '전사: ${recordingState.transcriptions[recording.path]}',
+                      style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
+                    )
+                        : null,
+                    trailing: IconButton(
+                      icon: Icon(Icons.close, size: 20.0),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('녹음 삭제'),
+                            content: Text('정말 삭제하시겠습니까?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('취소'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  recordingViewModel.deleteRecording(recording.path);
+                                  Navigator.pop(context);
+                                },
+                                child: Text('삭제'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            recordingViewModel.isPlaying(recording.path)
+                                ? Icons.stop
+                                : Icons.play_arrow,
+                          ),
+                          onPressed: () {
+                            recordingViewModel.playRecording(recording.path);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.download),
+                          onPressed: () {
+                            recordingViewModel.downloadRecording(recording.path);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              )
+                  : Center(
+                child: Text(
+                  '녹음된 파일이 없습니다.',
+                  style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                ),
+              ),
+            ),
           ],
         ),
       ),

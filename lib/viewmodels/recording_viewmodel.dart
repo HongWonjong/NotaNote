@@ -1,4 +1,3 @@
-/// 음성을 녹음하는 기능과 관련한 뷰모델 입니다. 녹음된 파일을 다운로드하고, whisper ai로 전송할수도 있지요.
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,14 +8,17 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:nota_note/services/whisper_service.dart';
 import 'package:nota_note/providers/language_provider.dart';
+import 'package:intl/intl.dart';
 
 class RecordingInfo {
   final String path;
   final Duration duration;
+  final DateTime createdAt;
 
   RecordingInfo({
     required this.path,
     required this.duration,
+    required this.createdAt,
   });
 }
 
@@ -86,10 +88,10 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       if (Platform.isIOS) {
         final storageStatus = await Permission.storage.request();
         if (storageStatus != PermissionStatus.granted) {
-          print('저장소 권한이 허용되지 않았습니다: $storageStatus');
+          print('저장소 권한이 허용되지 않았습니다: $status');
           return;
         }
-        print('저장소 권한 허용됨: $storageStatus');
+        print('저장소 권한 허용됨: $status');
       }
     } catch (e) {
       print('권한 요청 실패: $e');
@@ -107,7 +109,9 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       await directory.create(recursive: true);
       print('디렉토리 생성: ${directory.path}');
     }
-    final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    final now = DateTime.now();
+    final timestamp = DateFormat('HHmmss').format(now);
+    final path = '${directory.path}/recording_${timestamp}.m4a';
 
     try {
       await _recorder.startRecorder(
@@ -157,6 +161,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           ..add(RecordingInfo(
             path: path,
             duration: state.recordingDuration,
+            createdAt: DateTime.now(),
           ));
         print('녹음 목록 업데이트: ${updatedRecordings.length} 항목');
         state = state.copyWith(
@@ -191,9 +196,9 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       }
 
       final fileSize = await file.length();
-      print('재생할 파일 크기: $fileSize bytes');
-      if (fileSize < 5000) {
-        print('경고: 파일 크기가 너무 작습니다(${fileSize} bytes). 재생이 실패할 수 있습니다. 10초 이상 녹음하세요.');
+      print('Size of file to play: $fileSize bytes');
+      if (fileSize < 1000) {
+        print('Warning: File size is too small ($fileSize bytes). Playback may fail. Record for at least 10 seconds.');
         return;
       }
 
@@ -207,37 +212,65 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         await _player.stop();
       }
 
-      print('재생 시작: $path');
+      print('Starting playback: $path');
       state = state.copyWith(currentlyPlayingPath: path);
       await _player.play(
         DeviceFileSource(path),
         volume: 1.0,
       );
       _player.onPlayerComplete.listen((event) {
-        print('재생 완료: $path');
+        print('Playback completed: $path');
         state = state.copyWith(currentlyPlayingPath: null);
       });
     } catch (e) {
-      print('재생 실패: $e');
+      print('Playback failed: $e');
       state = state.copyWith(currentlyPlayingPath: null);
     }
   }
 
   Future<void> downloadRecording(String path) async {
-    final params = ShareParams(
-      files: [XFile(path)],
-      text: '녹음 파일 다운로드',
-    );
-    final result = await SharePlus.instance.share(params);
-    if (result.status == ShareResultStatus.success) {
+    try {
+      final file = File(path);
+      if (!await file.exists()) {
+        print('파일이 존재하지 않습니다: $path');
+        return;
+      }
+      await Share.shareXFiles(
+        [XFile(path)],
+        text: '녹음 파일 다운로드',
+      );
       print('파일 공유 성공');
-    } else if (result.status == ShareResultStatus.dismissed) {
-      print('공유가 취소되었습니다');
+    } catch (e) {
+      print('파일 공유 실패: $e');
+    }
+  }
+
+  Future<void> deleteRecording(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        print('파일 삭제 성공: $path');
+      } else {
+        print('파일이 존재하지 않습니다: $path');
+      }
+
+      final updatedRecordings = state.recordings.where((recording) => recording.path != path).toList();
+      final updatedTranscriptions = Map<String, String>.from(state.transcriptions)..remove(path);
+
+      state = state.copyWith(
+        recordings: updatedRecordings,
+        transcriptions: updatedTranscriptions,
+        currentlyPlayingPath: state.currentlyPlayingPath == path ? null : state.currentlyPlayingPath,
+      );
+      print('녹음 목록 업데이트: ${updatedRecordings.length} 항목');
+    } catch (e) {
+      print('파일 삭제 실패: $e');
     }
   }
 
   Future<void> transcribeRecording(String path) async {
-    final language = ref.read(languageProvider); // 언어 참조
+    final language = ref.read(languageProvider);
     final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, language);
     if (response != null) {
       state = state.copyWith(
