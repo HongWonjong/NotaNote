@@ -7,9 +7,13 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {
+            
+          },
           icon: Icon(
             Icons.menu,
             color: Color(0xffB5B5B5),
@@ -42,7 +46,7 @@ class MainPage extends StatelessWidget {
           children: [
             SizedBox(height: 20),
             Text(
-              '총 1개',
+              '총 3개',
               style: TextStyle(
                 fontSize: 15,
               ),
@@ -51,11 +55,11 @@ class MainPage extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
-                  MainItem(title: 'title'),
+                  MainItem(title: '그룹이름 1'),
                   SizedBox(height: 5),
-                  MainItem(title: 'title'),
+                  MainItem(title: '그룹이름 2'),
                   SizedBox(height: 5),
-                  MainItem(title: 'title'),
+                  MainItem(title: '그룹이름 3'),
                 ],
               ),
             ),
