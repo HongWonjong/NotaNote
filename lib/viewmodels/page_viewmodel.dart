@@ -1,8 +1,132 @@
-// 메모지 페이지 관련 비즈니스 로직을 처리하는 ViewModel
-// - 페이지 생성, 조회, 수정, 삭제 기능
-// - 페이지 순서 변경 및 관리
-// - 페이지 내 위젯 관리
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/models/page_model.dart' as page_model;
+import 'package:nota_note/models/widget_model.dart' as widget_model;
+import 'package:flutter/services.dart';
 
-// PageModel과 연동하여 페이지 데이터 관리
-// Firestore와 통신하여 데이터 동기화
-// 페이지 변경사항 실시간 감지 및 UI 업데이트
+class PageViewModel extends StateNotifier<page_model.Page> {
+  final String groupId;
+  final String noteId;
+  final String pageId;
+  bool _isLoaded = false; // 데이터 로드 여부를 추적
+
+  PageViewModel(this.groupId, this.noteId, this.pageId)
+      : super(page_model.Page(
+    noteId: noteId,
+    index: 0,
+    title: '새 메모 페이지',
+    content: [],
+    widgets: [],
+  ));
+
+  Future<void> loadFromFirestore(QuillController controller) async {
+    if (_isLoaded) return; // 이미 로드된 경우 재호출 방지
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .collection('pages')
+          .doc(pageId)
+          .get();
+
+      QuerySnapshot widgetDocs = await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .collection('pages')
+          .doc(pageId)
+          .collection('widgets')
+          .get();
+
+      final widgets = widgetDocs.docs.map((doc) {
+        return widget_model.Widget.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+
+      if (doc.exists) {
+        final page = page_model.Page.fromFirestore(doc, widgets);
+        try {
+          if (page.content.isNotEmpty) {
+            controller.document = Document.fromJson(page.content);
+            final length = controller.document.length;
+            controller.updateSelection(
+              TextSelection.collapsed(offset: length),
+              ChangeSource.local,
+            );
+          } else {
+            controller.document = Document();
+          }
+        } catch (e) {
+          print('Failed to load document: $e');
+          controller.document = Document();
+        }
+        state = page;
+      } else {
+        final newPage = page_model.Page(
+          noteId: noteId,
+          index: 0,
+          title: '새 메모 페이지',
+          content: [],
+          widgets: [],
+        );
+        await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('pages')
+            .doc(pageId)
+            .set(newPage.toFirestore());
+        state = newPage;
+        controller.document = Document();
+      }
+      _isLoaded = true; // 로드 완료 플래그 설정
+    } catch (e) {
+      print('Firestore load failed: $e');
+    }
+  }
+
+  Future<void> saveToFirestore(QuillController controller) async {
+    final deltaJson = controller.document.toDelta().toJson();
+    final page = state.copyWith(content: deltaJson);
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .collection('pages')
+          .doc(pageId)
+          .set(page.toFirestore());
+
+      for (var widget in page.widgets) {
+        await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('pages')
+            .doc(pageId)
+            .collection('widgets')
+            .doc(widget.widgetId)
+            .set(widget.toFirestore());
+      }
+      state = page; // 로컬 상태 업데이트
+      print('Firestore save successful');
+    } catch (e) {
+      print('Firestore save failed: $e');
+    }
+  }
+}
+
+final pageViewModelProvider = StateNotifierProvider.family.autoDispose<PageViewModel, page_model.Page, Map<String, String>>(
+      (ref, params) => PageViewModel(
+    params['groupId']!,
+    params['noteId']!,
+    params['pageId']!,
+  ),
+);

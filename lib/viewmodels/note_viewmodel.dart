@@ -1,9 +1,93 @@
-// 메모장 관련 비즈니스 로직을 처리하는 ViewModel
-// - 메모장 생성, 조회, 수정, 삭제 기능
-// - 메모장 공유 및 권한 관리
-// - 메모장 태그 관리
-// - 메모장 목록 필터링 및 정렬
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/models/page_model.dart';
+import 'package:nota_note/models/note_model.dart';
+import 'package:nota_note/models/comment_model.dart';
 
-// NoteModel과 연동하여 메모장 데이터 관리
-// Firestore와 통신하여 데이터 동기화
-// 메모장 변경사항 실시간 감지 및 UI 업데이트
+class NoteViewModel extends StateNotifier<Note?> {
+  final String groupId;
+  final String noteId;
+
+  NoteViewModel(this.groupId, this.noteId) : super(null);
+
+  Future<void> loadFromFirestore() async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .get();
+
+      QuerySnapshot pageDocs = await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .collection('pages')
+          .get();
+
+      QuerySnapshot commentDocs = await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .collection('comments')
+          .get();
+
+      final pages = pageDocs.docs.map((pageDoc) => Page.fromFirestore(pageDoc, [])).toList();
+      final comments = commentDocs.docs.map((commentDoc) => Comment.fromFirestore(commentDoc)).toList();
+
+      if (doc.exists) {
+        state = Note.fromFirestore(doc, pages, comments);
+      }
+    } catch (e) {
+      print('Firestore 로드 실패: $e');
+    }
+  }
+
+  Future<void> saveToFirestore() async {
+    if (state == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .set(state!.toFirestore());
+
+      for (var page in state!.pages) {
+        await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('pages')
+            .doc(page.noteId)
+            .set(page.toFirestore());
+      }
+
+      for (var comment in state!.comments) {
+        await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('comments')
+            .doc(comment.commentId)
+            .set(comment.toFirestore());
+      }
+      print('Firestore에 저장 성공');
+    } catch (e) {
+      print('Firestore 저장 실패: $e');
+    }
+  }
+}
+
+final noteViewModelProvider = StateNotifierProvider.family<NoteViewModel, Note?, Map<String, String>>(
+      (ref, params) => NoteViewModel(
+    params['groupId']!,
+    params['noteId']!,
+  ),
+);

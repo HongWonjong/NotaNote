@@ -1,31 +1,59 @@
-// 메모장 정보를 표현하는 모델 클래스
-// - noteId: 메모장 고유 ID
-// - title: 메모장 제목
-// - ownerId: 소유자 ID
-// - isPublic: 공개 여부
-// - tags: 메모장 태그 목록
-// - permissions: 사용자별 권한 맵
-// - createdAt: 생성 시간
-// - updatedAt: 수정 시간
 
-// Firestore에서 메모장 데이터를 가져오고, 저장하는 기능 구현
-// 메모장 CRUD 작업 처리
-// 권한 관리 및 공유 기능 구현
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nota_note/models/page_model.dart';
+import 'package:nota_note/models/comment_model.dart';
 
-// import 'package:cloud_firestore/cloud_firestore.dart';
+class Note {
+  final String noteId;
+  final String title;
+  final String ownerId;
+  final bool isPublic;
+  final List<String> tags;
+  final Map<String, String> permissions;
+  final Timestamp createdAt;
+  final Timestamp updatedAt;
+  final List<Page> pages;
+  final List<Comment> comments;
 
-// //예시데이터
-// Future<void> noteModel() async {
-//   final firestore = FirebaseFirestore.instance;
-//   final noteRef = firestore.collection('notes').doc('note001');
-//   await noteRef.set({
-//     'noteId': 'user001',
-//     'title': '임시 메모장001',
-//     'ownerId': 'user001',
-//     'isPublic': true,
-//     'tags': ['#플러터', '#과제'],
-//     'permissions': {'user001': 'owner', 'user002': 'editor'},
-//     'createdAt': FieldValue.serverTimestamp(),
-//     'updatedAt': FieldValue.serverTimestamp(),
-//   });
-// }
+  Note({
+    required this.noteId,
+    required this.title,
+    required this.ownerId,
+    required this.isPublic,
+    required this.tags,
+    required this.permissions,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.pages,
+    required this.comments,
+  });
+
+  factory Note.fromFirestore(DocumentSnapshot doc, List<Page> pages, List<Comment> comments) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Note(
+      noteId: doc.id,
+      title: data['title'] ?? '',
+      ownerId: data['ownerId'] ?? '',
+      isPublic: data['isPublic'] ?? false,
+      tags: List<String>.from(data['tags'] ?? []),
+      permissions: Map<String, String>.from(data['permissions'] ?? {}),
+      createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
+      updatedAt: data['updatedAt'] as Timestamp? ?? Timestamp.now(),
+      pages: pages,
+      comments: comments,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'title': title,
+      'ownerId': ownerId,
+      'isPublic': isPublic,
+      'tags': tags,
+      'permissions': permissions,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
+  }
+}
+
