@@ -11,6 +11,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final SlidingMenuController _menuController = SlidingMenuController();
+  bool _isGroupExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,46 +32,89 @@ class _MainPageState extends State<MainPage> {
           children: [
             SizedBox(height: 47.5),
             ListTile(
+              onTap: () {
+                setState(() {
+                  _isGroupExpanded = !_isGroupExpanded;
+                });
+              },
               title: Row(
                 children: [
-                  Image.asset('assets/folder_icon.png'),
+                  Image.asset(
+                    'assets/folder_icon.png',
+                    color: Color(0xffBFBFBF),
+                  ),
                   SizedBox(width: 8),
-                  Text('그룹'),
+                  Text(
+                    '그룹',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
               trailing: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    _isGroupExpanded = !_isGroupExpanded;
+                  });
+                },
                 icon: Icon(
-                  Icons.keyboard_arrow_down,
+                  _isGroupExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   size: 24,
                 ),
               ),
             ),
-            ListTile(
-              title: Text('그룹 이름 3'),
-              contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-            ),
-            ListTile(
-              title: Text('그룹 이름 3'),
-              contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-            ),
-            ListTile(
-              title: Row(
-                children: [
-                  Image.asset('assets/trash_icon.png'),
-                  SizedBox(width: 8),
-                  Text('휴지통'),
-                ],
+            if (_isGroupExpanded) ...[
+              ListTile(
+                title: Text('그룹 이름 3'),
+                contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
               ),
-            ),
-            ListTile(
-              title: Row(
-                children: [
-                  Image.asset('assets/setting_icon.png'),
-                  SizedBox(width: 8),
-                  Text('설정'),
-                ],
+              ListTile(
+                title: Text('그룹 이름 3'),
+                contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
               ),
+            ],
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/trash_icon.png',
+                      color: Color(0xffBFBFBF),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '휴지통',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 25),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/setting_icon.png',
+                      color: Color(0xffBFBFBF),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '설정',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
