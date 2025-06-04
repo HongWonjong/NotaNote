@@ -20,6 +20,7 @@ class _MainPageState extends State<MainPage> {
       menuWidget: _buildMenu(),
       contentWidget: _buildContent(),
       animationDuration: const Duration(milliseconds: 250),
+      menuBackgroundColor: Colors.white,
     );
   }
 
