@@ -33,11 +33,18 @@ class _MainPageState extends State<MainPage> {
             ListTile(
               title: Row(
                 children: [
-                  Icon(Icons.folder_outlined),
+                  Image.asset('assets/folder_icon.png'),
+                  SizedBox(width: 8),
                   Text('그룹'),
                 ],
               ),
-              trailing: Icon(Icons.keyboard_arrow_down, size: 24),
+              trailing: IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 24,
+                ),
+              ),
             ),
             ListTile(
               title: Text('그룹 이름 3'),
@@ -48,16 +55,22 @@ class _MainPageState extends State<MainPage> {
               contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
             ),
             ListTile(
-              title: Text('휴지통'),
+              title: Row(
+                children: [
+                  Image.asset('assets/trash_icon.png'),
+                  SizedBox(width: 8),
+                  Text('휴지통'),
+                ],
+              ),
             ),
             ListTile(
-              title: Text('설정'),
-            ),
-            ListTile(
-              title: Text('내용'),
-            ),
-            ListTile(
-              title: Text('내용'),
+              title: Row(
+                children: [
+                  Image.asset('assets/setting_icon.png'),
+                  SizedBox(width: 8),
+                  Text('설정'),
+                ],
+              ),
             ),
           ],
         ),
