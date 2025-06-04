@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
+import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
@@ -87,6 +88,15 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: const Text('메인 페이지로 이동'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UserProfilePage()),
+                );
+              },
+              child: const Text('프로필 수정'),
             ),
             ElevatedButton(
               onPressed: () async {
