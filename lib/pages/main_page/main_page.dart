@@ -24,35 +24,43 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildMenu() {
     return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            title: Text('그룹'),
-            trailing: Icon(Icons.keyboard_arrow_down),
-          ),
-          ListTile(
-            title: Text('그룹 이름 3'),
-            contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-          ),
-          ListTile(
-            title: Text('그룹 이름 3'),
-            contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-          ),
-          Divider(),
-          ListTile(
-            title: Text('휴지통'),
-          ),
-          ListTile(
-            title: Text('설정'),
-          ),
-          ListTile(
-            title: Text('내용'),
-          ),
-          ListTile(
-            title: Text('내용'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 47.5),
+            ListTile(
+              title: Row(
+                children: [
+                  Icon(Icons.folder_outlined),
+                  Text('그룹'),
+                ],
+              ),
+              trailing: Icon(Icons.keyboard_arrow_down, size: 24),
+            ),
+            ListTile(
+              title: Text('그룹 이름 3'),
+              contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
+            ),
+            ListTile(
+              title: Text('그룹 이름 3'),
+              contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
+            ),
+            ListTile(
+              title: Text('휴지통'),
+            ),
+            ListTile(
+              title: Text('설정'),
+            ),
+            ListTile(
+              title: Text('내용'),
+            ),
+            ListTile(
+              title: Text('내용'),
+            ),
+          ],
+        ),
       ),
     );
   }
