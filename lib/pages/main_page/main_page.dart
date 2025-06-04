@@ -31,64 +31,17 @@ class _MainPageState extends State<MainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 47.5),
-            ListTile(
-              onTap: () {
-                setState(() {
-                  _isGroupExpanded = !_isGroupExpanded;
-                });
-              },
-              title: Row(
-                children: [
-                  Image.asset(
-                    'assets/folder_icon.png',
-                    color: Color(0xffBFBFBF),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '그룹',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isGroupExpanded = !_isGroupExpanded;
-                  });
-                },
-                icon: Icon(
-                  _isGroupExpanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  size: 24,
-                ),
-              ),
-            ),
-            if (_isGroupExpanded) ...[
-              ListTile(
-                title: Text('그룹 이름 3'),
-                contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-              ),
-              ListTile(
-                title: Text('그룹 이름 3'),
-                contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
-              ),
-            ],
-            Column(
+            Row(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Image.asset(
-                      'assets/trash_icon.png',
+                      'assets/folder_icon.png',
                       color: Color(0xffBFBFBF),
                     ),
                     SizedBox(width: 8),
                     Text(
-                      '휴지통',
+                      '그룹',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -96,23 +49,81 @@ class _MainPageState extends State<MainPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 25),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isGroupExpanded = !_isGroupExpanded;
+                    });
+                  },
+                  icon: Icon(
+                    _isGroupExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
+            if (_isGroupExpanded) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 4, top: 24),
+                child: Column(
                   children: [
-                    Image.asset(
-                      'assets/setting_icon.png',
-                      color: Color(0xffBFBFBF),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Text(
+                        '그룹이름',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      '설정',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Text(
+                        '그룹이름',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+            SizedBox(height: 31),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image.asset(
+                  'assets/trash_icon.png',
+                  color: Color(0xffBFBFBF),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '휴지통',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 25),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image.asset(
+                  'assets/setting_icon.png',
+                  color: Color(0xffBFBFBF),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '설정',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
