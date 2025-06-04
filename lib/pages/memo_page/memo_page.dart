@@ -81,7 +81,15 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: () {
+          onPressed: () async {
+            if (mounted) {
+              await ref.read(pageViewModelProvider({
+                'groupId': widget.groupId,
+                'noteId': widget.noteId,
+                'pageId': widget.pageId,
+              }).notifier).saveToFirestore(_controller);
+            }
+
             Navigator.pop(context);
           },
         ),
