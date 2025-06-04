@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
+import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';

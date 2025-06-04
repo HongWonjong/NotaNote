@@ -1,119 +1,102 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:nota_note/models/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
+import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
-class UserProfilePage extends StatefulWidget {
+class UserProfilePage extends ConsumerWidget {
   const UserProfilePage({super.key});
 
   @override
-  State<UserProfilePage> createState() => _UserProfilePageState();
-}
-
-class _UserProfilePageState extends State<UserProfilePage> {
-  final _formKey = GlobalKey<FormState>();
-  final _displayNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _photoUrlController = TextEditingController();
-
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    final snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (snapshot.exists) {
-      final user = UserModel.fromJson(snapshot.data()!);
-      _displayNameController.text = user.displayName;
-      _emailController.text = user.email;
-      _photoUrlController.text = user.photoUrl;
-    }
-
-    setState(() {
-      _loading = false;
-    });
-  }
-
-  Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'displayName': _displayNameController.text.trim(),
-      'email': _emailController.text.trim(),
-      'photoUrl': _photoUrlController.text.trim(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('프로필이 수정되었습니다.')));
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userProfileViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('프로필 수정'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
+      appBar: AppBar(title: const Text('내 프로필')),
+      body: userAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, st) => Center(child: Text('에러: $e')),
+        data: (user) {
+          if (user == null) return const Center(child: Text('로그인이 필요합니다'));
+
+          return Column(
             children: [
-              TextFormField(
-                controller: _displayNameController,
-                decoration: const InputDecoration(labelText: '이름'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? '이름을 입력하세요.' : null,
+              // 회색 배경의 프로필 박스
+              Container(
+                width: double.infinity,
+                color: Colors.grey.shade200,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey,
+                          child: Text(
+                            user.displayName.characters.first,
+                            style: const TextStyle(
+                                fontSize: 24, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(user.displayName,
+                            style: const TextStyle(fontSize: 18)),
+                        const SizedBox(height: 4),
+                        Text(user.email,
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 16,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const UserProfileEditPage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text('수정',
+                            style: TextStyle(color: Colors.black)),
+                      ),
+                    )
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: '이메일'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? '이메일을 입력하세요.' : null,
+              const SizedBox(height: 16),
+              // 연결된 계정 목록
+              ListTile(
+                leading: const Icon(Icons.email),
+                title: Text(user.email),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _photoUrlController,
-                decoration: const InputDecoration(labelText: '프로필 이미지 URL'),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.add),
+                title: const Text('계정 추가하기'),
+                onTap: () {
+                  // TODO: 계정 추가 로직
+                },
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveChanges,
-                child: const Text('저장하기'),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('로그아웃'),
+                onTap: () {
+                  // TODO: 로그아웃 로직
+                },
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _displayNameController.dispose();
-    _emailController.dispose();
-    _photoUrlController.dispose();
-    super.dispose();
   }
 }

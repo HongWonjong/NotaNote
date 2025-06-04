@@ -50,4 +50,21 @@ class UserModel {
       'updatedAt': updatedAt,
     };
   }
+
+  UserModel copyWith({
+    String? displayName,
+    String? email,
+    String? photoUrl,
+  }) {
+    return UserModel(
+      userId: userId,
+      displayName: displayName ?? this.displayName,
+      email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
+      hashTag: hashTag,
+      loginProviders: loginProviders,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+    );
+  }
 }
