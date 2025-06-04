@@ -123,16 +123,13 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     final currentFontSize = _getCurrentFontSize();
 
     return Container(
+      width: double.infinity,
       color: Colors.grey[200],
       padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            IconButton(
-              icon: Icon(Icons.camera_alt),
-              onPressed: () {},
-            ),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -156,22 +153,16 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ],
             ),
             IconButton(
-              icon: Row(
-                children: [
-                  Icon(Icons.smart_toy),
-                  SizedBox(width: 4.0),
-                  Text('AI'),
-                ],
-              ),
-              onPressed: () {
-                print('AI 버튼 클릭');
-              },
+              icon: Icon(Icons.camera_alt),
+              onPressed: () {},
             ),
             IconButton(
-              icon: Icon(Icons.format_bold),
-              onPressed: () {
-                widget.controller.formatSelection(Attribute.bold);
-              },
+              icon: Icon(Icons.link),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Text('가', style: TextStyle(fontSize: 18.0)),
+              onPressed: () {},
             ),
             CompositedTransformTarget(
               link: _layerLink,
@@ -187,19 +178,82 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 ),
               ),
             ),
-            SizedBox(width: 8.0),
-            Row(
-              children: List.generate(5, (index) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.0),
-                child: Container(
-                  width: 8.0,
-                  height: 8.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: index == 2 ? Colors.black : Colors.grey,
-                  ),
-                ),
-              )),
+            IconButton(
+              icon: Icon(Icons.format_bold),
+              onPressed: () {
+                widget.controller.formatSelection(Attribute.bold);
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.format_italic),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_underline),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_strikethrough),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.palette),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.brush),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_align_left),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_align_center),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_align_right),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_align_justify),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_list_numbered),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_list_bulleted),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.check_box_outlined),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.code),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.table_chart),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_indent_increase),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.format_indent_decrease),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Text('AI'),
+
+              onPressed: () {
+                print('AI 버튼 클릭');
+              },
             ),
           ],
         ),
