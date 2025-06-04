@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
+import 'package:nota_note/pages/setting_page/settings_page.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final UserModel user;
+
+  const MainPage({super.key, required this.user});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -35,8 +39,8 @@ class _MainPageState extends State<MainPage> {
                   radius: 30,
                   backgroundColor: Colors.white,
                 ),
-                SizedBox(width: 15),
-                Text(
+                const SizedBox(width: 15),
+                const Text(
                   '프로필 정보',
                   style: TextStyle(
                     fontSize: 16,
@@ -46,29 +50,38 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
           ),
-          ListTile(
+          const ListTile(
             title: Text('그룹'),
             trailing: Icon(Icons.keyboard_arrow_down),
           ),
-          ListTile(
+          const ListTile(
             title: Text('그룹 이름 3'),
             contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
           ),
-          ListTile(
+          const ListTile(
             title: Text('그룹 이름 3'),
             contentPadding: EdgeInsets.only(left: 30.0, right: 16.0),
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            title: Text('휴지통'),
+            title: const Text('휴지통'),
+            onTap: () {},
           ),
           ListTile(
-            title: Text('설정'),
+            title: const Text('설정'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(user: widget.user),
+                ),
+              );
+            },
           ),
-          ListTile(
+          const ListTile(
             title: Text('내용'),
           ),
-          ListTile(
+          const ListTile(
             title: Text('내용'),
           ),
         ],
@@ -84,7 +97,7 @@ class _MainPageState extends State<MainPage> {
           elevation: 0,
           leading: IconButton(
             onPressed: _menuController.toggleMenu,
-            icon: Icon(
+            icon: const Icon(
               Icons.menu,
               color: Color(0xffB5B5B5),
               size: 24,
@@ -115,18 +128,16 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   '총 2개',
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(fontSize: 15),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,
-                    children: [
+                    children: const [
                       MainItem(title: '그룹 이름 3'),
                       SizedBox(height: 5),
                       MainItem(title: '그룹 이름 3'),

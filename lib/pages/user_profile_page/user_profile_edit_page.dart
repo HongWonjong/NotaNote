@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
 class UserProfileEditPage extends ConsumerStatefulWidget {
-  const UserProfileEditPage({super.key});
+  final UserModel user;
+
+  const UserProfileEditPage({super.key, required this.user});
 
   @override
   ConsumerState<UserProfileEditPage> createState() =>
@@ -18,9 +21,8 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    final user = ref.read(userProfileViewModelProvider).value;
-    _emailController = TextEditingController(text: user?.email ?? '');
-    _nameController = TextEditingController(text: user?.displayName ?? '');
+    _emailController = TextEditingController(text: widget.user.email);
+    _nameController = TextEditingController(text: widget.user.displayName);
   }
 
   @override
@@ -32,7 +34,8 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final userNotifier = ref.read(userProfileViewModelProvider.notifier);
+    final userNotifier =
+        ref.read(userProfileViewModelProvider(widget.user.userId).notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,10 +45,12 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
           TextButton(
             onPressed: () async {
               if (!_formKey.currentState!.validate()) return;
+
               await userNotifier.updateUser(
                 email: _emailController.text,
                 displayName: _nameController.text,
               );
+
               if (mounted) Navigator.pop(context);
             },
             child: const Text('완료'),
@@ -69,7 +74,8 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
                   filled: true,
                   fillColor: Colors.grey.shade100,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 validator: (val) => (val ?? '').isEmpty ? '이메일을 입력하세요' : null,
               ),
@@ -85,7 +91,8 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
                   filled: true,
                   fillColor: Colors.grey.shade100,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 validator: (val) => (val ?? '').isEmpty ? '닉네임을 입력하세요' : null,
               ),

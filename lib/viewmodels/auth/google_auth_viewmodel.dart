@@ -1,56 +1,64 @@
-// 인증 관련 비즈니스 로직을 처리하는 ViewModel
-// - 로그인/로그아웃 기능
-// - 소셜 로그인 (구글, 네이버, 카카오) 통합
-// - 유저 프로필 정보 관리
-// - 인증 상태 관리 및 감지
-
+// google_auth_viewmodel.dart
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
-import 'package:nota_note/services/auth_service.dart';
+import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
-final googleAuthViewModelProvider = Provider((ref) => GoogleAuthViewmodel());
+final googleAuthViewModelProvider =
+    Provider<GoogleAuthViewModel>((ref) => GoogleAuthViewModel());
 
-class GoogleAuthViewmodel {
-  final AuthService _authService = AuthService();
+class GoogleAuthViewModel {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Google 로그인 실행 후 Firestore에 사용자 데이터 저장
-  Future<UserCredential?> signInWithGoogle() async {
-    final userCredential = await _authService.signInWithGoogle();
-    final user = userCredential?.user;
+  User? get currentUser => _auth.currentUser;
 
-    if (user != null) {
-      final userModel = UserModel(
-        userId: user.uid,
-        displayName: user.displayName ?? 'NoName',
-        email: user.email ?? 'unknown@email.com',
-        photoUrl: user.photoURL ?? '',
-        hashTag: generateHashedTag(user.uid),
-        loginProviders: 'google',
-        createdAt: DateTime.now(), // 임시 표시, Firestore에서 서버시간으로 덮어씀
-        updatedAt: DateTime.now(),
+  Future<UserModel?> signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
-      // Firestore에 저장
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(userModel.toJson(), SetOptions(merge: true));
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user == null) return null;
 
-      // 서버 시간으로 createdAt, updatedAt 업데이트
-      await _firestore.collection('users').doc(user.uid).update({
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      final userId = user.uid;
+      final docRef = _firestore.collection('users').doc(userId);
+      final userDoc = await docRef.get();
 
-      return userCredential;
-    } else {
-      throw Exception("구글 로그인 실패");
+      if (!userDoc.exists) {
+        final newUser = UserModel(
+          userId: userId,
+          email: user.email ?? 'unknown@email.com',
+          displayName: user.displayName ?? 'Unknown',
+          photoUrl: user.photoURL ?? '',
+          hashTag: generateHashedTag(userId),
+          loginProviders: 'google',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await docRef.set(newUser.toJson(), SetOptions(merge: true));
+      }
+
+      await saveLoginUserId(userId);
+      await saveLoginProvider('google');
+
+      // 항상 최신 데이터 반환
+      final freshDoc = await docRef.get();
+      return UserModel.fromJson(freshDoc.data()!);
+    } catch (e, st) {
+      log('[구글 로그인 실패] $e', stackTrace: st);
+      return null;
     }
   }
-
-  User? get currentUser => FirebaseAuth.instance.currentUser;
 }
