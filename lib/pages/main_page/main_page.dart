@@ -77,67 +77,81 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildContent() {
-    return Column(
-      children: [
-        AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            onPressed: _menuController.toggleMenu,
-            icon: Icon(
-              Icons.menu,
-              color: Color(0xffB5B5B5),
-              size: 24,
-            ),
-          ),
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.search,
-                color: Color(0xffB1B1B1),
-                size: 24,
-              ),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.notifications_none,
+    return Scaffold(
+      body: Column(
+        children: [
+          AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              onPressed: _menuController.toggleMenu,
+              icon: Icon(
+                Icons.menu,
                 color: Color(0xffB5B5B5),
                 size: 24,
               ),
             ),
-          ],
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                Text(
-                  '총 2개',
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.search,
+                  color: Color(0xffB1B1B1),
+                  size: 24,
                 ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      MainItem(title: '그룹 이름 3'),
-                      SizedBox(height: 5),
-                      MainItem(title: '그룹 이름 3'),
-                    ],
-                  ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.notifications_none,
+                  color: Color(0xffB5B5B5),
+                  size: 24,
                 ),
-              ],
+              ),
+            ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20),
+                  Text(
+                    '총 2개',
+                    style: TextStyle(
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        MainItem(title: '그룹 이름 3'),
+                        SizedBox(height: 5),
+                        MainItem(title: '그룹 이름 3'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          //
+        },
+        backgroundColor: Color(0xFFEFEFEF),
+        shape: CircleBorder(),
+        elevation: 0,
+        child: Icon(
+          Icons.add,
+          size: 24,
         ),
-      ],
+      ),
     );
   }
 }
