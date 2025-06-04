@@ -200,7 +200,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(recordingState.isRecording ? Icons.stop : Icons.mic),
+                  icon: Icon(recordingState.isRecording ? Icons.stop : Icons.mic_none_rounded),
                   onPressed: () async {
                     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
                     if (recordingState.isRecording) {
