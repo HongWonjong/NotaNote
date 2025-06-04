@@ -33,6 +33,7 @@ class _MainPageState extends State<MainPage> {
           children: [
             SizedBox(height: 47.5),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
