@@ -28,6 +28,14 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   bool _isDropdownOpen = false;
   double _defaultFontSize = 16.0;
 
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(() {
+      setState(() {}); // 선택 또는 문서 변경 시 툴바 상태 갱신
+    });
+  }
+
   void _toggleDropdown(BuildContext context) {
     if (_isDropdownOpen) {
       _overlayEntry?.remove();
@@ -111,9 +119,21 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     return '$hours:$minutes:$seconds';
   }
 
+  bool _isFormatActive(Attribute attribute) {
+    final style = widget.controller.getSelectionStyle();
+    return style.attributes.containsKey(attribute.key) && style.attributes[attribute.key]!.value != null;
+  }
+
+  void _toggleFormat(Attribute attribute) {
+    final isActive = _isFormatActive(attribute);
+    widget.controller.formatSelection(isActive ? Attribute.clone(attribute, null) : attribute);
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _overlayEntry?.remove();
+    widget.controller.removeListener(() {}); // 리스너 제거
     super.dispose();
   }
 
@@ -180,21 +200,23 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.format_bold),
-              onPressed: () {
-                widget.controller.formatSelection(Attribute.bold);
-              },
+              color: _isFormatActive(Attribute.bold) ? Colors.blue : null,
+              onPressed: () => _toggleFormat(Attribute.bold),
             ),
             IconButton(
               icon: Icon(Icons.format_italic),
-              onPressed: () {},
+              color: _isFormatActive(Attribute.italic) ? Colors.blue : null,
+              onPressed: () => _toggleFormat(Attribute.italic),
             ),
             IconButton(
               icon: Icon(Icons.format_underline),
-              onPressed: () {},
+              color: _isFormatActive(Attribute.underline) ? Colors.blue : null,
+              onPressed: () => _toggleFormat(Attribute.underline),
             ),
             IconButton(
               icon: Icon(Icons.format_strikethrough),
-              onPressed: () {},
+              color: _isFormatActive(Attribute.strikeThrough) ? Colors.blue : null,
+              onPressed: () => _toggleFormat(Attribute.strikeThrough),
             ),
             IconButton(
               icon: Icon(Icons.palette),
@@ -250,7 +272,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Text('AI'),
-
               onPressed: () {
                 print('AI 버튼 클릭');
               },
