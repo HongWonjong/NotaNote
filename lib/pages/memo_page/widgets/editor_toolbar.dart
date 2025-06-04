@@ -32,7 +32,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   void initState() {
     super.initState();
     widget.controller.addListener(() {
-      setState(() {}); // 선택 또는 문서 변경 시 툴바 상태 갱신
+      setState(() {});
     });
   }
 
@@ -124,16 +124,62 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     return style.attributes.containsKey(attribute.key) && style.attributes[attribute.key]!.value != null;
   }
 
+  bool _isListActive(String listType) {
+    final style = widget.controller.getSelectionStyle();
+    return style.attributes.containsKey(Attribute.list.key) && style.attributes[Attribute.list.key]!.value == listType;
+  }
+
+  bool _isAlignActive(String alignType) {
+    final style = widget.controller.getSelectionStyle();
+    return style.attributes.containsKey(Attribute.align.key) && style.attributes[Attribute.align.key]!.value == alignType;
+  }
+
   void _toggleFormat(Attribute attribute) {
     final isActive = _isFormatActive(attribute);
     widget.controller.formatSelection(isActive ? Attribute.clone(attribute, null) : attribute);
     setState(() {});
   }
 
+  void _increaseIndent() {
+    final selection = widget.controller.selection;
+    if (selection.isValid) {
+      final style = widget.controller.getSelectionStyle();
+      final currentIndent = style.attributes['indent']?.value as int? ?? 0;
+      widget.controller.formatSelection(Attribute.fromKeyValue('indent', currentIndent + 1));
+      setState(() {});
+    }
+  }
+
+  void _decreaseIndent() {
+    final selection = widget.controller.selection;
+    if (selection.isValid) {
+      final style = widget.controller.getSelectionStyle();
+      final currentIndent = style.attributes['indent']?.value as int? ?? 0;
+      if (currentIndent > 0) {
+        widget.controller.formatSelection(Attribute.fromKeyValue('indent', currentIndent - 1));
+      } else {
+        widget.controller.formatSelection(Attribute.clone(Attribute.indent, null));
+      }
+      setState(() {});
+    }
+  }
+
+  void _toggleList(String listType) {
+    final isActive = _isListActive(listType);
+    widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.list, null) : Attribute.fromKeyValue('list', listType));
+    setState(() {});
+  }
+
+  void _toggleAlign(String alignType) {
+    final isActive = _isAlignActive(alignType);
+    widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.align, null) : Attribute.fromKeyValue('align', alignType));
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _overlayEntry?.remove();
-    widget.controller.removeListener(() {}); // 리스너 제거
+    widget.controller.removeListener(() {});
     super.dispose();
   }
 
@@ -228,31 +274,38 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.format_align_left),
-              onPressed: () {},
+              color: _isAlignActive('left') ? Colors.blue : null,
+              onPressed: () => _toggleAlign('left'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_center),
-              onPressed: () {},
+              color: _isAlignActive('center') ? Colors.blue : null,
+              onPressed: () => _toggleAlign('center'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_right),
-              onPressed: () {},
+              color: _isAlignActive('right') ? Colors.blue : null,
+              onPressed: () => _toggleAlign('right'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_justify),
-              onPressed: () {},
+              color: _isAlignActive('justify') ? Colors.blue : null,
+              onPressed: () => _toggleAlign('justify'),
             ),
             IconButton(
               icon: Icon(Icons.format_list_numbered),
-              onPressed: () {},
+              color: _isListActive('ordered') ? Colors.blue : null,
+              onPressed: () => _toggleList('ordered'),
             ),
             IconButton(
               icon: Icon(Icons.format_list_bulleted),
-              onPressed: () {},
+              color: _isListActive('bullet') ? Colors.blue : null,
+              onPressed: () => _toggleList('bullet'),
             ),
             IconButton(
               icon: Icon(Icons.check_box_outlined),
-              onPressed: () {},
+              color: _isListActive('checked') ? Colors.blue : null,
+              onPressed: () => _toggleList('checked'),
             ),
             IconButton(
               icon: Icon(Icons.code),
@@ -260,14 +313,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.table_chart),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.format_indent_increase),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.format_indent_decrease),
               onPressed: () {},
             ),
             IconButton(
