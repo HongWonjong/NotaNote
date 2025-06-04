@@ -65,74 +65,72 @@ class MainItem extends StatelessWidget {
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 59,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Color(0xff494949),
-              borderRadius: BorderRadius.circular(2),
+          SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 59,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Color(0xff494949),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            margin: EdgeInsets.symmetric(vertical: 12),
           ),
           Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+            padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 19),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: Text(
-                            '공유',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '공유',
+                      style: TextStyle(
+                        fontSize: 16,
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: Text(
-                            '이름 변경',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '이름 변경',
+                      style: TextStyle(
+                        fontSize: 16,
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: Text(
-                            '삭제',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '삭제',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.red,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
