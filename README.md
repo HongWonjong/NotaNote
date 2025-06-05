@@ -19,7 +19,7 @@ Master 브랜치에는 안정화된 출시 가능한 버전을 업로드 할 것
 **필드**:
 - **groupId** 🆔: `string` (노트 그룹 고유 ID, Firestore 문서 ID로 사용)
 - **group_name** 📛: `string` (노트 그룹 이름, 텍스트)
-- **ownerId** 👑: `string` (소유자 유저 ID, users 컬렉션의 userId 참조)
+- **ownerHashTag** 👑: `string` (소유자 유저 ID, users 컬렉션의 hashTag 참조, 이걸 기반으로 소유자의 메모 그룹을 탐색할 것)
 
 ## 1. 유저 데이터 👤
 

@@ -2,18 +2,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
-import 'pages/memo_page/memo_page.dart';
-import 'pages/main_page/main_page.dart';
-import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
+import 'package:nota_note/pages/main_page/main_page.dart';
+import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:nota_note/viewmodels/auth/auth_common.dart';
+import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:nota_note/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 초기화 로직 호출
-  await Initializer.initialize();
+  // Firebase 초기화
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
+  // Kakao SDK 초기화
   KakaoSdk.init(
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
@@ -22,27 +29,58 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+final userIdProvider = FutureProvider<String?>((ref) async {
+  return await getCurrentUserId();
+});
+
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // SharedPreferences에서 로그인된 사용자 ID 조회
+    final asyncUserId = ref.watch(userIdProvider);
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'NotaNote',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent),
-        appBarTheme: AppBarTheme(backgroundColor: Colors.white),
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: FirebaseAuth.instance.currentUser != null
-          ? const MyHomePage()
-          : const LoginPage(),
+      home: asyncUserId.when(
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (e, _) => Scaffold(body: Center(child: Text('에러: $e'))),
+        data: (userId) {
+          if (userId == null) {
+            // 로그인된 사용자 없음 → 로그인 페이지로 이동
+            return const LoginPage();
+          }
+
+          // 로그인된 사용자 있음 → 실시간 유저 정보 StreamProvider 구독
+          final userAsync = ref.watch(userProfileProvider(userId));
+
+          return userAsync.when(
+            loading: () => const Scaffold(
+                body: Center(child: CircularProgressIndicator())),
+            error: (e, _) =>
+                Scaffold(body: Center(child: Text('유저 정보 에러: $e'))),
+            data: (user) {
+              if (user == null) return const LoginPage();
+              return MyHomePage();
+            },
+          );
+        },
+      ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+  const MyHomePage({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +108,9 @@ class MyHomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MemoPage(
-                      groupId: 'group1', // 테스트용 값
-                      noteId: 'note1', // 테스트용 값
-                      pageId: 'page1', // 테스트용 값
+                      groupId: 'group1', // 테스트용
+                      noteId: 'note1',
+                      pageId: 'page1',
                     ),
                   ),
                 );
@@ -83,7 +121,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MainPage()),
+                  MaterialPageRoute(builder: (context) => MainPage()),
                 );
               },
               child: const Text('메인 페이지로 이동'),
