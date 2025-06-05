@@ -1,30 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/models/group_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
+import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   final SlidingMenuController _menuController = SlidingMenuController();
   bool _isGroupExpanded = false;
+  String? _newGroupName;
+  final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // 컴포넌트가 마운트되면 그룹 데이터 불러오기
+    Future.microtask(() => ref.read(groupViewModelProvider).fetchGroups());
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _showAddGroupDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('새 그룹 추가'),
+        content: TextField(
+          controller: _textController,
+          decoration: InputDecoration(hintText: '그룹 이름을 입력하세요'),
+          onChanged: (value) {
+            _newGroupName = value;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_newGroupName != null && _newGroupName!.isNotEmpty) {
+                ref.read(groupViewModelProvider).createGroup(_newGroupName!);
+                _textController.clear();
+                Navigator.pop(context);
+              }
+            },
+            child: Text('추가'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // 그룹 데이터 가져오기
+    final groupViewModel = ref.watch(groupViewModelProvider);
+    final groups = groupViewModel.groups;
+    final isLoading = groupViewModel.isLoading;
+    final error = groupViewModel.error;
+
     return SlidingMenuScaffold(
       controller: _menuController,
-      menuWidget: _buildMenu(),
-      contentWidget: _buildContent(),
+      menuWidget: _buildMenu(groups),
+      contentWidget: _buildContent(groups, isLoading, error),
       animationDuration: const Duration(milliseconds: 250),
       menuBackgroundColor: Colors.white,
     );
   }
 
-  Widget _buildMenu() {
+  Widget _buildMenu(List<GroupModel> groups) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 22),
@@ -51,18 +107,32 @@ class _MainPageState extends State<MainPage> {
                     ),
                   ],
                 ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _isGroupExpanded = !_isGroupExpanded;
-                    });
-                  },
-                  icon: Icon(
-                    _isGroupExpanded
-                        ? Icons.keyboard_arrow_down
-                        : Icons.keyboard_arrow_right,
-                    size: 24,
-                  ),
+                Row(
+                  children: [
+                    // 그룹 추가 버튼
+                    IconButton(
+                      onPressed: _showAddGroupDialog,
+                      icon: Icon(
+                        Icons.add,
+                        size: 18,
+                        color: Color(0xffBFBFBF),
+                      ),
+                    ),
+                    // 그룹 펼치기/접기 버튼
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _isGroupExpanded = !_isGroupExpanded;
+                        });
+                      },
+                      icon: Icon(
+                        _isGroupExpanded
+                            ? Icons.keyboard_arrow_down
+                            : Icons.keyboard_arrow_right,
+                        size: 24,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -70,25 +140,29 @@ class _MainPageState extends State<MainPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 4, top: 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: Text(
-                        '그룹이름',
-                        style: TextStyle(
-                          fontSize: 14,
+                    for (var group in groups)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Text(
+                          group.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: Text(
-                        '그룹이름',
-                        style: TextStyle(
-                          fontSize: 14,
+                    if (groups.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Text(
+                          '그룹이 없습니다',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -135,7 +209,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(List<GroupModel> groups, bool isLoading, String? error) {
     return Scaffold(
       body: Column(
         children: [
@@ -176,22 +250,35 @@ class _MainPageState extends State<MainPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 20),
-                  Text(
-                    '총 2개',
-                    style: TextStyle(
-                      fontSize: 15,
+                  if (isLoading)
+                    Center(child: CircularProgressIndicator())
+                  else if (error != null)
+                    Text(
+                      error,
+                      style: TextStyle(color: Colors.red),
+                    )
+                  else
+                    Text(
+                      '총 ${groups.length}개',
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
                   SizedBox(height: 16),
                   Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        MainItem(title: '그룹 이름 3'),
-                        SizedBox(height: 5),
-                        MainItem(title: '그룹 이름 3'),
-                      ],
-                    ),
+                    child: isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : groups.isEmpty
+                            ? Center(child: Text('그룹이 없습니다'))
+                            : ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemCount: groups.length,
+                                separatorBuilder: (context, index) =>
+                                    SizedBox(height: 5),
+                                itemBuilder: (context, index) {
+                                  return MainItem(title: groups[index].name);
+                                },
+                              ),
                   ),
                 ],
               ),
@@ -200,9 +287,7 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          //
-        },
+        onPressed: _showAddGroupDialog,
         backgroundColor: Color(0xFFEFEFEF),
         shape: CircleBorder(),
         elevation: 0,
