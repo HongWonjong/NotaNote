@@ -97,7 +97,7 @@ class _SlidingMenuScaffoldState extends State<SlidingMenuScaffold> {
                 if (_isMenuOpen)
                   Positioned.fill(
                     child: Material(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(0.3),
                       child: InkWell(
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
