@@ -7,7 +7,7 @@ class TagWidget extends ConsumerStatefulWidget {
   final String groupId;
   final String noteId;
 
-  TagWidget({required this.groupId, required this.noteId});
+  TagWidget({super.key, required this.groupId, required this.noteId});
 
   @override
   _TagWidgetState createState() => _TagWidgetState();
@@ -65,90 +65,96 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final tags = ref.watch(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}));
+    final tags = ref.watch(tagListProvider);
     print('Building TagWidget, tags: $tags');
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_isLoading)
-            Center(child: CircularProgressIndicator())
-          else if (tags.isNotEmpty)
-            Wrap(
-              spacing: 8.0,
-              children: tags.map((tag) {
-                return Chip(
-                  label: Text(tag),
-                  deleteIcon: Icon(Icons.close, size: 16.0),
-                  onDeleted: () => _removeTag(tag),
-                  backgroundColor: Colors.grey[200],
-                );
-              }).toList(),
-            ),
-          if (_isAddingTag)
-            Row(
+            const Center(child: CircularProgressIndicator())
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _tagController,
-                    decoration: InputDecoration(
-                      hintText: '태그 입력 (예: #프로젝트)',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        alignment: WrapAlignment.start,
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children: [
+                          ...tags.map((tag) {
+                            return Chip(
+                              label: Text(tag, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                              backgroundColor: Colors.grey[200],
+                            );
+                          }).toList(),
+                          Container(
+                            decoration: ShapeDecoration(
+                              color: Colors.grey[200],
+                              shape: const CupertinoRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(6)),
+                              ),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.add, size: 20.0, color: Colors.black),
+                              onPressed: () {
+                                print('Tag add button pressed');
+                                if (mounted) {
+                                  setState(() {
+                                    _isAddingTag = true;
+                                  });
+                                }
+                              },
+                              padding: const EdgeInsets.all(4.0),
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    onSubmitted: _addTag,
-                    autofocus: true,
+                  ],
+                ),
+                if (_isAddingTag)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _tagController,
+                            decoration: const InputDecoration(
+                              hintText: '해시태그를 입력해주세요',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                            ),
+                            onSubmitted: _addTag,
+                            autofocus: true,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.check),
+                          onPressed: () => _addTag(_tagController.text),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            if (mounted) {
+                              setState(() {
+                                _isAddingTag = false;
+                                _tagController.clear();
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.check),
-                  onPressed: () => _addTag(_tagController.text),
-                ),
-                IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () {
-                    if (mounted) {
-                      setState(() {
-                        _isAddingTag = false;
-                        _tagController.clear();
-                      });
-                    }
-                  },
-                ),
               ],
-            )
-          else if (!_isAddingTag && tags.isEmpty)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                decoration: ShapeDecoration(
-                  color: Colors.grey[200],
-                  shape: CupertinoRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: TextButton.icon(
-                  icon: Icon(Icons.add, size: 20.0),
-                  label: Text(
-                    '해시태그를 입력해주세요',
-                    style: TextStyle(fontSize: 16.0, color: Colors.grey),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                  ),
-                  onPressed: () {
-                    print('Tag add button pressed');
-                    if (mounted) {
-                      setState(() {
-                        _isAddingTag = true;
-                      });
-                    }
-                  },
-                ),
-              ),
             ),
         ],
       ),
