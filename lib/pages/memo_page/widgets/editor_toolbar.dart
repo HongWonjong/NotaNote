@@ -250,7 +250,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ],
             ),
             IconButton(
-              icon: Icon(Icons.camera_alt),
+              icon: Icon(Icons.camera_alt_outlined),
               onPressed: () {},
             ),
             IconButton(
