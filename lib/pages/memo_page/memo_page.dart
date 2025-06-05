@@ -150,8 +150,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             ),
             if (isBoxVisible)
               Positioned(
-                bottom: 100.0,
-                right: 16.0,
+                bottom: 80.0,
+                right: 22.0,
                 child: RecordingControllerBox(),
               ),
           ],
