@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 class MainItem extends StatelessWidget {
   final String title;
+  final VoidCallback? onTap;
 
   const MainItem({
     required this.title,
+    this.onTap,
     super.key,
   });
 
@@ -25,7 +27,7 @@ class MainItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showBottomSheet(context),
+      onTap: onTap ?? () => _showBottomSheet(context),
       child: Container(
         width: double.infinity,
         height: 62,
