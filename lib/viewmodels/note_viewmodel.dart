@@ -83,6 +83,22 @@ class NoteViewModel extends StateNotifier<Note?> {
       print('Firestore 저장 실패: $e');
     }
   }
+
+  void addTag(String tag) {
+    if (state != null) {
+      final updatedTags = [...state!.tags, tag];
+      state = state!.copyWith(tags: updatedTags);
+      saveToFirestore();
+    }
+  }
+
+  void removeTag(String tag) {
+    if (state != null) {
+      final updatedTags = state!.tags.where((t) => t != tag).toList();
+      state = state!.copyWith(tags: updatedTags);
+      saveToFirestore();
+    }
+  }
 }
 
 final noteViewModelProvider = StateNotifierProvider.family<NoteViewModel, Note?, Map<String, String>>(

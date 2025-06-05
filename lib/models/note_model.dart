@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/page_model.dart';
 import 'package:nota_note/models/comment_model.dart';
@@ -55,5 +54,19 @@ class Note {
       'updatedAt': updatedAt,
     };
   }
-}
 
+  Note copyWith({List<String>? tags}) {
+    return Note(
+      noteId: this.noteId,
+      title: this.title,
+      ownerId: this.ownerId,
+      isPublic: this.isPublic,
+      tags: tags ?? this.tags,
+      permissions: this.permissions,
+      createdAt: this.createdAt,
+      updatedAt: Timestamp.now(),
+      pages: this.pages,
+      comments: this.comments,
+    );
+  }
+}
