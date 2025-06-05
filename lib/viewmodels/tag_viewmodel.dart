@@ -12,7 +12,6 @@ class TagViewModel extends StateNotifier<List<String>> {
 
   Future<void> loadTags() async {
     try {
-      print('Loading tags from Firestore: notegroups/$groupId/notes/$noteId');
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -25,9 +24,7 @@ class TagViewModel extends StateNotifier<List<String>> {
         final tags = List<String>.from(data['tags'] ?? []);
         state = tags;
         ref.read(tagListProvider.notifier).state = tags;
-        print('Loaded tags: $tags');
       } else {
-        print('Note document does not exist, initializing empty tags');
         state = [];
         ref.read(tagListProvider.notifier).state = [];
         await FirebaseFirestore.instance
@@ -37,24 +34,19 @@ class TagViewModel extends StateNotifier<List<String>> {
             .doc(noteId)
             .set({'tags': [], 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
       }
-    } catch (e) {
-      print('Firestore load failed: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> addTag(String tag) async {
     if (tag.isEmpty) {
-      print('Cannot add empty tag');
       return;
     }
     final formattedTag = tag.startsWith('#') ? tag : '#$tag';
     if (state.contains(formattedTag)) {
-      print('Tag already exists: $formattedTag');
       return;
     }
 
     try {
-      print('Adding tag: $formattedTag');
       await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -64,10 +56,8 @@ class TagViewModel extends StateNotifier<List<String>> {
         'tags': FieldValue.arrayUnion([formattedTag]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('Tag added successfully: $formattedTag');
       await loadTags();
     } catch (e) {
-      print('Firestore save failed: $e');
       state = state.where((t) => t != formattedTag).toList();
       ref.read(tagListProvider.notifier).state = state;
     }
@@ -75,7 +65,6 @@ class TagViewModel extends StateNotifier<List<String>> {
 
   Future<void> removeTag(String tag) async {
     try {
-      print('Removing tag from Firestore: $tag, current state: $state');
       await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -85,10 +74,8 @@ class TagViewModel extends StateNotifier<List<String>> {
         'tags': FieldValue.arrayRemove([tag]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('Tag removed successfully from Firestore: $tag');
       await loadTags();
     } catch (e) {
-      print('Firestore delete failed: $e');
       state = [...state, tag];
       ref.read(tagListProvider.notifier).state = state;
     }
