@@ -7,6 +7,7 @@ import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
 import 'package:nota_note/pages/memo_page/widgets/overlay_widgets.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
+import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'dart:async';
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -89,7 +90,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 'pageId': widget.pageId,
               }).notifier).saveToFirestore(_controller);
             }
-
             Navigator.pop(context);
           },
         ),
@@ -119,6 +119,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           children: [
             Column(
               children: [
+                TagWidget(groupId: widget.groupId, noteId: widget.noteId),
                 Expanded(
                   child: Stack(
                     children: [

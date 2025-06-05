@@ -19,35 +19,62 @@ class NoteViewModel extends StateNotifier<Note?> {
           .doc(noteId)
           .get();
 
-      QuerySnapshot pageDocs = await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .collection('pages')
-          .get();
+      List<Page> pages = [];
+      List<Comment> comments = [];
 
-      QuerySnapshot commentDocs = await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .collection('comments')
-          .get();
+      try {
+        QuerySnapshot pageDocs = await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('pages')
+            .get();
+        pages = pageDocs.docs.map((pageDoc) {
+          return Page.fromFirestore(pageDoc, []);
+        }).toList();
+      } catch (e) {
+      }
 
-      final pages = pageDocs.docs.map((pageDoc) => Page.fromFirestore(pageDoc, [])).toList();
-      final comments = commentDocs.docs.map((commentDoc) => Comment.fromFirestore(commentDoc)).toList();
+      try {
+        QuerySnapshot commentDocs = await FirebaseFirestore.instance
+            .collection('notegroups')
+            .doc(groupId)
+            .collection('notes')
+            .doc(noteId)
+            .collection('comments')
+            .get();
+        comments = commentDocs.docs.map((commentDoc) {
+          return Comment.fromFirestore(commentDoc);
+        }).toList();
+      } catch (e) {
+      }
 
       if (doc.exists) {
         state = Note.fromFirestore(doc, pages, comments);
+      } else {
+        state = Note(
+          noteId: noteId,
+          title: '새 노트',
+          ownerId: '',
+          isPublic: false,
+          tags: [],
+          permissions: {},
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+          pages: [],
+          comments: [],
+        );
+        await saveToFirestore();
       }
     } catch (e) {
-      print('Firestore 로드 실패: $e');
     }
   }
 
   Future<void> saveToFirestore() async {
-    if (state == null) return;
+    if (state == null) {
+      return;
+    }
 
     try {
       await FirebaseFirestore.instance
@@ -55,32 +82,36 @@ class NoteViewModel extends StateNotifier<Note?> {
           .doc(groupId)
           .collection('notes')
           .doc(noteId)
-          .set(state!.toFirestore());
+          .set(state!.toFirestore(), SetOptions(merge: true));
 
       for (var page in state!.pages) {
-        await FirebaseFirestore.instance
-            .collection('notegroups')
-            .doc(groupId)
-            .collection('notes')
-            .doc(noteId)
-            .collection('pages')
-            .doc(page.noteId)
-            .set(page.toFirestore());
+        try {
+          await FirebaseFirestore.instance
+              .collection('notegroups')
+              .doc(groupId)
+              .collection('notes')
+              .doc(noteId)
+              .collection('pages')
+              .doc(page.noteId)
+              .set(page.toFirestore());
+        } catch (e) {
+        }
       }
 
       for (var comment in state!.comments) {
-        await FirebaseFirestore.instance
-            .collection('notegroups')
-            .doc(groupId)
-            .collection('notes')
-            .doc(noteId)
-            .collection('comments')
-            .doc(comment.commentId)
-            .set(comment.toFirestore());
+        try {
+          await FirebaseFirestore.instance
+              .collection('notegroups')
+              .doc(groupId)
+              .collection('notes')
+              .doc(noteId)
+              .collection('comments')
+              .doc(comment.commentId)
+              .set(comment.toFirestore());
+        } catch (e) {
+        }
       }
-      print('Firestore에 저장 성공');
     } catch (e) {
-      print('Firestore 저장 실패: $e');
     }
   }
 }
