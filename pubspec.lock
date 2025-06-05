@@ -193,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  cupertino_rrect:
+    dependency: "direct main"
+    description:
+      name: cupertino_rrect
+      sha256: fa11fbc563f49f5dca7d0623eb1bf51b2393bd35344c4eb54eb44c6255ee28b1
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   dart_quill_delta:
     dependency: transitive
     description:

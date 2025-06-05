@@ -12,6 +12,7 @@ dependencies:
   kakao_flutter_sdk: ^1.9.7+3
   flutter_sound: ^9.28.0
   audioplayers: ^6.4.0
+  cupertino_rrect: ^0.0.2
   path_provider: ^2.1.0
   permission_handler: ^12.0.0+1
   kakao_flutter_sdk_user: ^1.9.7+3
