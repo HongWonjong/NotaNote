@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
@@ -145,10 +146,13 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   }
 
   String _formatDuration(Duration duration) {
-    final hours = duration.inHours.toString().padLeft(2, '0');
     final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
     final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
+    if (duration.inMinutes >= 60) {
+      final hours = duration.inHours.toString().padLeft(2, '0');
+      return '$hours:$minutes:$seconds';
+    }
+    return '$minutes:$seconds';
   }
 
   bool _isFormatActive(Attribute attribute) {
@@ -227,7 +231,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            Column(
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
@@ -243,9 +247,16 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   },
                 ),
                 if (recordingState.isRecording)
-                  Text(
-                    _formatDuration(recordingState.recordingDuration),
-                    style: TextStyle(fontSize: 12.0, color: Colors.black),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      _formatDuration(recordingState.recordingDuration),
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
               ],
             ),
