@@ -55,8 +55,6 @@ class TagViewModel extends StateNotifier<List<String>> {
 
     try {
       print('Adding tag: $formattedTag');
-      state = [...state, formattedTag];
-      ref.read(tagListProvider.notifier).state = state;
       await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -66,9 +64,12 @@ class TagViewModel extends StateNotifier<List<String>> {
         'tags': FieldValue.arrayUnion([formattedTag]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('Tag added successfully: $formattedTag, current tags: $state');
+      print('Tag added successfully: $formattedTag');
+      // Firestore에서 최신 태그 리스트를 다시 가져와 프로바이더 갱신
+      await loadTags();
     } catch (e) {
       print('Firestore save failed: $e');
+      // 실패 시 로컬 상태 롤백
       state = state.where((t) => t != formattedTag).toList();
       ref.read(tagListProvider.notifier).state = state;
     }
