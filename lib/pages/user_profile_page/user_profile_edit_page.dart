@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
-class UserProfileEditPage extends ConsumerStatefulWidget {
+class UserProfileEditPage extends StatefulWidget {
   final UserModel user;
 
   const UserProfileEditPage({super.key, required this.user});
 
   @override
-  ConsumerState<UserProfileEditPage> createState() =>
-      _UserProfileEditPageState();
+  State<UserProfileEditPage> createState() => _UserProfileEditPageState();
 }
 
-class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
+class _UserProfileEditPageState extends State<UserProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
   late TextEditingController _nameController;
@@ -34,9 +32,6 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final userNotifier =
-        ref.read(userProfileViewModelProvider(widget.user.userId).notifier);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('프로필 수정'),
@@ -46,7 +41,9 @@ class _UserProfileEditPageState extends ConsumerState<UserProfileEditPage> {
             onPressed: () async {
               if (!_formKey.currentState!.validate()) return;
 
-              await userNotifier.updateUser(
+              // Firestore 업데이트 함수 호출
+              await updateUserProfile(
+                userId: widget.user.userId,
                 email: _emailController.text,
                 displayName: _nameController.text,
               );

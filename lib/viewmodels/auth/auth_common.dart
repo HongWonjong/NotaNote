@@ -1,9 +1,13 @@
 // auth_common.dart
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+
+/// 현재 로그인된 사용자 ID를 저장하는 StateProvider
+final userIdProvider = StateProvider<String?>((ref) => null);
 
 /// UID로부터 SHA256 해시를 생성하고, 앞 6자리만 잘라서 해시태그 생성
 String generateHashedTag(String uid) {

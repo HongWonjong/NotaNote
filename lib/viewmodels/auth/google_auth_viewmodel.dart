@@ -1,4 +1,4 @@
-// google_auth_viewmodel.dart
+// viewmodels/auth/google_auth_viewmodel.dart
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +9,12 @@ import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
 final googleAuthViewModelProvider =
-    Provider<GoogleAuthViewModel>((ref) => GoogleAuthViewModel());
+    Provider<GoogleAuthViewModel>((ref) => GoogleAuthViewModel(ref));
 
 class GoogleAuthViewModel {
+  final Ref ref;
+  GoogleAuthViewModel(this.ref);
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -52,8 +55,8 @@ class GoogleAuthViewModel {
 
       await saveLoginUserId(userId);
       await saveLoginProvider('google');
+      ref.read(userIdProvider.notifier).state = userId;
 
-      // 항상 최신 데이터 반환
       final freshDoc = await docRef.get();
       return UserModel.fromJson(freshDoc.data()!);
     } catch (e, st) {

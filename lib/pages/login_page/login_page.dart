@@ -51,7 +51,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => MyHomePage(user: user),
+                          builder: (_) => MyHomePage(),
                         ),
                       );
                     },
@@ -84,7 +84,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => MyHomePage(user: user),
+                          builder: (_) => MyHomePage(),
                         ),
                       );
                     },
