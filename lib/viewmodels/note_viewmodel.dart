@@ -12,6 +12,7 @@ class NoteViewModel extends StateNotifier<Note?> {
 
   Future<void> loadFromFirestore() async {
     try {
+      print('Loading note from Firestore: notegroups/$groupId/notes/$noteId');
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -19,84 +20,116 @@ class NoteViewModel extends StateNotifier<Note?> {
           .doc(noteId)
           .get();
 
-      QuerySnapshot pageDocs = await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .collection('pages')
-          .get();
+      List<Page> pages = [];
+      List<Comment> comments = [];
 
-      QuerySnapshot commentDocs = await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .collection('comments')
-          .get();
-
-      final pages = pageDocs.docs.map((pageDoc) => Page.fromFirestore(pageDoc, [])).toList();
-      final comments = commentDocs.docs.map((commentDoc) => Comment.fromFirestore(commentDoc)).toList();
-
-      if (doc.exists) {
-        state = Note.fromFirestore(doc, pages, comments);
-      }
-    } catch (e) {
-      print('Firestore 로드 실패: $e');
-    }
-  }
-
-  Future<void> saveToFirestore() async {
-    if (state == null) return;
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .set(state!.toFirestore());
-
-      for (var page in state!.pages) {
-        await FirebaseFirestore.instance
+      try {
+        QuerySnapshot pageDocs = await FirebaseFirestore.instance
             .collection('notegroups')
             .doc(groupId)
             .collection('notes')
             .doc(noteId)
             .collection('pages')
-            .doc(page.noteId)
-            .set(page.toFirestore());
+            .get();
+        pages = pageDocs.docs.map((pageDoc) {
+          print('Loading page: ${pageDoc.id}');
+          return Page.fromFirestore(pageDoc, []);
+        }).toList();
+        print('Loaded ${pages.length} pages');
+      } catch (e) {
+        print('Failed to load pages: $e');
       }
 
-      for (var comment in state!.comments) {
-        await FirebaseFirestore.instance
+      try {
+        QuerySnapshot commentDocs = await FirebaseFirestore.instance
             .collection('notegroups')
             .doc(groupId)
             .collection('notes')
             .doc(noteId)
             .collection('comments')
-            .doc(comment.commentId)
-            .set(comment.toFirestore());
+            .get();
+        comments = commentDocs.docs.map((commentDoc) {
+          print('Loading comment: ${commentDoc.id}');
+          return Comment.fromFirestore(commentDoc);
+        }).toList();
+        print('Loaded ${comments.length} comments');
+      } catch (e) {
+        print('Failed to load comments: $e');
       }
-      print('Firestore에 저장 성공');
+
+      if (doc.exists) {
+        state = Note.fromFirestore(doc, pages, comments);
+        print('Loaded note: ${state!.tags}');
+      } else {
+        print('Note document does not exist, creating default');
+        state = Note(
+          noteId: noteId,
+          title: '새 노트',
+          ownerId: '',
+          isPublic: false,
+          tags: [],
+          permissions: {},
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+          pages: [],
+          comments: [],
+        );
+        await saveToFirestore();
+      }
     } catch (e) {
-      print('Firestore 저장 실패: $e');
+      print('Firestore load failed: $e');
     }
   }
 
-  void addTag(String tag) {
-    if (state != null) {
-      final updatedTags = [...state!.tags, tag];
-      state = state!.copyWith(tags: updatedTags);
-      saveToFirestore();
+  Future<void> saveToFirestore() async {
+    if (state == null) {
+      print('No note to save');
+      return;
     }
-  }
 
-  void removeTag(String tag) {
-    if (state != null) {
-      final updatedTags = state!.tags.where((t) => t != tag).toList();
-      state = state!.copyWith(tags: updatedTags);
-      saveToFirestore();
+    try {
+      print('Saving note to Firestore: ${state!.tags}');
+      await FirebaseFirestore.instance
+          .collection('notegroups')
+          .doc(groupId)
+          .collection('notes')
+          .doc(noteId)
+          .set(state!.toFirestore(), SetOptions(merge: true));
+
+      for (var page in state!.pages) {
+        try {
+          print('Saving page: ${page.noteId}');
+          await FirebaseFirestore.instance
+              .collection('notegroups')
+              .doc(groupId)
+              .collection('notes')
+              .doc(noteId)
+              .collection('pages')
+              .doc(page.noteId)
+              .set(page.toFirestore());
+        } catch (e) {
+          print('Failed to save page ${page.noteId}: $e');
+        }
+      }
+
+      for (var comment in state!.comments) {
+        try {
+          print('Saving comment: ${comment.commentId}');
+          await FirebaseFirestore.instance
+              .collection('notegroups')
+              .doc(groupId)
+              .collection('notes')
+              .doc(noteId)
+              .collection('comments')
+              .doc(comment.commentId)
+              .set(comment.toFirestore());
+        } catch (e) {
+          print('Failed to save comment ${comment.commentId}: $e');
+        }
+      }
+      print('Firestore save successful: ${state!.tags}');
+    } catch (e) {
+      print('Firestore save failed: $e');
     }
   }
 }

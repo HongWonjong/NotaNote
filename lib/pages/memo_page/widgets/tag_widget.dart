@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/viewmodels/note_viewmodel.dart';
+import 'package:nota_note/viewmodels/tag_viewmodel.dart';
 import 'package:cupertino_rrect/cupertino_rrect.dart';
 
 class TagWidget extends ConsumerStatefulWidget {
@@ -16,13 +16,21 @@ class TagWidget extends ConsumerStatefulWidget {
 class _TagWidgetState extends ConsumerState<TagWidget> {
   final TextEditingController _tagController = TextEditingController();
   bool _isAddingTag = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(noteViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).loadFromFirestore();
+        print('Initializing TagWidget for groupId: ${widget.groupId}, noteId: ${widget.noteId}');
+        ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).loadTags().then((_) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        });
       }
     });
   }
@@ -34,44 +42,51 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   }
 
   void _addTag(String tag) {
-    if (tag.isNotEmpty && !tag.startsWith('#')) {
-      tag = '#$tag';
-    }
-    if (tag.length > 1) {
-      ref.read(noteViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).addTag(tag);
-      _tagController.clear();
-      setState(() {
-        _isAddingTag = false;
-      });
+    if (!mounted) return;
+    print('Attempting to add tag: $tag');
+    if (tag.isNotEmpty) {
+      ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).addTag(tag);
+      if (mounted) {
+        setState(() {
+          _isAddingTag = false;
+          _tagController.clear();
+        });
+      }
+    } else {
+      print('Tag is empty');
     }
   }
 
   void _removeTag(String tag) {
-    ref.read(noteViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).removeTag(tag);
+    if (!mounted) return;
+    print('Attempting to remove tag: $tag');
+    ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).removeTag(tag);
   }
 
   @override
   Widget build(BuildContext context) {
-    final note = ref.watch(noteViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}));
+    final tags = ref.watch(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}));
+    print('Building TagWidget, tags: $tags');
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (note != null)
-            if (note.tags.isNotEmpty)
-              Wrap(
-                spacing: 8.0,
-                children: note.tags.map((tag) {
-                  return Chip(
-                    label: Text(tag),
-                    deleteIcon: Icon(Icons.close, size: 16.0),
-                    onDeleted: () => _removeTag(tag),
-                    backgroundColor: Colors.grey[200],
-                  );
-                }).toList(),
-              ),
+          if (_isLoading)
+            Center(child: CircularProgressIndicator())
+          else if (tags.isNotEmpty)
+            Wrap(
+              spacing: 8.0,
+              children: tags.map((tag) {
+                return Chip(
+                  label: Text(tag),
+                  deleteIcon: Icon(Icons.close, size: 16.0),
+                  onDeleted: () => _removeTag(tag),
+                  backgroundColor: Colors.grey[200],
+                );
+              }).toList(),
+            ),
           if (_isAddingTag)
             Row(
               children: [
@@ -94,15 +109,17 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                 IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () {
-                    setState(() {
-                      _isAddingTag = false;
-                      _tagController.clear();
-                    });
+                    if (mounted) {
+                      setState(() {
+                        _isAddingTag = false;
+                        _tagController.clear();
+                      });
+                    }
                   },
                 ),
               ],
             )
-          else if (note == null || note.tags.isEmpty)
+          else if (!_isAddingTag && tags.isEmpty)
             Align(
               alignment: Alignment.centerLeft,
               child: Container(
@@ -123,9 +140,12 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                     padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                   ),
                   onPressed: () {
-                    setState(() {
-                      _isAddingTag = true;
-                    });
+                    print('Tag add button pressed');
+                    if (mounted) {
+                      setState(() {
+                        _isAddingTag = true;
+                      });
+                    }
                   },
                 ),
               ),
