@@ -17,6 +17,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   final TextEditingController _tagController = TextEditingController();
   bool _isAddingTag = false;
   bool _isLoading = true;
+  String? _selectedTag;
 
   @override
   void initState() {
@@ -59,8 +60,13 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
 
   void _removeTag(String tag) {
     if (!mounted) return;
-    print('Attempting to remove tag: $tag');
+    print('X button clicked for tag: $tag');
     ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).removeTag(tag);
+    if (mounted) {
+      setState(() {
+        _selectedTag = null;
+      });
+    }
   }
 
   @override
@@ -88,9 +94,50 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                         runSpacing: 4.0,
                         children: [
                           ...tags.map((tag) {
-                            return Chip(
-                              label: Text(tag, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                              backgroundColor: Colors.grey[200],
+                            final isSelected = _selectedTag == tag;
+                            return GestureDetector(
+                              onTap: () {
+                                if (mounted) {
+                                  print('Tag clicked: $tag');
+                                  setState(() {
+                                    _selectedTag = isSelected ? null : tag;
+                                  });
+                                }
+                              },
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Chip(
+                                    label: Text(
+                                      tag,
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    ),
+                                    backgroundColor: Colors.grey[200],
+                                  ),
+                                  if (isSelected)
+                                    Positioned(
+                                      right: -8.0,
+                                      top: -8.0,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          print('X button tapped for tag: $tag');
+                                          _removeTag(tag);
+                                        },
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 16.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             );
                           }).toList(),
                           Container(

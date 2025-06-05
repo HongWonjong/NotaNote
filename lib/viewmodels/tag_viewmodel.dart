@@ -65,26 +65,17 @@ class TagViewModel extends StateNotifier<List<String>> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
       print('Tag added successfully: $formattedTag');
-      // Firestore에서 최신 태그 리스트를 다시 가져와 프로바이더 갱신
       await loadTags();
     } catch (e) {
       print('Firestore save failed: $e');
-      // 실패 시 로컬 상태 롤백
       state = state.where((t) => t != formattedTag).toList();
       ref.read(tagListProvider.notifier).state = state;
     }
   }
 
   Future<void> removeTag(String tag) async {
-    if (!state.contains(tag)) {
-      print('Tag does not exist: $tag');
-      return;
-    }
-
     try {
-      print('Removing tag: $tag');
-      state = state.where((t) => t != tag).toList();
-      ref.read(tagListProvider.notifier).state = state;
+      print('Removing tag from Firestore: $tag, current state: $state');
       await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -94,7 +85,8 @@ class TagViewModel extends StateNotifier<List<String>> {
         'tags': FieldValue.arrayRemove([tag]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('Tag removed successfully: $tag, current tags: $state');
+      print('Tag removed successfully from Firestore: $tag');
+      await loadTags();
     } catch (e) {
       print('Firestore delete failed: $e');
       state = [...state, tag];
