@@ -145,10 +145,24 @@ class _MainPageState extends ConsumerState<MainPage> {
                     for (var group in groups)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 14),
-                        child: Text(
-                          group.name,
-                          style: TextStyle(
-                            fontSize: 14,
+                        child: GestureDetector(
+                          onTap: () {
+                            // 선택한 그룹 정보 표시
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    '${group.name} 그룹 선택됨 (ID: ${group.id})'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            // 메뉴 닫기
+                            _menuController.closeMenu();
+                          },
+                          child: Text(
+                            group.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -276,7 +290,32 @@ class _MainPageState extends ConsumerState<MainPage> {
                                 separatorBuilder: (context, index) =>
                                     SizedBox(height: 5),
                                 itemBuilder: (context, index) {
-                                  return MainItem(title: groups[index].name);
+                                  return MainItem(
+                                    title: groups[index].name,
+                                    onTap: () {
+                                      // 그룹 ID로 노트 목록을 가져오는 로직
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                      // 추후 노트 목록 페이지 구현 후 아래 코드 활성화
+                                      /*
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => NoteListPage(
+                                            groupId: groups[index].id,
+                                            groupName: groups[index].name,
+                                          ),
+                                        ),
+                                      );
+                                      */
+                                    },
+                                  );
                                 },
                               ),
                   ),
