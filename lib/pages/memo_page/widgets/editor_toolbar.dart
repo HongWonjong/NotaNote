@@ -26,7 +26,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
   bool _isDropdownOpen = false;
-  double _defaultFontSize = 16.0;
 
   @override
   void initState() {
@@ -52,46 +51,26 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry _createOverlayEntry(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 100.0,
+        width: 120.0,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, -5 * 48.0),
+          offset: Offset(0, -220),
           child: Material(
             elevation: 4.0,
+            borderRadius: BorderRadius.circular(8.0),
             child: Container(
-              height: 5 * 48.0,
               color: Colors.white,
               child: ListView(
                 padding: EdgeInsets.zero,
-                children: [12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0].map((size) {
-                  return GestureDetector(
-                    onTap: () {
-                      final selection = widget.controller.selection;
-                      if (selection.isValid) {
-                        widget.controller.formatText(
-                          selection.start,
-                          selection.end - selection.start,
-                          Attribute.fromKeyValue('size', size.toInt()),
-                        );
-                        if (selection.isCollapsed) {
-                          setState(() {
-                            _defaultFontSize = size;
-                          });
-                        }
-                      } else {
-                        setState(() {
-                          _defaultFontSize = size;
-                        });
-                      }
-                      _toggleDropdown(context);
-                    },
-                    child: Container(
-                      height: 48.0,
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Center(child: Text('$size')),
-                    ),
-                  );
+                shrinkWrap: true,
+                children: [
+                  {'label': '제목', 'size': 32.0},
+                  {'label': '부제목', 'size': 24.0},
+                  {'label': '본문', 'size': 16.0},
+                  {'label': '작은 텍스트', 'size': 12.0},
+                ].map((option) {
+                  return _buildFontSizeOption(context, option['label'] as String, option['size'] as double);
                 }).toList(),
               ),
             ),
@@ -101,15 +80,68 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     );
   }
 
-  double _getCurrentFontSize() {
-    final selection = widget.controller.selection;
-    if (selection.isValid && !selection.isCollapsed) {
-      final style = widget.controller.getSelectionStyle();
-      if (style.attributes.containsKey('size')) {
-        return (style.attributes['size']!.value as int).toDouble();
-      }
-    }
-    return _defaultFontSize;
+  Widget _buildFontSizeOption(BuildContext context, String label, double size) {
+    bool isPressed = false;
+    final style = widget.controller.getSelectionStyle();
+    final currentSize = style.attributes['size']?.value?.toDouble();
+    bool isSelected = currentSize == size;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return GestureDetector(
+          onTapDown: (_) {
+            setState(() {
+              isPressed = true;
+            });
+          },
+          onTapCancel: () {
+            setState(() {
+              isPressed = false;
+            });
+          },
+          onTap: () async {
+            setState(() {
+              isPressed = true;
+            });
+            final selection = widget.controller.selection;
+            if (selection.isValid) {
+              widget.controller.formatText(
+                selection.start,
+                selection.end - selection.start,
+                Attribute.fromKeyValue('size', size.toInt()),
+              );
+            }
+            await Future.delayed(Duration(milliseconds: 100));
+            setState(() {
+              isPressed = false;
+            });
+            _toggleDropdown(context);
+          },
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 100),
+            height: size + 30.0,
+            width: 120.0,
+            color: isPressed
+                ? Colors.grey[200]
+                : isSelected
+                ? Colors.grey[300]
+                : Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: size,
+                  color: Colors.black,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String _formatDuration(Duration duration) {
@@ -186,7 +218,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   @override
   Widget build(BuildContext context) {
     final recordingState = ref.watch(recordingViewModelProvider);
-    final currentFontSize = _getCurrentFontSize();
 
     return Container(
       width: double.infinity,
@@ -226,22 +257,11 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               icon: Icon(Icons.link),
               onPressed: () {},
             ),
-            IconButton(
-              icon: Text('가', style: TextStyle(fontSize: 18.0)),
-              onPressed: () {},
-            ),
             CompositedTransformTarget(
               link: _layerLink,
-              child: GestureDetector(
-                onTap: () => _toggleDropdown(context),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                  child: Text('$currentFontSize'),
-                ),
+              child: IconButton(
+                icon: Image.asset('assets/images/font_size.png', width: 24.0, height: 24.0),
+                onPressed: () => _toggleDropdown(context),
               ),
             ),
             IconButton(
@@ -317,9 +337,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Text('AI'),
-              onPressed: () {
-                print('AI 버튼 클릭');
-              },
+              onPressed: () {},
             ),
           ],
         ),
