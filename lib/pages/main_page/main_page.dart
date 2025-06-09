@@ -4,6 +4,9 @@ import 'package:nota_note/models/group_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
+import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
+import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -17,12 +20,40 @@ class _MainPageState extends ConsumerState<MainPage> {
   bool _isGroupExpanded = false;
   String? _newGroupName;
   final TextEditingController _textController = TextEditingController();
+  String? _currentUserId;
+  String? _currentUserName;
 
   @override
   void initState() {
     super.initState();
-    // 컴포넌트가 마운트되면 그룹 데이터 불러오기
-    Future.microtask(() => ref.read(groupViewModelProvider).fetchGroups());
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    // 사용자 ID 가져오기
+    final userId = await getCurrentUserId();
+
+    if (userId != null) {
+      // 상태 업데이트
+      setState(() {
+        _currentUserId = userId;
+      });
+
+      // Riverpod의 userIdProvider 업데이트
+      ref.read(userIdProvider.notifier).state = userId;
+
+      // 그룹 데이터 불러오기
+      Future.microtask(() => ref.read(groupViewModelProvider).fetchGroups());
+    } else {
+      // 로그인되지 않은 경우 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인이 필요합니다. 로그인 페이지로 이동해주세요.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      // 여기에 로그인 페이지로 이동하는 로직 추가 가능
+    }
   }
 
   @override
@@ -71,16 +102,19 @@ class _MainPageState extends ConsumerState<MainPage> {
     final isLoading = groupViewModel.isLoading;
     final error = groupViewModel.error;
 
+    // 현재 로그인한 사용자 ID 가져오기
+    final userId = ref.watch(userIdProvider);
+
     return SlidingMenuScaffold(
       controller: _menuController,
-      menuWidget: _buildMenu(groups),
-      contentWidget: _buildContent(groups, isLoading, error),
+      menuWidget: _buildMenu(groups, userId),
+      contentWidget: _buildContent(groups, isLoading, error, userId),
       animationDuration: const Duration(milliseconds: 250),
       menuBackgroundColor: Colors.white,
     );
   }
 
-  Widget _buildMenu(List<GroupModel> groups) {
+  Widget _buildMenu(List<GroupModel> groups, String? userId) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 22),
@@ -88,6 +122,36 @@ class _MainPageState extends ConsumerState<MainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 47.5),
+            // 사용자 정보 표시
+            if (userId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 25),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.grey[200],
+                      child: Icon(Icons.person, color: Colors.grey[700]),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '사용자 ID: $userId',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -223,7 +287,8 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  Widget _buildContent(List<GroupModel> groups, bool isLoading, String? error) {
+  Widget _buildContent(
+      List<GroupModel> groups, bool isLoading, String? error, String? userId) {
     return Scaffold(
       body: Column(
         children: [
@@ -238,6 +303,17 @@ class _MainPageState extends ConsumerState<MainPage> {
                 size: 24,
               ),
             ),
+            title: userId != null
+                ? Text(
+                    "내 그룹 목록",
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+            centerTitle: true,
             actions: [
               IconButton(
                 onPressed: () {},
@@ -283,7 +359,34 @@ class _MainPageState extends ConsumerState<MainPage> {
                     child: isLoading
                         ? Center(child: CircularProgressIndicator())
                         : groups.isEmpty
-                            ? Center(child: Text('그룹이 없습니다'))
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.folder_open,
+                                      size: 48,
+                                      color: Colors.grey[400],
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      '생성된 그룹이 없습니다',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      '새 그룹을 추가해보세요',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
                             : ListView.separated(
                                 padding: EdgeInsets.zero,
                                 itemCount: groups.length,
