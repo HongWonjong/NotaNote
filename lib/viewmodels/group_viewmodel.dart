@@ -46,10 +46,10 @@ class GroupViewModel extends ChangeNotifier {
         return;
       }
 
-      // 'notegroups' 컬렉션에서 사용자의 그룹만 가져오기
+      // 'notegroups' 컬렉션에서 creatorId가 현재 사용자인 그룹만 가져오기
       final querySnapshot = await _firestore
           .collection('notegroups')
-          .where('userIds', arrayContains: userId)
+          .where('creatorId', isEqualTo: userId)
           .get();
 
       // 가져온 후 클라이언트에서 정렬
@@ -62,7 +62,7 @@ class GroupViewModel extends ChangeNotifier {
 
       _groups = fetchedGroups;
 
-      print('로그인한 사용자($userId)의 그룹 ${_groups.length}개를 불러왔습니다.');
+      print('로그인한 사용자($userId)가 생성한 그룹 ${_groups.length}개를 불러왔습니다.');
 
       _isLoading = false;
       notifyListeners();
@@ -94,6 +94,7 @@ class GroupViewModel extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
         'userIds': [userId],
         'noteIds': [],
+        'creatorId': userId,
       };
 
       await _firestore.collection('notegroups').add(newGroup);
@@ -101,6 +102,33 @@ class GroupViewModel extends ChangeNotifier {
     } catch (e) {
       _error = "그룹 생성 중 오류가 발생했습니다: $e";
       notifyListeners();
+    }
+  }
+
+  // 기존 그룹에 creatorId 필드 추가 (마이그레이션용 함수)
+  Future<void> updateExistingGroups() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('notegroups')
+          .where('creatorId', isNull: true)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final userIds = List<String>.from(data['userIds'] ?? []);
+
+        // userIds의 첫 번째 사용자를 생성자로 간주
+        if (userIds.isNotEmpty) {
+          await _firestore
+              .collection('notegroups')
+              .doc(doc.id)
+              .update({'creatorId': userIds[0]});
+        }
+      }
+
+      print('기존 그룹 업데이트 완료');
+    } catch (e) {
+      print('기존 그룹 업데이트 오류: $e');
     }
   }
 }
