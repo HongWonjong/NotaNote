@@ -5,6 +5,7 @@ class Widget {
   final Map<String, dynamic> content;
   final Map<String, double> position;
   final Map<String, double> size;
+  final bool isInteractive;
 
   Widget({
     required this.widgetId,
@@ -13,6 +14,7 @@ class Widget {
     required this.content,
     required this.position,
     required this.size,
+    this.isInteractive = false,
   });
 
   factory Widget.fromFirestore(Map<String, dynamic> data, String widgetId) {
@@ -23,6 +25,7 @@ class Widget {
       content: Map<String, dynamic>.from(data['content'] ?? {}),
       position: Map<String, double>.from(data['position'] ?? {'xFactor': 0.0, 'yFactor': 0.0}),
       size: Map<String, double>.from(data['size'] ?? {'widthFactor': 0.0, 'heightFactor': 0.0}),
+      isInteractive: data['isInteractive'] ?? false,
     );
   }
 
@@ -33,7 +36,7 @@ class Widget {
       'content': content,
       'position': position,
       'size': size,
+      'isInteractive': isInteractive,
     };
   }
 }
-

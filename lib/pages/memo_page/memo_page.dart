@@ -121,22 +121,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               children: [
                 TagWidget(groupId: widget.groupId, noteId: widget.noteId),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: QuillEditor(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          scrollController: _scrollController,
-                        ),
-                      ),
-                      OverlayWidgets(
-                        widgets: pageViewModel.widgets,
-                        screenWidth: MediaQuery.of(context).size.width,
-                        screenHeight: MediaQuery.of(context).size.height,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: QuillEditor(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      scrollController: _scrollController,
+                    ),
                   ),
                 ),
                 if (isKeyboardVisible)
@@ -148,9 +139,14 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
               ],
             ),
+            OverlayWidgets(
+              widgets: pageViewModel.widgets,
+              screenWidth: MediaQuery.of(context).size.width,
+              screenHeight: MediaQuery.of(context).size.height,
+            ),
             if (isBoxVisible)
               Positioned(
-                bottom: 80.0,
+                bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
                 right: 22.0,
                 child: RecordingControllerBox(),
               ),
