@@ -220,6 +220,7 @@ class _MainPageState extends State<MainPage> {
             onTap: () {
               Navigator.push(
                 context,
+                //설정 페이지로 이동
                 MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
