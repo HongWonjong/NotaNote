@@ -9,7 +9,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
   final String groupId;
   final String noteId;
   final String pageId;
-  bool _isLoaded = false; // 데이터 로드 여부를 추적
+  bool _isLoaded = false;
 
   PageViewModel(this.groupId, this.noteId, this.pageId)
       : super(page_model.Page(
@@ -21,7 +21,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
   ));
 
   Future<void> loadFromFirestore(QuillController controller) async {
-    if (_isLoaded) return; // 이미 로드된 경우 재호출 방지
+    if (_isLoaded) return;
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('notegroups')
@@ -60,7 +60,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
             controller.document = Document();
           }
         } catch (e) {
-          print('Failed to load document: $e');
           controller.document = Document();
         }
         state = page;
@@ -83,9 +82,8 @@ class PageViewModel extends StateNotifier<page_model.Page> {
         state = newPage;
         controller.document = Document();
       }
-      _isLoaded = true; // 로드 완료 플래그 설정
+      _isLoaded = true;
     } catch (e) {
-      print('Firestore load failed: $e');
     }
   }
 
@@ -115,10 +113,8 @@ class PageViewModel extends StateNotifier<page_model.Page> {
             .doc(widget.widgetId)
             .set(widget.toFirestore());
       }
-      state = page; // 로컬 상태 업데이트
-      print('Firestore save successful');
+      state = page;
     } catch (e) {
-      print('Firestore save failed: $e');
     }
   }
 }
