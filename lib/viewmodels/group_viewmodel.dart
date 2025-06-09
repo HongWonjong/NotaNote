@@ -107,41 +107,78 @@ class GroupViewModel extends ChangeNotifier {
 
   Future<bool> renameGroup(String groupId, String newName) async {
     try {
+      print('이름 변경 시작: 그룹 ID: $groupId, 새 이름: $newName');
+
       String? userId = _auth.currentUser?.uid;
       if (userId == null) {
         userId = await getCurrentUserId();
+        print('SharedPreferences에서 가져온 userId: $userId');
+      } else {
+        print('Firebase Auth에서 가져온 userId: $userId');
       }
 
       if (userId == null) {
         _error = "로그인이 필요합니다";
         notifyListeners();
+        print('오류: 로그인이 필요합니다');
         return false;
       }
 
+      print('Firestore 문서 참조 경로: notegroups/$groupId');
       final docRef = _firestore.collection('notegroups').doc(groupId);
-      final docSnapshot = await docRef.get();
 
-      if (!docSnapshot.exists) {
-        _error = "존재하지 않는 그룹입니다";
-        notifyListeners();
-        return false;
+      // 트랜잭션으로 처리하여 데이터 일관성 유지
+      bool result = await _firestore.runTransaction<bool>((transaction) async {
+        // 문서 가져오기
+        final docSnapshot = await transaction.get(docRef);
+
+        if (!docSnapshot.exists) {
+          print('오류: 존재하지 않는 그룹입니다');
+          throw Exception("존재하지 않는 그룹입니다");
+        }
+
+        print('문서 데이터: ${docSnapshot.data()}');
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        final creatorId = data['creatorId'] as String? ?? '';
+        print('creatorId: $creatorId, 현재 userId: $userId');
+
+        if (creatorId != userId) {
+          print('오류: 그룹 이름을 변경할 권한이 없습니다');
+          throw Exception("그룹 이름을 변경할 권한이 없습니다");
+        }
+
+        print('이름 변경 트랜잭션 실행 중...');
+        // 업데이트 실행
+        transaction.update(docRef, {'name': newName});
+        return true;
+      });
+
+      print('트랜잭션 결과: $result');
+
+      if (result) {
+        print('이름 변경 성공! 그룹 목록 다시 불러오는 중...');
+        await fetchGroups(); // 그룹 목록 다시 불러오기
       }
 
-      final data = docSnapshot.data() as Map<String, dynamic>;
-      final creatorId = data['creatorId'] as String? ?? '';
-
-      if (creatorId != userId) {
-        _error = "그룹 이름을 변경할 권한이 없습니다";
-        notifyListeners();
-        return false;
-      }
-
-      await docRef.update({'name': newName});
-      await fetchGroups(); // 그룹 목록 다시 불러오기
-      return true;
+      return result;
     } catch (e) {
-      _error = "그룹 이름 변경 중 오류가 발생했습니다: $e";
+      if (e is Exception) {
+        _error = e.toString().replaceAll('Exception: ', '');
+      } else {
+        _error = "그룹 이름 변경 중 오류가 발생했습니다: $e";
+      }
       notifyListeners();
+      print('예외 발생: $e');
+
+      // 스택 트레이스 출력
+      print('======= 스택 트레이스 =======');
+      try {
+        throw e;
+      } catch (e, stackTrace) {
+        print(stackTrace);
+      }
+      print('===========================');
+
       return false;
     }
   }
