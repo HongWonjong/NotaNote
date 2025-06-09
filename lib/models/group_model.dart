@@ -6,6 +6,7 @@ class GroupModel {
   final DateTime createdAt;
   final List<String> noteIds;
   final List<String> userIds;
+  final String creatorId;
 
   GroupModel({
     required this.id,
@@ -13,6 +14,7 @@ class GroupModel {
     required this.createdAt,
     required this.noteIds,
     required this.userIds,
+    required this.creatorId,
   });
 
   factory GroupModel.fromFirestore(DocumentSnapshot doc) {
@@ -34,6 +36,7 @@ class GroupModel {
       createdAt: createdDate,
       noteIds: List<String>.from(data['noteIds'] ?? []),
       userIds: List<String>.from(data['userIds'] ?? []),
+      creatorId: data['creatorId'] as String? ?? '',
     );
   }
 
@@ -43,6 +46,7 @@ class GroupModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'noteIds': noteIds,
       'userIds': userIds,
+      'creatorId': creatorId,
     };
   }
 }
