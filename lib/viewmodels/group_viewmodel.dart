@@ -3,17 +3,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/group_model.dart';
+import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
 final groupViewModelProvider =
-    ChangeNotifierProvider((ref) => GroupViewModel());
+    ChangeNotifierProvider((ref) => GroupViewModel(ref));
 
 class GroupViewModel extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Ref _ref;
 
   List<GroupModel> _groups = [];
   bool _isLoading = false;
   String? _error;
+
+  GroupViewModel(this._ref);
 
   List<GroupModel> get groups => _groups;
   bool get isLoading => _isLoading;
@@ -25,7 +30,15 @@ class GroupViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = _auth.currentUser?.uid;
+      // Firebase Auth에서 사용자 ID 가져오기 시도
+      String? userId = _auth.currentUser?.uid;
+
+      // Firebase Auth에서 ID를 가져오지 못했다면 SharedPreferences에서 시도
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
+      // 사용자 ID가 없으면 로그인 필요 메시지 표시
       if (userId == null) {
         _error = "로그인이 필요합니다";
         _isLoading = false;
@@ -33,8 +46,7 @@ class GroupViewModel extends ChangeNotifier {
         return;
       }
 
-      // 인덱스 오류를 피하기 위해 쿼리 수정
-      // 'notegroups' 컬렉션에서 사용자의 그룹 가져오기
+      // 'notegroups' 컬렉션에서 사용자의 그룹만 가져오기
       final querySnapshot = await _firestore
           .collection('notegroups')
           .where('userIds', arrayContains: userId)
@@ -50,6 +62,8 @@ class GroupViewModel extends ChangeNotifier {
 
       _groups = fetchedGroups;
 
+      print('로그인한 사용자($userId)의 그룹 ${_groups.length}개를 불러왔습니다.');
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -61,7 +75,14 @@ class GroupViewModel extends ChangeNotifier {
 
   Future<void> createGroup(String name) async {
     try {
-      final userId = _auth.currentUser?.uid;
+      // Firebase Auth에서 사용자 ID 가져오기 시도
+      String? userId = _auth.currentUser?.uid;
+
+      // Firebase Auth에서 ID를 가져오지 못했다면 SharedPreferences에서 시도
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
       if (userId == null) {
         _error = "로그인이 필요합니다";
         notifyListeners();
