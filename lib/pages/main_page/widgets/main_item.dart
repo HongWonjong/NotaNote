@@ -40,11 +40,21 @@ class MainItem extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                ),
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/group_folder_icon.png',
+                    width: 16,
+                    height: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
               IconButton(
                 onPressed: () => _showBottomSheet(context),
