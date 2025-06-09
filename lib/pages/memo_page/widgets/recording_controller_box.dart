@@ -41,34 +41,37 @@ class RecordingControllerBox extends ConsumerWidget {
                           ? LayoutBuilder(
                         builder: (context, constraints) {
                           final recording = recordingState.recordings.last;
-                          final timestamp = DateFormat('HH:mm:ss').format(recording.createdAt);
                           return Container(
                             padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(8.0),
                             ),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    recordingViewModel.isPlaying(recording.path)
-                                        ? Icons.stop
-                                        : Icons.play_arrow,
-                                    size: 20.0,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                  onPressed: () {
-                                    recordingViewModel.playRecording(recording.path);
-                                  },
-                                ),
-                                SizedBox(width: 4.0),
-                                Text(
-                                  '${recording.duration.inMinutes.toString().padLeft(2, '0')}:${(recording.duration.inSeconds % 60).toString().padLeft(2, '0')}',
-                                  style: TextStyle(fontSize: 14.0),
-                                ),
-                              ],
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final state = ref.watch(recordingViewModelProvider);
+                                final isPlaying = state.currentlyPlayingPath == recording.path;
+                                return Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        isPlaying ? Icons.stop : Icons.play_arrow,
+                                        size: 20.0,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
+                                      onPressed: () {
+                                        recordingViewModel.playRecording(recording.path);
+                                      },
+                                    ),
+                                    SizedBox(width: 4.0),
+                                    Text(
+                                      '${recording.duration.inMinutes.toString().padLeft(2, '0')}:${(recording.duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                      style: TextStyle(fontSize: 14.0),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           );
                         },
