@@ -36,7 +36,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, -200.0),
+          offset: Offset(225, -270.0),
           child: Material(
             borderRadius: BorderRadius.circular(8.0),
             elevation: 2.0,
