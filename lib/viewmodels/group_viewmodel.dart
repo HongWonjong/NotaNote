@@ -105,6 +105,109 @@ class GroupViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> renameGroup(String groupId, String newName) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
+      if (userId == null) {
+        _error = "로그인이 필요합니다";
+        notifyListeners();
+        return false;
+      }
+
+      final docRef = _firestore.collection('notegroups').doc(groupId);
+      final docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        _error = "존재하지 않는 그룹입니다";
+        notifyListeners();
+        return false;
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      final creatorId = data['creatorId'] as String? ?? '';
+
+      if (creatorId != userId) {
+        _error = "그룹 이름을 변경할 권한이 없습니다";
+        notifyListeners();
+        return false;
+      }
+
+      await docRef.update({'name': newName});
+      await fetchGroups(); // 그룹 목록 다시 불러오기
+      return true;
+    } catch (e) {
+      _error = "그룹 이름 변경 중 오류가 발생했습니다: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteGroup(String groupId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
+      if (userId == null) {
+        _error = "로그인이 필요합니다";
+        notifyListeners();
+        return false;
+      }
+
+      final docRef = _firestore.collection('notegroups').doc(groupId);
+      final docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        _error = "존재하지 않는 그룹입니다";
+        notifyListeners();
+        return false;
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      final creatorId = data['creatorId'] as String? ?? '';
+
+      if (creatorId != userId) {
+        _error = "그룹을 삭제할 권한이 없습니다";
+        notifyListeners();
+        return false;
+      }
+
+      final notesRef = docRef.collection('notes');
+      final notesSnapshot = await notesRef.get();
+
+      for (var noteDoc in notesSnapshot.docs) {
+        final noteRef = notesRef.doc(noteDoc.id);
+
+        final pagesRef = noteRef.collection('pages');
+        final pagesSnapshot = await pagesRef.get();
+        for (var pageDoc in pagesSnapshot.docs) {
+          await pagesRef.doc(pageDoc.id).delete();
+        }
+
+        final commentsRef = noteRef.collection('comments');
+        final commentsSnapshot = await commentsRef.get();
+        for (var commentDoc in commentsSnapshot.docs) {
+          await commentsRef.doc(commentDoc.id).delete();
+        }
+
+        await noteRef.delete();
+      }
+
+      await docRef.delete();
+      await fetchGroups(); // 그룹 목록 다시 불러오기
+      return true;
+    } catch (e) {
+      _error = "그룹 삭제 중 오류가 발생했습니다: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
   // 기존 그룹에 creatorId 필드 추가 (마이그레이션용 함수)
   Future<void> updateExistingGroups() async {
     try {
