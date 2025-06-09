@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 
-class MainItem extends ConsumerStatefulWidget {
+class MainItem extends ConsumerWidget {
   final String title;
   final String groupId;
   final VoidCallback? onTap;
@@ -14,73 +14,75 @@ class MainItem extends ConsumerStatefulWidget {
     super.key,
   });
 
-  @override
-  ConsumerState<MainItem> createState() => _MainItemState();
-}
-
-class _MainItemState extends ConsumerState<MainItem> {
-  final TextEditingController _renameController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _renameController.text = widget.title;
-  }
-
-  @override
-  void dispose() {
-    _renameController.dispose();
-    super.dispose();
-  }
-
   // 그룹 이름 변경 다이얼로그 표시
-  void _showRenameDialog(BuildContext context) {
+  void _showRenameDialog(BuildContext context, WidgetRef ref) {
+    // StatefulBuilder를 사용하여 다이얼로그 내부에서 상태 관리
+    String newName = title; // 현재 이름으로 초기화
+
+    print('[MainItem] 이름 변경 다이얼로그 표시: 그룹ID=$groupId, 현재이름=$title');
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('그룹 이름 변경'),
-        content: TextField(
-          controller: _renameController,
-          decoration: InputDecoration(
-            hintText: '새 그룹 이름을 입력하세요',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return TextField(
+              // 컨트롤러를 사용하지 않고 onChanged로 값 관리
+              onChanged: (value) {
+                newName = value;
+              },
+              decoration: InputDecoration(
+                hintText: '새 그룹 이름을 입력하세요',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+              // 초기값 설정
+              controller: TextEditingController(text: title),
+            );
+          },
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('취소'),
           ),
           TextButton(
             onPressed: () async {
-              final newName = _renameController.text.trim();
-              if (newName.isNotEmpty) {
+              if (newName.trim().isNotEmpty && newName.trim() != title) {
+                print('[MainItem] 이름 변경 시도: $newName');
+
+                Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
+
+                print('[MainItem] 유효한 이름, 뷰모델 renameGroup 호출');
                 final success = await ref
                     .read(groupViewModelProvider)
-                    .renameGroup(widget.groupId, newName);
+                    .renameGroup(groupId, newName.trim());
 
-                if (context.mounted) {
-                  Navigator.pop(context);
+                print('[MainItem] 이름 변경 결과: $success');
 
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('그룹 이름이 변경되었습니다'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    // 에러 메시지 표시
-                    final error = ref.read(groupViewModelProvider).error;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(error ?? '이름 변경 실패'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                if (success) {
+                  print('[MainItem] 이름 변경 성공 메시지 표시');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('그룹 이름이 변경되었습니다'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  // 에러 메시지 표시
+                  final error = ref.read(groupViewModelProvider).error;
+                  print('[MainItem] 이름 변경 실패 메시지 표시: $error');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error ?? '이름 변경 실패'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
+              } else {
+                print('[MainItem] 이름 변경 없음: $newName');
+                Navigator.pop(dialogContext);
               }
             },
             child: Text('변경'),
@@ -91,46 +93,43 @@ class _MainItemState extends ConsumerState<MainItem> {
   }
 
   // 그룹 삭제 확인 다이얼로그 표시
-  void _showDeleteConfirmDialog(BuildContext context) {
+  void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('그룹 삭제'),
         content: Text(
-          '정말로 "${widget.title}" 그룹을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 그룹 내의 모든 노트와 페이지가 삭제됩니다.',
+          '정말로 "$title" 그룹을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 그룹 내의 모든 노트와 페이지가 삭제됩니다.',
           style: TextStyle(height: 1.5),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('취소'),
           ),
           TextButton(
             onPressed: () async {
-              final success = await ref
-                  .read(groupViewModelProvider)
-                  .deleteGroup(widget.groupId);
+              Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
 
-              if (context.mounted) {
-                Navigator.pop(context);
+              final success =
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('그룹이 삭제되었습니다'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else {
-                  // 에러 메시지 표시
-                  final error = ref.read(groupViewModelProvider).error;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(error ?? '삭제 실패'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('그룹이 삭제되었습니다'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                // 에러 메시지 표시
+                final error = ref.read(groupViewModelProvider).error;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(error ?? '삭제 실패'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             style: TextButton.styleFrom(
@@ -143,7 +142,7 @@ class _MainItemState extends ConsumerState<MainItem> {
     );
   }
 
-  void _showBottomSheet(BuildContext context) {
+  void _showBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -153,14 +152,14 @@ class _MainItemState extends ConsumerState<MainItem> {
       elevation: 0,
       isScrollControlled: true,
       enableDrag: true,
-      builder: (context) => _buildBottomSheet(context),
+      builder: (context) => _buildBottomSheet(context, ref),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-      onTap: widget.onTap ?? () => _showBottomSheet(context),
+      onTap: onTap ?? () => _showBottomSheet(context, ref),
       child: Container(
         width: double.infinity,
         height: 62,
@@ -182,7 +181,7 @@ class _MainItemState extends ConsumerState<MainItem> {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    widget.title,
+                    title,
                     style: TextStyle(
                       fontSize: 16,
                     ),
@@ -190,7 +189,7 @@ class _MainItemState extends ConsumerState<MainItem> {
                 ],
               ),
               IconButton(
-                onPressed: () => _showBottomSheet(context),
+                onPressed: () => _showBottomSheet(context, ref),
                 icon: Icon(
                   Icons.more_horiz,
                   size: 24,
@@ -206,7 +205,7 @@ class _MainItemState extends ConsumerState<MainItem> {
     );
   }
 
-  Widget _buildBottomSheet(BuildContext context) {
+  Widget _buildBottomSheet(BuildContext context, WidgetRef ref) {
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -247,7 +246,7 @@ class _MainItemState extends ConsumerState<MainItem> {
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    _showRenameDialog(context);
+                    _showRenameDialog(context, ref);
                   },
                   child: Container(
                     width: double.infinity,
@@ -264,7 +263,7 @@ class _MainItemState extends ConsumerState<MainItem> {
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    _showDeleteConfirmDialog(context);
+                    _showDeleteConfirmDialog(context, ref);
                   },
                   child: Container(
                     width: double.infinity,
