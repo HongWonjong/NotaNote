@@ -496,16 +496,20 @@ class _MainPageState extends ConsumerState<MainPage> {
                                     title: groups[index].name,
                                     groupId: groups[index].id,
                                     onTap: () {
-                                      // 그룹 ID로 노트 목록을 가져오는 로직
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      // 스캐폴드 메신저를 미리 참조
+                                      final scaffoldMessenger =
+                                          ScaffoldMessenger.of(context);
+
+                                      // 스낵바 표시
+                                      scaffoldMessenger.showSnackBar(
                                         SnackBar(
                                           content: Text(
                                               '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
                                           duration: Duration(seconds: 2),
                                         ),
                                       );
-                                      // 추후 노트 목록 페이지 구현 후 아래 코드 활성화
+
+                                      // 노트 목록 페이지로 이동
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
