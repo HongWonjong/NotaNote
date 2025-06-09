@@ -36,7 +36,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(225, -270.0),
+          offset: Offset(227, -230.0),
           child: Material(
             borderRadius: BorderRadius.circular(8.0),
             elevation: 2.0,
@@ -127,15 +127,6 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             },
           ),
         ],
-        _buildMenuItem(
-          context,
-          icon: Icons.close,
-          label: '닫기',
-          onTap: () {
-            ref.read(recordingBoxVisibilityProvider.notifier).state = false;
-            _toggleMenu(context);
-          },
-        ),
       ],
     );
   }

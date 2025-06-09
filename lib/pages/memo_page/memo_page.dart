@@ -30,17 +30,15 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNode.requestFocus();
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).loadFromFirestore(_controller);
+    // FocusNode 리스너: 포커스 획득 시 RecordingControllerBox 닫기
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       }
     });
+    // QuillController 리스너: 텍스트 변화 시 RecordingControllerBox 닫기
     _controller.addListener(() {
+      ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
@@ -56,6 +54,16 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           });
         }
       });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusNode.requestFocus();
+        ref.read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier).loadFromFirestore(_controller);
+      }
     });
   }
 
