@@ -30,17 +30,15 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNode.requestFocus();
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).loadFromFirestore(_controller);
+    // FocusNode 리스너: 포커스 획득 시 RecordingControllerBox 닫기
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       }
     });
+    // QuillController 리스너: 텍스트 변화 시 RecordingControllerBox 닫기
     _controller.addListener(() {
+      ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
@@ -56,6 +54,16 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           });
         }
       });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusNode.requestFocus();
+        ref.read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier).loadFromFirestore(_controller);
+      }
     });
   }
 
@@ -121,22 +129,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               children: [
                 TagWidget(groupId: widget.groupId, noteId: widget.noteId),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: QuillEditor(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          scrollController: _scrollController,
-                        ),
-                      ),
-                      OverlayWidgets(
-                        widgets: pageViewModel.widgets,
-                        screenWidth: MediaQuery.of(context).size.width,
-                        screenHeight: MediaQuery.of(context).size.height,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: QuillEditor(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      scrollController: _scrollController,
+                    ),
                   ),
                 ),
                 if (isKeyboardVisible)
@@ -148,9 +147,14 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
               ],
             ),
+            OverlayWidgets(
+              widgets: pageViewModel.widgets,
+              screenWidth: MediaQuery.of(context).size.width,
+              screenHeight: MediaQuery.of(context).size.height,
+            ),
             if (isBoxVisible)
               Positioned(
-                bottom: 80.0,
+                bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
                 right: 22.0,
                 child: RecordingControllerBox(),
               ),
