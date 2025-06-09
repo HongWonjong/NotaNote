@@ -396,6 +396,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                                 itemBuilder: (context, index) {
                                   return MainItem(
                                     title: groups[index].name,
+                                    groupId: groups[index].id,
                                     onTap: () {
                                       // 그룹 ID로 노트 목록을 가져오는 로직
                                       ScaffoldMessenger.of(context)
