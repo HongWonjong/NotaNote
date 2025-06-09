@@ -16,6 +16,9 @@ class MainItem extends ConsumerWidget {
 
   // 그룹 이름 변경 다이얼로그 표시
   void _showRenameDialog(BuildContext context, WidgetRef ref) {
+    // ScaffoldMessenger 미리 가져오기
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     // StatefulBuilder를 사용하여 다이얼로그 내부에서 상태 관리
     String newName = title; // 현재 이름으로 초기화
 
@@ -63,7 +66,7 @@ class MainItem extends ConsumerWidget {
 
                 if (success) {
                   print('[MainItem] 이름 변경 성공 메시지 표시');
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('그룹 이름이 변경되었습니다'),
                       backgroundColor: Colors.green,
@@ -73,7 +76,7 @@ class MainItem extends ConsumerWidget {
                   // 에러 메시지 표시
                   final error = ref.read(groupViewModelProvider).error;
                   print('[MainItem] 이름 변경 실패 메시지 표시: $error');
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(error ?? '이름 변경 실패'),
                       backgroundColor: Colors.red,
@@ -94,6 +97,9 @@ class MainItem extends ConsumerWidget {
 
   // 그룹 삭제 확인 다이얼로그 표시
   void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref) {
+    // 컨텍스트 안전하게 사용하기 위해 ScaffoldMessenger 미리 가져오기
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -111,26 +117,26 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
 
-              final success =
-                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
+              // final success =
+              //     await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('그룹이 삭제되었습니다'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              } else {
-                // 에러 메시지 표시
-                final error = ref.read(groupViewModelProvider).error;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(error ?? '삭제 실패'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+              // if (success) {
+              //   scaffoldMessenger.showSnackBar(
+              //     SnackBar(
+              //       content: Text('그룹이 삭제되었습니다'),
+              //       backgroundColor: Colors.green,
+              //     ),
+              //   );
+              // } else {
+              //   // 에러 메시지 표시
+              //   final error = ref.read(groupViewModelProvider).error;
+              //   scaffoldMessenger.showSnackBar(
+              //     SnackBar(
+              //       content: Text(error ?? '삭제 실패'),
+              //       backgroundColor: Colors.red,
+              //     ),
+              //   );
+              // }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
