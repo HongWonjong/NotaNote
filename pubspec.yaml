@@ -46,4 +46,5 @@ flutter:
     - assets/images/font_size.png
     - assets/
 
+    - assets/images/
   uses-material-design: true
