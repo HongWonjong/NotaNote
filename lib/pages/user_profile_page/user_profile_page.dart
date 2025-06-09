@@ -1,7 +1,9 @@
+// lib/pages/user_profile_page/user_profile_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
+import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
@@ -46,19 +48,11 @@ class UserProfilePage extends ConsumerWidget {
                     Column(
                       children: [
                         const SizedBox(height: 20),
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Color(0xFFD9D9D9),
-                          backgroundImage: user.photoUrl.isNotEmpty
-                              ? NetworkImage(user.photoUrl)
-                              : null,
-                          child: user.photoUrl.isEmpty
-                              ? Text(
-                                  user.displayName.characters.first,
-                                  style: const TextStyle(
-                                      fontSize: 24, color: Colors.white),
-                                )
-                              : null,
+                        // 프로필 이미지 (터치하여 수정 가능)
+                        ProfileImageWidget(
+                          userId: user.userId,
+                          currentPhotoUrl: user.photoUrl,
+                          displayName: user.displayName,
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -83,7 +77,7 @@ class UserProfilePage extends ConsumerWidget {
                       right: 28,
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          foregroundColor: Color(0xFFA7A7A7),
+                          foregroundColor: const Color(0xFFA7A7A7),
                           backgroundColor: const Color(0xFFFFFFFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -109,7 +103,7 @@ class UserProfilePage extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
-              // 계정 전환 + 로그아웃까지 묶은 영역
+              // 계정 전환 + 로그아웃 포함한 본문 영역
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),

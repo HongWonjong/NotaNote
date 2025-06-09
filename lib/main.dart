@@ -108,9 +108,9 @@ class MyHomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MemoPage(
-                      groupId: 'group1', // 테스트용
-                      noteId: 'note1',
-                      pageId: 'page1',
+                      groupId: 'group1', // 테스트용 값
+                      noteId: 'note1', // 테스트용 값
+                      pageId: 'page1', // 테스트용 값
                     ),
                   ),
                 );
