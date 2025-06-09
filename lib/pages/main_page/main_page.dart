@@ -7,6 +7,7 @@ import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
+import 'package:nota_note/pages/note_list_page/note_list_page.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -70,34 +71,131 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 
   void _showAddGroupDialog() {
-    showDialog(
+    // 텍스트 컨트롤러 초기화
+    _textController.clear();
+    _newGroupName = null;
+
+    int textLength = 0;
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('새 그룹 추가'),
-        content: TextField(
-          controller: _textController,
-          decoration: InputDecoration(hintText: '그룹 이름을 입력하세요'),
-          onChanged: (value) {
-            _newGroupName = value;
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('취소'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_newGroupName != null && _newGroupName!.isNotEmpty) {
-                ref.read(groupViewModelProvider).createGroup(_newGroupName!);
-                _textController.clear();
-                Navigator.pop(context);
-              }
-            },
-            child: Text('추가'),
-          ),
-        ],
+      isScrollControlled: true, // 키보드가 올라올 때 바텀시트가 올라가도록
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 상단 핸들
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                // 제목
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '새 그룹 만들기',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        if (_newGroupName != null &&
+                            _newGroupName!.isNotEmpty) {
+                          ref
+                              .read(groupViewModelProvider)
+                              .createGroup(_newGroupName!);
+                          _textController.clear();
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('그룹 이름을 입력하세요'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        '완료',
+                        style: TextStyle(
+                          color: Color(0xFF61CFB2),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                // 입력 필드
+                TextField(
+                  controller: _textController,
+                  autofocus: true, // 자동으로 포커스 및 키보드 표시
+                  decoration: InputDecoration(
+                    hintText: '그룹 이름',
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Color(0xFF61CFB2)),
+                    ),
+                    suffixText: '$textLength/10',
+                    suffixStyle: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 14,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setModalState(() {
+                      textLength = value.length;
+                    });
+                    setState(() {
+                      _newGroupName = value;
+                    });
+                  },
+                  maxLength: 10,
+                  buildCounter: (context,
+                      {required currentLength, required isFocused, maxLength}) {
+                    return null; // 기본 카운터를 숨기고 suffix로 표시
+                  },
+                ),
+                SizedBox(height: 24),
+              ],
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -408,7 +506,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                                         ),
                                       );
                                       // 추후 노트 목록 페이지 구현 후 아래 코드 활성화
-                                      /*
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -418,7 +515,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                                           ),
                                         ),
                                       );
-                                      */
                                     },
                                   );
                                 },
