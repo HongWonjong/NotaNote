@@ -43,7 +43,14 @@ class _MainPageState extends ConsumerState<MainPage> {
       ref.read(userIdProvider.notifier).state = userId;
 
       // 그룹 데이터 불러오기
-      Future.microtask(() => ref.read(groupViewModelProvider).fetchGroups());
+      Future.microtask(() {
+        final viewModel = ref.read(groupViewModelProvider);
+        // 기존 그룹에 creatorId 필드 마이그레이션 (한 번만 실행)
+        viewModel.updateExistingGroups().then((_) {
+          // 그룹 목록 불러오기
+          viewModel.fetchGroups();
+        });
+      });
     } else {
       // 로그인되지 않은 경우 처리
       ScaffoldMessenger.of(context).showSnackBar(
@@ -303,16 +310,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                 size: 24,
               ),
             ),
-            title: userId != null
-                ? Text(
-                    "내 그룹 목록",
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
             centerTitle: true,
             actions: [
               IconButton(
@@ -348,11 +345,15 @@ class _MainPageState extends ConsumerState<MainPage> {
                       style: TextStyle(color: Colors.red),
                     )
                   else
-                    Text(
-                      '총 ${groups.length}개',
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          '총 ${groups.length}개',
+                          style: TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
                     ),
                   SizedBox(height: 16),
                   Expanded(
