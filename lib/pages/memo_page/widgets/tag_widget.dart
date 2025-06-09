@@ -118,20 +118,24 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                     Positioned(
                                       right: -8.0,
                                       top: -8.0,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          print('X button tapped for tag: $tag');
-                                          _removeTag(tag);
-                                        },
-                                        child: Container(
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 16.0,
+                                      child: Container(
+                                        width: 24.0,
+                                        height: 24.0,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            print('X button tapped for tag: $tag');
+                                            _removeTag(tag);
+                                          },
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 16.0,
+                                            ),
                                           ),
                                         ),
                                       ),
