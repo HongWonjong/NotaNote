@@ -429,14 +429,15 @@ class _MainPageState extends ConsumerState<MainPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddGroupDialog,
-        backgroundColor: Color(0xFFEFEFEF),
-        shape: CircleBorder(),
-        elevation: 0,
-        child: Icon(
-          Icons.add,
-          size: 24,
+      floatingActionButton: SizedBox(
+        width: 70,
+        height: 70,
+        child: FloatingActionButton(
+          onPressed: _showAddGroupDialog,
+          backgroundColor: Color(0xFF61CFB2),
+          shape: CircleBorder(),
+          elevation: 0,
+          child: Image.asset('assets/floatingActionButton_icon.png'),
         ),
       ),
     );
