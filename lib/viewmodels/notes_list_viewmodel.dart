@@ -49,7 +49,7 @@ class NotesListViewModel extends ChangeNotifier {
             .get();
 
         final pages = pagesSnapshot.docs
-            .map((pageDoc) => Page.fromFirestore(pageDoc, []))
+            .map((pageDoc) => Page.fromFirestore(pageDoc))
             .toList();
 
         final commentsSnapshot = await _firestore

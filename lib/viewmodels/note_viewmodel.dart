@@ -31,7 +31,7 @@ class NoteViewModel extends StateNotifier<Note?> {
             .collection('pages')
             .get();
         pages = pageDocs.docs.map((pageDoc) {
-          return Page.fromFirestore(pageDoc, []);
+          return Page.fromFirestore(pageDoc);
         }).toList();
       } catch (e) {
       }

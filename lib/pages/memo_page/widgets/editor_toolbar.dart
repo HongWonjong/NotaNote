@@ -5,6 +5,10 @@ import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:nota_note/viewmodels/page_viewmodel.dart';
+import 'dart:io';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -32,7 +36,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   void initState() {
     super.initState();
     widget.controller.addListener(() {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -46,7 +52,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       Overlay.of(context).insert(_overlayEntry!);
       _isDropdownOpen = true;
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   OverlayEntry _createOverlayEntry(BuildContext context) {
@@ -173,7 +181,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   void _toggleFormat(Attribute attribute) {
     final isActive = _isFormatActive(attribute);
     widget.controller.formatSelection(isActive ? Attribute.clone(attribute, null) : attribute);
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _increaseIndent() {
@@ -182,7 +192,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       final style = widget.controller.getSelectionStyle();
       final currentIndent = style.attributes['indent']?.value as int? ?? 0;
       widget.controller.formatSelection(Attribute.fromKeyValue('indent', currentIndent + 1));
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -196,20 +208,94 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       } else {
         widget.controller.formatSelection(Attribute.clone(Attribute.indent, null));
       }
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
   void _toggleList(String listType) {
     final isActive = _isListActive(listType);
     widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.list, null) : Attribute.fromKeyValue('list', listType));
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _toggleAlign(String alignType) {
     final isActive = _isAlignActive(alignType);
     widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.align, null) : Attribute.fromKeyValue('align', alignType));
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null && mounted) {
+      final imageFile = File(pickedFile.path);
+      final imageUrl = await _uploadImageToStorage(imageFile);
+      if (imageUrl != null) {
+        final index = widget.controller.selection.start;
+        widget.controller.document.insert(index, '\n');
+        widget.controller.document.insert(index + 1, BlockEmbed.image(imageUrl));
+        widget.controller.updateSelection(
+          TextSelection.collapsed(offset: index + 2),
+          ChangeSource.local,
+        );
+        // 즉시 저장
+        await ref.read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier).saveToFirestore(widget.controller);
+      }
+    }
+  }
+
+  Future<String?> _uploadImageToStorage(File imageFile) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('notegroups/${widget.groupId}/notes/${widget.noteId}/pages/${widget.pageId}/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = storageRef.putFile(imageFile);
+      print('Uploading image to: ${storageRef.fullPath}');
+      await uploadTask;
+      final imageUrl = await storageRef.getDownloadURL();
+      print('Image uploaded successfully: $imageUrl');
+      return imageUrl;
+    } catch (e) {
+      print('Image upload failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미지 업로드 실패: $e')),
+        );
+      }
+      return null;
+    }
+  }
+
+  void _insertCodeBlock() {
+    final selection = widget.controller.selection;
+    if (selection.isValid && selection.start != selection.end) {
+      widget.controller.formatText(
+        selection.start,
+        selection.end - selection.start,
+        Attribute.codeBlock,
+      );
+    } else {
+      final index = widget.controller.selection.start;
+      widget.controller.document.insert(index, '\n');
+      widget.controller.document.format(index, 1, Attribute.codeBlock);
+      widget.controller.updateSelection(
+        TextSelection.collapsed(offset: index + 1),
+        ChangeSource.local,
+      );
+    }
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -262,7 +348,11 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.camera_alt_outlined),
-              onPressed: () {},
+              onPressed: () => _pickImage(ImageSource.camera),
+            ),
+            IconButton(
+              icon: Icon(Icons.photo_library),
+              onPressed: () => _pickImage(ImageSource.gallery),
             ),
             IconButton(
               icon: Icon(Icons.link),
@@ -340,7 +430,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.code),
-              onPressed: () {},
+              onPressed: _insertCodeBlock,
             ),
             IconButton(
               icon: Icon(Icons.table_chart),

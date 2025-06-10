@@ -4,7 +4,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
-import 'package:nota_note/pages/memo_page/widgets/overlay_widgets.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
@@ -146,11 +145,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     pageId: widget.pageId,
                   ),
               ],
-            ),
-            OverlayWidgets(
-              widgets: pageViewModel.widgets,
-              screenWidth: MediaQuery.of(context).size.width,
-              screenHeight: MediaQuery.of(context).size.height,
             ),
             if (isBoxVisible)
               Positioned(

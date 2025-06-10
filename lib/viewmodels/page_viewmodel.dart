@@ -2,7 +2,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/page_model.dart' as page_model;
-import 'package:nota_note/models/widget_model.dart' as widget_model;
 import 'package:flutter/services.dart';
 
 class PageViewModel extends StateNotifier<page_model.Page> {
@@ -17,7 +16,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     index: 0,
     title: '새 메모 페이지',
     content: [],
-    widgets: [],
   ));
 
   Future<void> loadFromFirestore(QuillController controller) async {
@@ -32,22 +30,8 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .doc(pageId)
           .get();
 
-      QuerySnapshot widgetDocs = await FirebaseFirestore.instance
-          .collection('notegroups')
-          .doc(groupId)
-          .collection('notes')
-          .doc(noteId)
-          .collection('pages')
-          .doc(pageId)
-          .collection('widgets')
-          .get();
-
-      final widgets = widgetDocs.docs.map((doc) {
-        return widget_model.Widget.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-
       if (doc.exists) {
-        final page = page_model.Page.fromFirestore(doc, widgets);
+        final page = page_model.Page.fromFirestore(doc);
         try {
           if (page.content.isNotEmpty) {
             controller.document = Document.fromJson(page.content);
@@ -56,10 +40,12 @@ class PageViewModel extends StateNotifier<page_model.Page> {
               TextSelection.collapsed(offset: length),
               ChangeSource.local,
             );
+            print('Loaded Delta JSON: ${page.content}');
           } else {
             controller.document = Document();
           }
         } catch (e) {
+          print('Failed to parse Delta JSON: $e');
           controller.document = Document();
         }
         state = page;
@@ -69,7 +55,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           index: 0,
           title: '새 메모 페이지',
           content: [],
-          widgets: [],
         );
         await FirebaseFirestore.instance
             .collection('notegroups')
@@ -84,11 +69,13 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       }
       _isLoaded = true;
     } catch (e) {
+      print('Load failed: $e');
     }
   }
 
   Future<void> saveToFirestore(QuillController controller) async {
     final deltaJson = controller.document.toDelta().toJson();
+    print('Saving Delta JSON: $deltaJson');
     final page = state.copyWith(content: deltaJson);
 
     try {
@@ -100,21 +87,10 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .collection('pages')
           .doc(pageId)
           .set(page.toFirestore());
-
-      for (var widget in page.widgets) {
-        await FirebaseFirestore.instance
-            .collection('notegroups')
-            .doc(groupId)
-            .collection('notes')
-            .doc(noteId)
-            .collection('pages')
-            .doc(pageId)
-            .collection('widgets')
-            .doc(widget.widgetId)
-            .set(widget.toFirestore());
-      }
       state = page;
+      print('Save successful for pageId: $pageId');
     } catch (e) {
+      print('Save failed: $e');
     }
   }
 }
