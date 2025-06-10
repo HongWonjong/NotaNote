@@ -117,26 +117,26 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
 
-              // final success =
-              //     await ref.read(groupViewModelProvider).deleteGroup(groupId);
+              final success =
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
-              // if (success) {
-              //   scaffoldMessenger.showSnackBar(
-              //     SnackBar(
-              //       content: Text('그룹이 삭제되었습니다'),
-              //       backgroundColor: Colors.green,
-              //     ),
-              //   );
-              // } else {
-              //   // 에러 메시지 표시
-              //   final error = ref.read(groupViewModelProvider).error;
-              //   scaffoldMessenger.showSnackBar(
-              //     SnackBar(
-              //       content: Text(error ?? '삭제 실패'),
-              //       backgroundColor: Colors.red,
-              //     ),
-              //   );
-              // }
+              if (success) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text('그룹이 삭제되었습니다'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                // 에러 메시지 표시
+                final error = ref.read(groupViewModelProvider).error;
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(error ?? '삭제 실패'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
@@ -168,17 +168,22 @@ class MainItem extends ConsumerWidget {
       onTap: onTap ?? () => _showBottomSheet(context, ref),
       child: Container(
         width: double.infinity,
-        height: 62,
+        height: 72,
         decoration: BoxDecoration(
-          color: Color(0xffF4F4F4),
-          borderRadius: BorderRadius.circular(16),
+          color: Color(0xffFAFAFA),
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xffEFEFEF),
+              width: 1,
+            ),
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
                   Image.asset(
                     'assets/group_folder_icon.png',
@@ -192,20 +197,26 @@ class MainItem extends ConsumerWidget {
                       fontSize: 16,
                     ),
                   ),
+                  SizedBox(width: 8),
+                  Text(
+                    '(3)',
+                    //TODO: 하드코딩 -> 실제 그룹갯수
+                    style: TextStyle(fontSize: 14, color: Color(0xff999999)),
+                  ),
                 ],
               ),
-              IconButton(
-                onPressed: () => _showBottomSheet(context, ref),
-                icon: Icon(
-                  Icons.more_horiz,
-                  size: 24,
-                ),
-                splashRadius: 20,
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
-              )
-            ],
-          ),
+            ),
+            IconButton(
+              onPressed: () => _showBottomSheet(context, ref),
+              icon: Icon(
+                Icons.more_horiz,
+                size: 24,
+              ),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(),
+            )
+          ],
         ),
       ),
     );
@@ -241,11 +252,17 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '공유',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '공유하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Image.asset('assets/share_icon.png')
+                      ],
                     ),
                   ),
                 ),
@@ -258,11 +275,17 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '이름 변경',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '이름 변경하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Image.asset('assets/edit_icon.png')
+                      ],
                     ),
                   ),
                 ),
@@ -275,12 +298,18 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '삭제',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.red,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '삭제하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                        ),
+                        Image.asset('assets/trash_red_icon.png')
+                      ],
                     ),
                   ),
                 ),
