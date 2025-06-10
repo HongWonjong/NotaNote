@@ -168,17 +168,16 @@ class MainItem extends ConsumerWidget {
       onTap: onTap ?? () => _showBottomSheet(context, ref),
       child: Container(
         width: double.infinity,
-        height: 62,
+        height: 72,
         decoration: BoxDecoration(
           color: Color(0xffF4F4F4),
-          borderRadius: BorderRadius.circular(16),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
                   Image.asset(
                     'assets/group_folder_icon.png',
@@ -194,18 +193,18 @@ class MainItem extends ConsumerWidget {
                   ),
                 ],
               ),
-              IconButton(
-                onPressed: () => _showBottomSheet(context, ref),
-                icon: Icon(
-                  Icons.more_horiz,
-                  size: 24,
-                ),
-                splashRadius: 20,
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
-              )
-            ],
-          ),
+            ),
+            IconButton(
+              onPressed: () => _showBottomSheet(context, ref),
+              icon: Icon(
+                Icons.more_horiz,
+                size: 24,
+              ),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(),
+            )
+          ],
         ),
       ),
     );
