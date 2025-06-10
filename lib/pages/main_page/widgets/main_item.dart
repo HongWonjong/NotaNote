@@ -240,11 +240,17 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '공유',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '공유하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Image.asset('assets/share_icon.png')
+                      ],
                     ),
                   ),
                 ),
@@ -257,11 +263,17 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '이름 변경',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '공유하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Image.asset('assets/share_icon.png')
+                      ],
                     ),
                   ),
                 ),
@@ -274,12 +286,17 @@ class MainItem extends ConsumerWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      '삭제',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.red,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '공유하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Image.asset('assets/share_icon.png')
+                      ],
                     ),
                   ),
                 ),
