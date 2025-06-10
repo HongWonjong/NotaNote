@@ -439,21 +439,21 @@ class _MainPageState extends ConsumerState<MainPage> {
             ],
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 20),
-                  if (isLoading)
-                    Center(child: CircularProgressIndicator())
-                  else if (error != null)
-                    Text(
-                      error,
-                      style: TextStyle(color: Colors.red),
-                    )
-                  else
-                    Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 20),
+                if (isLoading)
+                  Center(child: CircularProgressIndicator())
+                else if (error != null)
+                  Text(
+                    error,
+                    style: TextStyle(color: Colors.red),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
                       children: [
                         Text(
                           '총 ${groups.length}개',
@@ -463,79 +463,79 @@ class _MainPageState extends ConsumerState<MainPage> {
                         ),
                       ],
                     ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: isLoading
-                        ? Center(child: CircularProgressIndicator())
-                        : groups.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.folder_open,
-                                      size: 48,
-                                      color: Colors.grey[400],
-                                    ),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      '생성된 그룹이 없습니다',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      '새 그룹을 추가해보세요',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: groups.length,
-                                separatorBuilder: (context, index) =>
-                                    SizedBox(height: 5),
-                                itemBuilder: (context, index) {
-                                  return MainItem(
-                                    title: groups[index].name,
-                                    groupId: groups[index].id,
-                                    onTap: () {
-                                      // 스캐폴드 메신저를 미리 참조
-                                      final scaffoldMessenger =
-                                          ScaffoldMessenger.of(context);
-
-                                      // 스낵바 표시
-                                      scaffoldMessenger.showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-
-                                      // 노트 목록 페이지로 이동
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => NoteListPage(
-                                            groupId: groups[index].id,
-                                            groupName: groups[index].name,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
                   ),
-                ],
-              ),
+                SizedBox(height: 16),
+                Expanded(
+                  child: isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : groups.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.folder_open,
+                                    size: 48,
+                                    color: Colors.grey[400],
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    '생성된 그룹이 없습니다',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    '새 그룹을 추가해보세요',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: EdgeInsets.zero,
+                              itemCount: groups.length,
+                              separatorBuilder: (context, index) =>
+                                  SizedBox(height: 5),
+                              itemBuilder: (context, index) {
+                                return MainItem(
+                                  title: groups[index].name,
+                                  groupId: groups[index].id,
+                                  onTap: () {
+                                    // 스캐폴드 메신저를 미리 참조
+                                    final scaffoldMessenger =
+                                        ScaffoldMessenger.of(context);
+
+                                    // 스낵바 표시
+                                    scaffoldMessenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+
+                                    // 노트 목록 페이지로 이동
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => NoteListPage(
+                                          groupId: groups[index].id,
+                                          groupName: groups[index].name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                ),
+              ],
             ),
           ),
         ],
