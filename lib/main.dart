@@ -59,7 +59,7 @@ class MyApp extends ConsumerWidget {
         scaffoldBackgroundColor: Colors.white,
       ),
       localizationsDelegates: const [
-        FlutterQuillLocalizations.delegate, // FlutterQuill 로컬라이제이션 추가
+        FlutterQuillLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

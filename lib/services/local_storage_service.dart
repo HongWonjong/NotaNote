@@ -21,7 +21,6 @@ class LocalStorageService {
   Future<Database> _initDatabase() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = join(directory.path, 'nota_note.db');
-    print('Initializing SQLite database at: $path');
     return await openDatabase(
       path,
       version: 1,
@@ -53,9 +52,7 @@ class LocalStorageService {
       final localPath = row['localPath'] as String;
       if (await File(localPath).exists()) {
         _imagePathCache!['$groupId:$noteId:$pageId:$imageUrl'] = localPath;
-        print('Loaded cache: $localPath for $imageUrl');
       } else {
-        print('Removing invalid cache entry: $localPath for $imageUrl');
         await db.delete(
           'images',
           where: 'groupId = ? AND noteId = ? AND pageId = ? AND imageUrl = ?',
@@ -75,20 +72,16 @@ class LocalStorageService {
     if (result.isNotEmpty) {
       final localPath = result.first['localPath'] as String;
       if (await File(localPath).exists()) {
-        print('Found valid image in SQLite: $localPath for $imageUrl');
         _imagePathCache ??= {};
         _imagePathCache!['$groupId:$noteId:$pageId:$imageUrl'] = localPath;
         return localPath;
       } else {
-        print('Invalid image file at: $localPath for $imageUrl, removing from SQLite');
         await db.delete(
           'images',
           where: 'groupId = ? AND noteId = ? AND pageId = ? AND imageUrl = ?',
           whereArgs: [groupId, noteId, pageId, imageUrl],
         );
       }
-    } else {
-      print('No image found in SQLite for: $imageUrl');
     }
     return '';
   }
@@ -98,10 +91,8 @@ class LocalStorageService {
     final cacheKey = '$groupId:$noteId:$pageId:$imageUrl';
     final cachedPath = _imagePathCache![cacheKey];
     if (cachedPath != null && File(cachedPath).existsSync()) {
-      print('Found valid image in cache: $cachedPath for $imageUrl');
       return cachedPath;
     }
-    print('No cached image for: $imageUrl');
     return '';
   }
 
@@ -141,7 +132,6 @@ class LocalStorageService {
     );
     _imagePathCache ??= {};
     _imagePathCache!['$groupId:$noteId:$pageId:$imageUrl'] = localPath;
-    print('Saved image to SQLite: $localPath for $imageUrl');
   }
 
   Future<String> saveImageFileToLocal(File imageFile, String fileName) async {
@@ -150,7 +140,6 @@ class LocalStorageService {
     final localFile = File(localPath);
     await localFile.create(recursive: true);
     await imageFile.copy(localPath);
-    print('Saved image file to local storage: $localPath');
     return localPath;
   }
 }
