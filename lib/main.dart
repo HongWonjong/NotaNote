@@ -11,6 +11,11 @@ import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nota_note/firebase_options.dart';
+import 'pages/memo_page/memo_page.dart';
+import 'pages/main_page/main_page.dart';
+import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
+import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,9 +113,9 @@ class MyHomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MemoPage(
-                      groupId: 'group1', // 테스트용
-                      noteId: 'note1',
-                      pageId: 'page1',
+                      groupId: 'group1', // 테스트용 값
+                      noteId: 'note1', // 테스트용 값
+                      pageId: 'page1', // 테스트용 값
                     ),
                   ),
                 );
@@ -125,6 +130,15 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               child: const Text('메인 페이지로 이동'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OnBoardingPage()),
+                );
+              },
+              child: const Text('온보딩 페이지로 이동'),
             ),
             ElevatedButton(
               onPressed: () async {
