@@ -99,7 +99,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       'controller': _controller,
     }));
 
-    // 이미지 업로드 상태에 따라 UI 반영
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (imageUploadState == ImageUploadState.loading) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,54 +164,57 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ],
       ),
-      body: KeyboardVisibilityBuilder(
-        builder: (context, isKeyboardVisible) => Stack(
-          children: [
-            Column(
-              children: [
-                TagWidget(groupId: widget.groupId, noteId: widget.noteId),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: quill.QuillEditor(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      scrollController: _scrollController,
-                      config: quill.QuillEditorConfig(
-                        embedBuilders: FlutterQuillEmbeds.editorBuilders(
-                          imageEmbedConfig: QuillEditorImageEmbedConfig(
-                            imageProviderBuilder: (context, imageUrl) {
-                              print('Rendering image: $imageUrl');
-                              try {
-                                return NetworkImage(imageUrl);
-                              } catch (e) {
-                                print('Failed to load image: $e');
-                                return AssetImage('assets/placeholder.png');
-                              }
-                            },
+      body: Padding(
+        padding: EdgeInsets.all(20.0),
+        child: KeyboardVisibilityBuilder(
+          builder: (context, isKeyboardVisible) => Stack(
+            children: [
+              Column(
+                children: [
+                  TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: quill.QuillEditor(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        scrollController: _scrollController,
+                        config: quill.QuillEditorConfig(
+                          embedBuilders: FlutterQuillEmbeds.editorBuilders(
+                            imageEmbedConfig: QuillEditorImageEmbedConfig(
+                              imageProviderBuilder: (context, imageUrl) {
+                                print('Rendering image: $imageUrl');
+                                try {
+                                  return imageUploadViewModel.getImageProviderSync(imageUrl);
+                                } catch (e) {
+                                  print('Failed to load image: $e');
+                                  return AssetImage('assets/placeholder.png');
+                                }
+                              },
+                            ),
                           ),
+                          padding: EdgeInsets.zero,
                         ),
-                        padding: EdgeInsets.zero,
                       ),
                     ),
                   ),
-                ),
-                if (isKeyboardVisible)
-                  EditorToolbar(
-                    controller: _controller,
-                    groupId: widget.groupId,
-                    noteId: widget.noteId,
-                    pageId: widget.pageId,
-                  ),
-              ],
-            ),
-            if (isBoxVisible)
-              Positioned(
-                bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
-                right: 22.0,
-                child: RecordingControllerBox(),
+                  if (isKeyboardVisible)
+                    EditorToolbar(
+                      controller: _controller,
+                      groupId: widget.groupId,
+                      noteId: widget.noteId,
+                      pageId: widget.pageId,
+                    ),
+                ],
               ),
-          ],
+              if (isBoxVisible)
+                Positioned(
+                  bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
+                  right: 22.0,
+                  child: RecordingControllerBox(),
+                ),
+            ],
+          ),
         ),
       ),
     );

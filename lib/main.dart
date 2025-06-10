@@ -17,6 +17,7 @@ import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart'; // FlutterQuillLocalizations 임포트
 import 'package:flutter_localizations/flutter_localizations.dart'; // 기본 로컬라이제이션
+import 'services/local_storage_service.dart';
 
 
 void main() async {
@@ -32,6 +33,8 @@ void main() async {
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
+  // LocalStorageService 초기화 (캐시 미리 로드)
+  await LocalStorageService().database;
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -56,7 +59,7 @@ class MyApp extends ConsumerWidget {
         scaffoldBackgroundColor: Colors.white,
       ),
       localizationsDelegates: const [
-        FlutterQuillLocalizations.delegate, // FlutterQuill 로컬라이제이션 추가
+        FlutterQuillLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
