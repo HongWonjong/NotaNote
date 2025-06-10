@@ -7,8 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:nota_note/services/whisper_service.dart';
-import 'package:nota_note/providers/language_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 class RecordingInfo {
   final String path;
@@ -78,23 +79,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   void _setupPlayerListener() {
     _player.onPlayerComplete.listen((event) {
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: null,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(currentlyPlayingPath: null);
     });
     _player.onPlayerStateChanged.listen((playerState) {
       if (playerState == ap.PlayerState.stopped || playerState == ap.PlayerState.completed) {
-        state = RecordingState(
-          isRecording: state.isRecording,
-          recordingDuration: state.recordingDuration,
-          recordings: state.recordings,
-          currentlyPlayingPath: null,
-          transcriptions: state.transcriptions,
-        );
+        state = state.copyWith(currentlyPlayingPath: null);
       }
     });
   }
@@ -105,7 +94,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       if (status != PermissionStatus.granted) {
         return;
       }
-
       if (Platform.isIOS) {
         final storageStatus = await Permission.storage.request();
         if (storageStatus != PermissionStatus.granted) {
@@ -116,17 +104,12 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   }
 
   Future<void> startRecording() async {
-    if (_recorder.isRecording) {
-      return;
-    }
-
+    if (_recorder.isRecording) return;
     final directory = await getTemporaryDirectory();
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-    }
+    if (!await directory.exists()) await directory.create(recursive: true);
     final now = DateTime.now();
     final timestamp = DateFormat('HHmmss').format(now);
-    final path = '${directory.path}/recording_${timestamp}.m4a';
+    final path = '${directory.path}/recording_$timestamp.m4a';
 
     try {
       await _recorder.startRecorder(
@@ -136,39 +119,22 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         bitRate: 192000,
       );
       _currentRecordingPath = path;
-      state = RecordingState(
+      state = state.copyWith(
         isRecording: true,
         recordingDuration: Duration.zero,
-        recordings: state.recordings,
-        currentlyPlayingPath: state.currentlyPlayingPath,
-        transcriptions: state.transcriptions,
       );
-
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        state = RecordingState(
-          isRecording: state.isRecording,
+        state = state.copyWith(
           recordingDuration: state.recordingDuration + const Duration(seconds: 1),
-          recordings: state.recordings,
-          currentlyPlayingPath: state.currentlyPlayingPath,
-          transcriptions: state.transcriptions,
         );
       });
     } catch (e) {
-      state = RecordingState(
-        isRecording: false,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: state.currentlyPlayingPath,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(isRecording: false);
     }
   }
 
   Future<void> stopRecording() async {
-    if (!_recorder.isRecording) {
-      return;
-    }
-
+    if (!_recorder.isRecording) return;
     try {
       final path = await _recorder.stopRecorder();
       _timer?.cancel();
@@ -178,59 +144,35 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         if (fileSize < 5000) {
           if (fileSize == 0) {}
         }
-
         final updatedRecordings = List<RecordingInfo>.from(state.recordings)
           ..add(RecordingInfo(
             path: path,
             duration: state.recordingDuration,
             createdAt: DateTime.now(),
           ));
-        state = RecordingState(
+        state = state.copyWith(
           isRecording: false,
           recordingDuration: Duration.zero,
           recordings: updatedRecordings,
-          currentlyPlayingPath: state.currentlyPlayingPath,
-          transcriptions: state.transcriptions,
         );
       } else {
-        state = RecordingState(
+        state = state.copyWith(
           isRecording: false,
           recordingDuration: Duration.zero,
-          recordings: state.recordings,
-          currentlyPlayingPath: state.currentlyPlayingPath,
-          transcriptions: state.transcriptions,
         );
       }
       _currentRecordingPath = null;
     } catch (e) {
-      state = RecordingState(
-        isRecording: false,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: state.currentlyPlayingPath,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(isRecording: false);
     }
   }
 
   Future<void> stopPlayback() async {
     try {
       await _player.stop();
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: null,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(currentlyPlayingPath: null);
     } catch (e) {
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: null,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(currentlyPlayingPath: null);
     }
   }
 
@@ -241,72 +183,36 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   Future<void> playRecording(String path) async {
     try {
       final file = File(path);
-      if (!await file.exists()) {
-        return;
-      }
-
+      if (!await file.exists()) return;
       final fileSize = await file.length();
-      if (fileSize < 1000) {
-        return;
-      }
-
+      if (fileSize < 1000) return;
       if (state.currentlyPlayingPath == path) {
         await stopPlayback();
         return;
       }
-
-      if (state.currentlyPlayingPath != null) {
-        await stopPlayback();
-      }
-
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: path,
-        transcriptions: state.transcriptions,
-      );
-      await _player.play(
-        ap.DeviceFileSource(path),
-        volume: 1.0,
-      );
+      if (state.currentlyPlayingPath != null) await stopPlayback();
+      state = state.copyWith(currentlyPlayingPath: path);
+      await _player.play(ap.DeviceFileSource(path), volume: 1.0);
     } catch (e) {
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: null,
-        transcriptions: state.transcriptions,
-      );
+      state = state.copyWith(currentlyPlayingPath: null);
     }
   }
 
   Future<void> downloadRecording(String path) async {
     try {
       final file = File(path);
-      if (!await file.exists()) {
-        return;
-      }
-      await Share.shareXFiles(
-        [XFile(path)],
-        text: '녹음 파일 다운로드',
-      );
+      if (!await file.exists()) return;
+      await Share.shareXFiles([XFile(path)], text: '녹음 파일 다운로드');
     } catch (e) {}
   }
 
   Future<void> deleteRecording(String path) async {
     try {
       final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-
+      if (await file.exists()) await file.delete();
       final updatedRecordings = state.recordings.where((recording) => recording.path != path).toList();
       final updatedTranscriptions = Map<String, String>.from(state.transcriptions)..remove(path);
-
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
+      state = state.copyWith(
         recordings: updatedRecordings,
         currentlyPlayingPath: state.currentlyPlayingPath == path ? null : state.currentlyPlayingPath,
         transcriptions: updatedTranscriptions,
@@ -314,19 +220,17 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     } catch (e) {}
   }
 
-  Future<void> transcribeRecording(String path) async {
-    final language = ref.read(languageProvider);
+  Future<void> transcribeRecording(String path, String language, QuillController controller) async {
     final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, language);
     if (response != null) {
-      state = RecordingState(
-        isRecording: state.isRecording,
-        recordingDuration: state.recordingDuration,
-        recordings: state.recordings,
-        currentlyPlayingPath: state.currentlyPlayingPath,
-        transcriptions: {
-          ...state.transcriptions,
-          path: response.transcription,
-        },
+      state = state.copyWith(
+        transcriptions: {...state.transcriptions, path: response.transcription},
+      );
+      final index = controller.selection.start;
+      controller.document.insert(index, response.transcription + '\n');
+      controller.updateSelection(
+        TextSelection.collapsed(offset: index + response.transcription.length + 1),
+        ChangeSource.local,
       );
     }
   }
