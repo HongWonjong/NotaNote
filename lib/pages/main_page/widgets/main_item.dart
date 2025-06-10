@@ -201,9 +201,7 @@ class MainItem extends ConsumerWidget {
                   Text(
                     '(3)',
                     //TODO: 하드코딩 -> 실제 그룹갯수
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Color(0xff999999)),
                   ),
                 ],
               ),
