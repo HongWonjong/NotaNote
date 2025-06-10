@@ -500,8 +500,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                           : ListView.separated(
                               padding: EdgeInsets.zero,
                               itemCount: groups.length,
-                              separatorBuilder: (context, index) =>
-                                  SizedBox(height: 5),
+                              separatorBuilder: (context, index) => Container(),
                               itemBuilder: (context, index) {
                                 return MainItem(
                                   title: groups[index].name,
