@@ -3,12 +3,10 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:nota_note/viewmodels/page_viewmodel.dart';
-import 'dart:io';
+import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -230,52 +228,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null && mounted) {
-      final imageFile = File(pickedFile.path);
-      final imageUrl = await _uploadImageToStorage(imageFile);
-      if (imageUrl != null) {
-        final index = widget.controller.selection.start;
-        widget.controller.document.insert(index, '\n');
-        widget.controller.document.insert(index + 1, BlockEmbed.image(imageUrl));
-        widget.controller.updateSelection(
-          TextSelection.collapsed(offset: index + 2),
-          ChangeSource.local,
-        );
-        // 즉시 저장
-        await ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).saveToFirestore(widget.controller);
-      }
-    }
-  }
-
-  Future<String?> _uploadImageToStorage(File imageFile) async {
-    try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('notegroups/${widget.groupId}/notes/${widget.noteId}/pages/${widget.pageId}/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = storageRef.putFile(imageFile);
-      print('Uploading image to: ${storageRef.fullPath}');
-      await uploadTask;
-      final imageUrl = await storageRef.getDownloadURL();
-      print('Image uploaded successfully: $imageUrl');
-      return imageUrl;
-    } catch (e) {
-      print('Image upload failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('이미지 업로드 실패: $e')),
-        );
-      }
-      return null;
-    }
-  }
-
   void _insertCodeBlock() {
     final selection = widget.controller.selection;
     if (selection.isValid && selection.start != selection.end) {
@@ -348,11 +300,25 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.camera_alt_outlined),
-              onPressed: () => _pickImage(ImageSource.camera),
+              onPressed: () {
+                ref.read(imageUploadProvider({
+                  'groupId': widget.groupId,
+                  'noteId': widget.noteId,
+                  'pageId': widget.pageId,
+                  'controller': widget.controller,
+                }).notifier).pickAndUploadImage(ImageSource.camera, context);
+              },
             ),
             IconButton(
               icon: Icon(Icons.photo_library),
-              onPressed: () => _pickImage(ImageSource.gallery),
+              onPressed: () {
+                ref.read(imageUploadProvider({
+                  'groupId': widget.groupId,
+                  'noteId': widget.noteId,
+                  'pageId': widget.pageId,
+                  'controller': widget.controller,
+                }).notifier).pickAndUploadImage(ImageSource.gallery, context);
+              },
             ),
             IconButton(
               icon: Icon(Icons.link),

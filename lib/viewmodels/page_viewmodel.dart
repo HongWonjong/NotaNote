@@ -1,8 +1,8 @@
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/models/page_model.dart' as page_model;
 import 'package:flutter/services.dart';
+import 'package:nota_note/models/page_model.dart' as page_model;
 
 class PageViewModel extends StateNotifier<page_model.Page> {
   final String groupId;
@@ -74,6 +74,10 @@ class PageViewModel extends StateNotifier<page_model.Page> {
   }
 
   Future<void> saveToFirestore(QuillController controller) async {
+    if (!mounted) {
+      print('Save skipped: PageViewModel is disposed');
+      return;
+    }
     final deltaJson = controller.document.toDelta().toJson();
     print('Saving Delta JSON: $deltaJson');
     final page = state.copyWith(content: deltaJson);
@@ -88,14 +92,15 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .doc(pageId)
           .set(page.toFirestore());
       state = page;
-      print('Save successful for pageId: $pageId');
-    } catch (e) {
+      print('Save successful for pageId: $pageId, content: ${page.content}');
+    } catch (e, stackTrace) {
       print('Save failed: $e');
+      print('Stack trace: $stackTrace');
     }
   }
 }
 
-final pageViewModelProvider = StateNotifierProvider.family.autoDispose<PageViewModel, page_model.Page, Map<String, String>>(
+final pageViewModelProvider = StateNotifierProvider.family<PageViewModel, page_model.Page, Map<String, String>>(
       (ref, params) => PageViewModel(
     params['groupId']!,
     params['noteId']!,
