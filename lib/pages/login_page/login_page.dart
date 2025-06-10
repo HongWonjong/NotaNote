@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/main.dart';
+import 'package:nota_note/viewmodels/auth/apple_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/kakao_auth_viewmodel.dart';
 
@@ -72,7 +73,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
                   child: ElevatedButton(
                     onPressed: () async {
                       log('[로그인] 카카오 로그인 시도');
@@ -99,6 +101,46 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       '카카오로 로그인',
                       style: TextStyle(
                         color: Color(0xFF000000),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      log('[로그인] Apple 로그인 시도');
+
+                      final user = await ref
+                          .read(appleAuthViewModelProvider)
+                          .signInWithApple(); // UserModel 반환
+                      if (user == null || !context.mounted) {
+                        log('[로그인] Apple 로그인 실패 또는 context 미탑재');
+                        return;
+                      }
+                      log('[로그인] Apple 로그인 성공 → 홈 이동');
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MyHomePage(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF000000), // Apple 공식 색상
+                      minimumSize: const Size.fromHeight(48), // 버튼 높이
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 32), // 좌우 여백
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Apple로 로그인',
+                      style: TextStyle(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

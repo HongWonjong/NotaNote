@@ -7,6 +7,7 @@ import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/pages/main_page/main_page.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,6 +16,10 @@ import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
+import 'package:flutter_quill/flutter_quill.dart'; // FlutterQuillLocalizations 임포트
+import 'package:flutter_localizations/flutter_localizations.dart'; // 기본 로컬라이제이션
+import 'services/local_storage_service.dart';
+
 import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
@@ -24,12 +29,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // dotenv 초기화
+  await dotenv.load(fileName: ".env");
+  print('dotenv 로드 완료');
 
   // Kakao SDK 초기화
   KakaoSdk.init(
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
+  // LocalStorageService 초기화 (캐시 미리 로드)
+  await LocalStorageService().database;
 
   // ✅ timeago 한국어 메시지 설정
   timeago.setLocaleMessages('ko', timeago.KoMessages());
@@ -56,6 +66,16 @@ class MyApp extends ConsumerWidget {
         appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
       ),
+      localizationsDelegates: const [
+        FlutterQuillLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'), // 영어
+        Locale('ko', 'KR'), // 한국어
+      ],
       home: asyncUserId.when(
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -116,9 +136,9 @@ class MyHomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MemoPage(
-                      groupId: 'group1', // 테스트용
-                      noteId: 'note1',
-                      pageId: 'page1',
+                      groupId: 'group1', // 테스트용 값
+                      noteId: 'note1', // 테스트용 값
+                      pageId: 'page1', // 테스트용 값
                     ),
                   ),
                 );
