@@ -170,7 +170,13 @@ class MainItem extends ConsumerWidget {
         width: double.infinity,
         height: 72,
         decoration: BoxDecoration(
-          color: Color(0xffF4F4F4),
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFFEEEEEE),
+              width: 1,
+            ),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
