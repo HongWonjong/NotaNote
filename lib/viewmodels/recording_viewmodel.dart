@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:nota_note/services/whisper_service.dart';
+import 'package:nota_note/services/gpt_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -223,13 +224,38 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   Future<void> transcribeRecording(String path, String language, QuillController controller) async {
     final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, language);
     if (response != null) {
+      final markdownText = await ref.read(gptServiceProvider).convertToMarkdown(response.transcription);
+      final textToInsert = markdownText ?? response.transcription;
       state = state.copyWith(
-        transcriptions: {...state.transcriptions, path: response.transcription},
+        transcriptions: {...state.transcriptions, path: textToInsert},
       );
       final index = controller.selection.start;
-      controller.document.insert(index, response.transcription + '\n');
+      controller.document.insert(index, textToInsert + '\n');
       controller.updateSelection(
-        TextSelection.collapsed(offset: index + response.transcription.length + 1),
+        TextSelection.collapsed(offset: index + textToInsert.length + 1),
+        ChangeSource.local,
+      );
+    }
+  }
+
+  Future<void> summarizeRecording(String path, QuillController controller) async {
+    final transcription = state.transcriptions[path];
+    if (transcription == null) {
+      final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, 'ko');
+      if (response != null) {
+        state = state.copyWith(
+          transcriptions: {...state.transcriptions, path: response.transcription},
+        );
+      } else {
+        return;
+      }
+    }
+    final summary = await ref.read(gptServiceProvider).summarizeToMarkdown(state.transcriptions[path]!);
+    if (summary != null) {
+      final index = controller.selection.start;
+      controller.document.insert(index, summary + '\n');
+      controller.updateSelection(
+        TextSelection.collapsed(offset: index + summary.length + 1),
         ChangeSource.local,
       );
     }
