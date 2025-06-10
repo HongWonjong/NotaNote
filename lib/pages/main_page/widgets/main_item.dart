@@ -117,26 +117,26 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
 
-              // final success =
-              //     await ref.read(groupViewModelProvider).deleteGroup(groupId);
+              final success =
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
-              // if (success) {
-              //   scaffoldMessenger.showSnackBar(
-              //     SnackBar(
-              //       content: Text('그룹이 삭제되었습니다'),
-              //       backgroundColor: Colors.green,
-              //     ),
-              //   );
-              // } else {
-              //   // 에러 메시지 표시
-              //   final error = ref.read(groupViewModelProvider).error;
-              //   scaffoldMessenger.showSnackBar(
-              //     SnackBar(
-              //       content: Text(error ?? '삭제 실패'),
-              //       backgroundColor: Colors.red,
-              //     ),
-              //   );
-              // }
+              if (success) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text('그룹이 삭제되었습니다'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                // 에러 메시지 표시
+                final error = ref.read(groupViewModelProvider).error;
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(error ?? '삭제 실패'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
