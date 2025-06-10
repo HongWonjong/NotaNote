@@ -51,7 +51,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(227, -230.0),
+          offset: Offset(227, -270.0),
           child: Material(
             borderRadius: BorderRadius.circular(8.0),
             elevation: 2.0,
@@ -115,6 +115,21 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                 await recordingViewModel.transcribeRecording(
                   recording.path,
                   _mapLanguageToCode(_selectedLanguage),
+                  widget.controller!,
+                );
+              }
+            },
+          ),
+          _buildMenuItem(
+            context,
+            icon: Icons.summarize,
+            label: 'AI 요약',
+            onTap: () async {
+              _toggleMenu(context);
+              if (widget.controller != null) {
+                final recording = recordingState.recordings.last;
+                await recordingViewModel.summarizeRecording(
+                  recording.path,
                   widget.controller!,
                 );
               }
