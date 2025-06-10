@@ -3,17 +3,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/group_model.dart';
+import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
 final groupViewModelProvider =
-    ChangeNotifierProvider((ref) => GroupViewModel());
+    ChangeNotifierProvider((ref) => GroupViewModel(ref));
 
 class GroupViewModel extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Ref _ref;
 
   List<GroupModel> _groups = [];
   bool _isLoading = false;
   String? _error;
+
+  GroupViewModel(this._ref);
 
   List<GroupModel> get groups => _groups;
   bool get isLoading => _isLoading;
@@ -25,7 +30,15 @@ class GroupViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = _auth.currentUser?.uid;
+      // Firebase Auth에서 사용자 ID 가져오기 시도
+      String? userId = _auth.currentUser?.uid;
+
+      // Firebase Auth에서 ID를 가져오지 못했다면 SharedPreferences에서 시도
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
+      // 사용자 ID가 없으면 로그인 필요 메시지 표시
       if (userId == null) {
         _error = "로그인이 필요합니다";
         _isLoading = false;
@@ -33,11 +46,10 @@ class GroupViewModel extends ChangeNotifier {
         return;
       }
 
-      // 인덱스 오류를 피하기 위해 쿼리 수정
-      // 'notegroups' 컬렉션에서 사용자의 그룹 가져오기
+      // 'notegroups' 컬렉션에서 creatorId가 현재 사용자인 그룹만 가져오기
       final querySnapshot = await _firestore
           .collection('notegroups')
-          .where('userIds', arrayContains: userId)
+          .where('creatorId', isEqualTo: userId)
           .get();
 
       // 가져온 후 클라이언트에서 정렬
@@ -50,6 +62,8 @@ class GroupViewModel extends ChangeNotifier {
 
       _groups = fetchedGroups;
 
+      print('로그인한 사용자($userId)가 생성한 그룹 ${_groups.length}개를 불러왔습니다.');
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -61,7 +75,14 @@ class GroupViewModel extends ChangeNotifier {
 
   Future<void> createGroup(String name) async {
     try {
-      final userId = _auth.currentUser?.uid;
+      // Firebase Auth에서 사용자 ID 가져오기 시도
+      String? userId = _auth.currentUser?.uid;
+
+      // Firebase Auth에서 ID를 가져오지 못했다면 SharedPreferences에서 시도
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
       if (userId == null) {
         _error = "로그인이 필요합니다";
         notifyListeners();
@@ -73,6 +94,7 @@ class GroupViewModel extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
         'userIds': [userId],
         'noteIds': [],
+        'creatorId': userId,
       };
 
       await _firestore.collection('notegroups').add(newGroup);
@@ -80,6 +102,173 @@ class GroupViewModel extends ChangeNotifier {
     } catch (e) {
       _error = "그룹 생성 중 오류가 발생했습니다: $e";
       notifyListeners();
+    }
+  }
+
+  Future<bool> renameGroup(String groupId, String newName) async {
+    try {
+      print('이름 변경 시작: 그룹 ID: $groupId, 새 이름: $newName');
+
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        userId = await getCurrentUserId();
+        print('SharedPreferences에서 가져온 userId: $userId');
+      } else {
+        print('Firebase Auth에서 가져온 userId: $userId');
+      }
+
+      if (userId == null) {
+        _error = "로그인이 필요합니다";
+        notifyListeners();
+        print('오류: 로그인이 필요합니다');
+        return false;
+      }
+
+      print('Firestore 문서 참조 경로: notegroups/$groupId');
+      final docRef = _firestore.collection('notegroups').doc(groupId);
+
+      // 트랜잭션으로 처리하여 데이터 일관성 유지
+      bool result = await _firestore.runTransaction<bool>((transaction) async {
+        // 문서 가져오기
+        final docSnapshot = await transaction.get(docRef);
+
+        if (!docSnapshot.exists) {
+          print('오류: 존재하지 않는 그룹입니다');
+          throw Exception("존재하지 않는 그룹입니다");
+        }
+
+        print('문서 데이터: ${docSnapshot.data()}');
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        final creatorId = data['creatorId'] as String? ?? '';
+        print('creatorId: $creatorId, 현재 userId: $userId');
+
+        if (creatorId != userId) {
+          print('오류: 그룹 이름을 변경할 권한이 없습니다');
+          throw Exception("그룹 이름을 변경할 권한이 없습니다");
+        }
+
+        print('이름 변경 트랜잭션 실행 중...');
+        // 업데이트 실행
+        transaction.update(docRef, {'name': newName});
+        return true;
+      });
+
+      print('트랜잭션 결과: $result');
+
+      if (result) {
+        print('이름 변경 성공! 그룹 목록 다시 불러오는 중...');
+        await fetchGroups(); // 그룹 목록 다시 불러오기
+      }
+
+      return result;
+    } catch (e) {
+      if (e is Exception) {
+        _error = e.toString().replaceAll('Exception: ', '');
+      } else {
+        _error = "그룹 이름 변경 중 오류가 발생했습니다: $e";
+      }
+      notifyListeners();
+      print('예외 발생: $e');
+
+      // 스택 트레이스 출력
+      print('======= 스택 트레이스 =======');
+      try {
+        throw e;
+      } catch (e, stackTrace) {
+        print(stackTrace);
+      }
+      print('===========================');
+
+      return false;
+    }
+  }
+
+  Future<bool> deleteGroup(String groupId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        userId = await getCurrentUserId();
+      }
+
+      if (userId == null) {
+        _error = "로그인이 필요합니다";
+        notifyListeners();
+        return false;
+      }
+
+      final docRef = _firestore.collection('notegroups').doc(groupId);
+      final docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        _error = "존재하지 않는 그룹입니다";
+        notifyListeners();
+        return false;
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      final creatorId = data['creatorId'] as String? ?? '';
+
+      if (creatorId != userId) {
+        _error = "그룹을 삭제할 권한이 없습니다";
+        notifyListeners();
+        return false;
+      }
+
+      final notesRef = docRef.collection('notes');
+      final notesSnapshot = await notesRef.get();
+
+      for (var noteDoc in notesSnapshot.docs) {
+        final noteRef = notesRef.doc(noteDoc.id);
+
+        final pagesRef = noteRef.collection('pages');
+        final pagesSnapshot = await pagesRef.get();
+        for (var pageDoc in pagesSnapshot.docs) {
+          await pagesRef.doc(pageDoc.id).delete();
+        }
+
+        final commentsRef = noteRef.collection('comments');
+        final commentsSnapshot = await commentsRef.get();
+        for (var commentDoc in commentsSnapshot.docs) {
+          await commentsRef.doc(commentDoc.id).delete();
+        }
+
+        await noteRef.delete();
+      }
+
+      await docRef.delete();
+      await fetchGroups(); // 그룹 목록 다시 불러오기
+      return true;
+    } catch (e) {
+      _error = "그룹 삭제 중 오류가 발생했습니다: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // 기존 그룹에 creatorId 필드 추가 (마이그레이션용 함수)
+  Future<void> updateExistingGroups() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('notegroups')
+          .where('creatorId', isNull: true)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final userIds = List<String>.from(data['userIds'] ?? []);
+
+        // userIds의 첫 번째 사용자를 생성자로 간주
+        if (userIds.isNotEmpty) {
+          await _firestore
+              .collection('notegroups')
+              .doc(doc.id)
+              .update({'creatorId': userIds[0]});
+        }
+      }
+
+      print('기존 그룹 업데이트 완료');
+    } catch (e) {
+      print('기존 그룹 업데이트 오류: $e');
     }
   }
 }
