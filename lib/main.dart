@@ -15,7 +15,7 @@ import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
-
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +30,9 @@ void main() async {
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
+
+  // ✅ timeago 한국어 메시지 설정
+  timeago.setLocaleMessages('ko', timeago.KoMessages());
 
   runApp(const ProviderScope(child: MyApp()));
 }
