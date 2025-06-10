@@ -1,6 +1,4 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nota_note/models/widget_model.dart' as widget_model;
 
 class Page {
   final String noteId;
@@ -8,7 +6,6 @@ class Page {
   final String title;
   final List<Map<String, dynamic>> content;
   final Timestamp? updatedAt;
-  final List<widget_model.Widget> widgets;
 
   Page({
     required this.noteId,
@@ -16,10 +13,9 @@ class Page {
     required this.title,
     required this.content,
     this.updatedAt,
-    required this.widgets,
   });
 
-  factory Page.fromFirestore(DocumentSnapshot doc, List<widget_model.Widget> widgets) {
+  factory Page.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Page(
       noteId: data['noteId'] ?? '',
@@ -29,7 +25,6 @@ class Page {
           ? (data['content'] as List<dynamic>).cast<Map<String, dynamic>>()
           : [],
       updatedAt: data['updated_at'] as Timestamp?,
-      widgets: widgets,
     );
   }
 
@@ -43,14 +38,13 @@ class Page {
     };
   }
 
-  Page copyWith({List<Map<String, dynamic>>? content, List<widget_model.Widget>? widgets}) {
+  Page copyWith({List<Map<String, dynamic>>? content}) {
     return Page(
       noteId: this.noteId,
       index: this.index,
       title: this.title,
       content: content ?? this.content,
       updatedAt: this.updatedAt,
-      widgets: widgets ?? this.widgets,
     );
   }
 }

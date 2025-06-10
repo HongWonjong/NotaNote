@@ -15,6 +15,8 @@ import 'pages/memo_page/memo_page.dart';
 import 'pages/main_page/main_page.dart';
 import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
+import 'package:flutter_quill/flutter_quill.dart'; // FlutterQuillLocalizations 임포트
+import 'package:flutter_localizations/flutter_localizations.dart'; // 기본 로컬라이제이션
 
 
 void main() async {
@@ -53,6 +55,16 @@ class MyApp extends ConsumerWidget {
         appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
       ),
+      localizationsDelegates: const [
+        FlutterQuillLocalizations.delegate, // FlutterQuill 로컬라이제이션 추가
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'), // 영어
+        Locale('ko', 'KR'), // 한국어
+      ],
       home: asyncUserId.when(
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
