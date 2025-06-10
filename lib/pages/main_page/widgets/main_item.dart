@@ -170,10 +170,10 @@ class MainItem extends ConsumerWidget {
         width: double.infinity,
         height: 72,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xffFAFAFA),
           border: Border(
             bottom: BorderSide(
-              color: Color(0xFFEEEEEE),
+              color: Color(0xffEFEFEF),
               width: 1,
             ),
           ),
