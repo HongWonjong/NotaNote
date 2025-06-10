@@ -267,12 +267,12 @@ class MainItem extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '공유하기',
+                          '이름 변경하기',
                           style: TextStyle(
                             fontSize: 16,
                           ),
                         ),
-                        Image.asset('assets/share_icon.png')
+                        Image.asset('assets/edit_icon.png')
                       ],
                     ),
                   ),
@@ -290,12 +290,13 @@ class MainItem extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '공유하기',
+                          '삭제하기',
                           style: TextStyle(
                             fontSize: 16,
+                            color: Colors.red,
                           ),
                         ),
-                        Image.asset('assets/share_icon.png')
+                        Image.asset('assets/trash_red_icon.png')
                       ],
                     ),
                   ),
