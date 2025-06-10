@@ -4,9 +4,12 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'package:nota_note/services/local_storage_service.dart';
+import 'dart:convert';
 
 enum ImageUploadState { idle, loading, success, error }
 
@@ -17,6 +20,7 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
   final QuillController controller;
   final Ref ref;
   String? errorMessage;
+  final LocalStorageService _localStorageService = LocalStorageService();
 
   ImageUploadViewModel({
     required this.groupId,
@@ -32,7 +36,6 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
 
     print('Picking image from $source');
 
-    // 시뮬레이터에서는 권한 체크 우회
     if (kDebugMode && Platform.isIOS) {
       print('Simulator detected, bypassing permission check');
     } else {
@@ -67,6 +70,21 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
     final imageUrl = await _uploadImageToStorage(imageFile);
 
     if (imageUrl != null) {
+      final fileName = _generateFileName(imageUrl);
+      final localPath = await _localStorageService.saveImageFileToLocal(imageFile, fileName);
+
+      final style = controller.getSelectionStyle();
+      final formattingData = jsonEncode(style.attributes);
+
+      await _localStorageService.saveImageLocally(
+        groupId: groupId,
+        noteId: noteId,
+        pageId: pageId,
+        imageUrl: imageUrl,
+        localPath: localPath,
+        formattingData: formattingData,
+      );
+
       final index = controller.selection.start;
       controller.document.insert(index, '\n');
       controller.document.insert(
@@ -97,9 +115,10 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
 
   Future<String?> _uploadImageToStorage(File imageFile) async {
     try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('notegroups/$groupId/notes/$noteId/pages/$pageId/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+          .child('notegroups/$groupId/notes/$noteId/pages/$pageId/images/$fileName');
       print('Uploading image to: ${storageRef.fullPath}');
       final uploadTask = storageRef.putFile(imageFile);
       final snapshot = await uploadTask;
@@ -126,6 +145,65 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
       }
       return null;
     }
+  }
+
+  ImageProvider<Object> getImageProviderSync(String imageUrl) {
+    final localPath = _localStorageService.getLocalImagePathSync(groupId, noteId, pageId, imageUrl);
+    if (localPath.isNotEmpty) {
+      print('Using cached image from local storage: $localPath for $imageUrl');
+      return FileImage(File(localPath));
+    }
+
+    print('Using NetworkImage and initiating cache for: $imageUrl');
+    cacheImageLocally(imageUrl);
+    return NetworkImage(imageUrl);
+  }
+
+  Future<void> cacheImageLocally(String imageUrl) async {
+    try {
+      print('Starting image download: $imageUrl');
+      final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await storageRef.writeToFile(tempFile);
+      print('Image downloaded to temp: ${tempFile.path}');
+
+      final fileName = _generateFileName(imageUrl);
+      final localPath = await _localStorageService.saveImageFileToLocal(tempFile, fileName);
+
+      final formattingData = jsonEncode({});
+      await _localStorageService.saveImageLocally(
+        groupId: groupId,
+        noteId: noteId,
+        pageId: pageId,
+        imageUrl: imageUrl,
+        localPath: localPath,
+        formattingData: formattingData,
+      );
+
+      print('Image caching completed: $localPath for $imageUrl');
+    } catch (e) {
+      print('Failed to cache image: $e for $imageUrl');
+    }
+  }
+
+  String _generateFileName(String imageUrl) {
+    final uri = Uri.parse(imageUrl);
+    final pathSegments = uri.pathSegments;
+    final fileName = pathSegments.lastWhere(
+          (segment) => segment.endsWith('.jpg'),
+      orElse: () => 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    print('Generated file name: $fileName for $imageUrl');
+    return fileName;
+  }
+
+  Future<Map<String, dynamic>?> getFormattingData(String imageUrl) async {
+    final data = await _localStorageService.getImageData(groupId, noteId, pageId, imageUrl);
+    if (data != null && data['formattingData'] != null) {
+      return jsonDecode(data['formattingData'] as String);
+    }
+    return null;
   }
 
   void reset() {
