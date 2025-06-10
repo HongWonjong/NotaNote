@@ -211,7 +211,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 Positioned(
                   bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
                   right: 22.0,
-                  child: RecordingControllerBox(),
+                  child: RecordingControllerBox(controller: _controller),
                 ),
             ],
           ),

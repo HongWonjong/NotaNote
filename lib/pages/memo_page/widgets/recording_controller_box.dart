@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
+  final QuillController? controller;
+
+  const RecordingControllerBox({this.controller, super.key});
+
   @override
   _RecordingControllerBoxState createState() => _RecordingControllerBoxState();
 }
@@ -14,6 +18,17 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
   String _selectedLanguage = '한국어';
   OverlayEntry? _menuOverlayEntry;
   final LayerLink _layerLink = LayerLink();
+
+  String _mapLanguageToCode(String language) {
+    switch (language) {
+      case '한국어':
+        return 'ko';
+      case '영어':
+        return 'en';
+      default:
+        return 'ko';
+    }
+  }
 
   void _toggleMenu(BuildContext context) {
     if (_isMenuVisible) {
@@ -93,8 +108,16 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             context,
             icon: Icons.text_snippet,
             label: '텍스트로 변환',
-            onTap: () {
+            onTap: () async {
               _toggleMenu(context);
+              if (widget.controller != null) {
+                final recording = recordingState.recordings.last;
+                await recordingViewModel.transcribeRecording(
+                  recording.path,
+                  _mapLanguageToCode(_selectedLanguage),
+                  widget.controller!,
+                );
+              }
             },
           ),
           _buildMenuItem(

@@ -7,6 +7,7 @@ import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/pages/main_page/main_page.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,6 +28,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // dotenv 초기화
+  await dotenv.load(fileName: ".env");
+  print('dotenv 로드 완료');
 
   // Kakao SDK 초기화
   KakaoSdk.init(
