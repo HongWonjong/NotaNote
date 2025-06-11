@@ -23,6 +23,7 @@ dependencies:
   firebase_core: ^3.13.1
   flutter_dotenv: ^5.2.1
   firebase_auth: ^5.5.4
+  font_awesome_flutter: 10.8.0
   share_plus: ^11.0.0
   flutter_quill: ^11.4.1
   flutter_quill_extensions: ^11.0.0

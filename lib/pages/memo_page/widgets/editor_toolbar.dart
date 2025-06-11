@@ -356,7 +356,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               onPressed: () {},
             ),
             IconButton(
-              icon: Icon(Icons.brush),
+              icon: Icon(Icons.border_color),
               onPressed: () {},
             ),
             IconButton(
