@@ -185,40 +185,154 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.all(6),
-        padding: const EdgeInsets.all(12),
+        width: isGrid ? null : 375,
+        height: 130,
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelectedForDelete ? Colors.red.shade100 : Colors.grey.shade200,
+          color: isSelectedForDelete ? Colors.red.shade100 : Colors.white,
+          border: Border(
+            left: BorderSide(color: Color(0xFFF0F0F0)),
+            top: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+            right: BorderSide(color: Color(0xFFF0F0F0)),
+            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+          ),
           borderRadius: BorderRadius.circular(8),
-          border: isSelectedForDelete ? Border.all(color: Colors.red, width: 2) : null,
         ),
-        child: Column(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(memo.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text('생성: ${formatTimeAgo(memo.createdAt)}'),
-            const SizedBox(height: 4),
-            Text('수정: ${formatTimeAgo(memo.updatedAt)}'),
-            const SizedBox(height: 4),
-            if (memo.tags.isNotEmpty)
-              Row(
-                children: [
-                  ...memo.tags.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final tag = entry.value;
-                    if (idx == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Chip(label: Text(tag)),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                  if (memo.tags.length > 1)
-                    Text('+${memo.tags.length - 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
+            Expanded(
+              child: Container(
+                height: 98,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        memo.title,
+                        style: TextStyle(
+                          color: Color(0xFF191919),
+                          fontSize: 16,
+                          fontFamily: 'Pretendard',
+                          height: 0.09,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (memo.tags.isNotEmpty)
+                            Container(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFFF0F0F0),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                    child: Text(
+                                      memo.tags[0],
+                                      style: TextStyle(
+                                        color: Color(0xFF4C4C4C),
+                                        fontSize: 12,
+                                        fontFamily: 'Pretendard',
+                                        height: 0.12,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isGrid && memo.tags.length > 1)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 6),
+                                      child: Text(
+                                        '+${memo.tags.length - 1}',
+                                        style: TextStyle(
+                                          color: Color(0xFF7F7F7F),
+                                          fontSize: 12,
+                                          fontFamily: 'Pretendard',
+                                          height: 0.12,
+                                        ),
+                                      ),
+                                    ),
+                                  if (!isGrid)
+                                    ...memo.tags.skip(1).take(2).map((tag) => Padding(
+                                      padding: const EdgeInsets.only(left: 6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: ShapeDecoration(
+                                          color: Color(0xFFF0F0F0),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                        child: Text(
+                                          tag,
+                                          style: TextStyle(
+                                            color: Color(0xFF4C4C4C),
+                                            fontSize: 12,
+                                            fontFamily: 'Pretendard',
+                                            height: 0.12,
+                                          ),
+                                        ),
+                                      ),
+                                    )),
+                                ],
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  formatTimeAgo(memo.updatedAt),
+                                  style: TextStyle(
+                                    color: Color(0xFF999999),
+                                    fontSize: 14,
+                                    fontFamily: 'Pretendard',
+                                    height: 0.11,
+                                  ),
+                                ),
+                                if (isDeleteMode)
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Checkbox(
+                                        value: isSelectedForDelete,
+                                        onChanged: (value) {
+                                          toggleSelectForDelete(memo.noteId);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
           ],
         ),
       ),
@@ -247,7 +361,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
             padding: const EdgeInsets.all(8),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 1.2,
+              childAspectRatio: 1.5,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
