@@ -6,9 +6,9 @@ import 'package:nota_note/pages/setting_page/settings_page.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
-import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
-import 'package:nota_note/pages/note_list_page/note_list_page.dart';
+import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
+
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -402,154 +402,144 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  Widget _buildContent(
-      List<GroupModel> groups, bool isLoading, String? error, String? userId) {
-    return Scaffold(
-      body: Column(
-        children: [
-          AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              onPressed: _menuController.toggleMenu,
-              icon: Icon(
-                Icons.menu,
-                color: Color(0xffB5B5B5),
-                size: 24,
-              ),
-            ),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.search,
-                  color: Color(0xffB1B1B1),
-                  size: 24,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: Color(0xffB5B5B5),
-                  size: 24,
-                ),
-              ),
-            ],
+Widget _buildContent(
+    List<GroupModel> groups, bool isLoading, String? error, String? userId) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        onPressed: _menuController.toggleMenu,
+        icon: Icon(
+          Icons.menu,
+          color: Color(0xffB5B5B5),
+          size: 24,
+        ),
+      ),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.search,
+            color: Color(0xffB1B1B1),
+            size: 24,
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.notifications_none,
+            color: Color(0xffB5B5B5),
+            size: 24,
+          ),
+        ),
+      ],
+    ),
+    body: Column(
+      children: [
+        SizedBox(height: 20),
+        if (isLoading)
+          Center(child: CircularProgressIndicator())
+        else if (error != null)
+          Text(
+            error,
+            style: TextStyle(color: Colors.red),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                SizedBox(height: 20),
-                if (isLoading)
-                  Center(child: CircularProgressIndicator())
-                else if (error != null)
-                  Text(
-                    error,
-                    style: TextStyle(color: Colors.red),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          '총 ${groups.length}개',
-                          style: TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
+                Text(
+                  '총 ${groups.length}개',
+                  style: TextStyle(
+                    fontSize: 15,
                   ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : groups.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.folder_open,
-                                    size: 48,
-                                    color: Colors.grey[400],
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    '생성된 그룹이 없습니다',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    '새 그룹을 추가해보세요',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.separated(
-                              padding: EdgeInsets.zero,
-                              itemCount: groups.length,
-                              separatorBuilder: (context, index) => Container(),
-                              itemBuilder: (context, index) {
-                                return MainItem(
-                                  title: groups[index].name,
-                                  groupId: groups[index].id,
-                                  onTap: () {
-                                    // 스캐폴드 메신저를 미리 참조
-                                    final scaffoldMessenger =
-                                        ScaffoldMessenger.of(context);
-
-                                    // 스낵바 표시
-                                    scaffoldMessenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-
-                                    // 노트 목록 페이지로 이동
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => NoteListPage(
-                                          groupId: groups[index].id,
-                                          groupName: groups[index].name,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: FloatingActionButton(
-          onPressed: _showAddGroupDialog,
-          backgroundColor: Color(0xFF61CFB2),
-          shape: CircleBorder(),
-          elevation: 0,
-          child: Image.asset('assets/floatingActionButton_icon.png'),
+        SizedBox(height: 16),
+        Expanded(
+          child: isLoading
+              ? Center(child: CircularProgressIndicator())
+              : groups.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.folder_open,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            '생성된 그룹이 없습니다',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '새 그룹을 추가해보세요',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: groups.length,
+                      separatorBuilder: (context, index) => Container(),
+                      itemBuilder: (context, index) {
+                        return MainItem(
+                          title: groups[index].name,
+                          groupId: groups[index].id,
+                          onTap: () {
+                            final scaffoldMessenger =
+                                ScaffoldMessenger.of(context);
+
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    '${groups[index].name} 그룹 선택됨 (ID: ${groups[index].id})'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MemoGroupPage(
+                                  groupId: groups[index].id,
+                                  groupName: groups[index].name,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
         ),
+      ],
+    ),
+    floatingActionButton: SizedBox(
+      width: 70,
+      height: 70,
+      child: FloatingActionButton(
+        onPressed: _showAddGroupDialog,
+        backgroundColor: Color(0xFF61CFB2),
+        shape: CircleBorder(),
+        elevation: 0,
+        child: Image.asset('assets/floatingActionButton_icon.png'),
       ),
-    );
-  }
+    ),
+  );
+}
 }

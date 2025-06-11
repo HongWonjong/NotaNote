@@ -5,11 +5,19 @@ import 'memo_group_app_bar.dart';
 import '../../data/dummy_data.dart';
 
 class MemoGroupPage extends StatefulWidget {
-  const MemoGroupPage({super.key});
+  final String groupId;
+  final String groupName;
+
+  const MemoGroupPage({
+    Key? key,
+    required this.groupId,
+    required this.groupName,
+  }) : super(key: key);
 
   @override
   State<MemoGroupPage> createState() => _MemoGroupPageState();
 }
+
 
 class _MemoGroupPageState extends State<MemoGroupPage> {
   bool isSearching = false;
@@ -181,59 +189,65 @@ class _MemoGroupPageState extends State<MemoGroupPage> {
     }
   }
 
-  Widget _buildMemoCard(int index) {
-    final memo = sortedMemos[index];
-    final originalIndex = memos.indexOf(memo);
-    final isSelectedForDelete = selectedForDelete.contains(originalIndex);
+ Widget _buildMemoCard(int index, bool isGrid) {
+  final memo = sortedMemos[index];
+  final originalIndex = memos.indexOf(memo);
+  final isSelectedForDelete = selectedForDelete.contains(originalIndex);
 
-    return GestureDetector(
-      onTap: () {
-        if (isDeleteMode) {
-          toggleSelectForDelete(originalIndex);
-        } else {
-          // TODO: 메모 상세 페이지로 이동
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.all(6),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelectedForDelete ? Colors.red.shade100 : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8),
-          border: isSelectedForDelete ? Border.all(color: Colors.red, width: 2) : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(memo.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text('생성: ${formatTimeAgo(memo.createdAt)}'),
-            const SizedBox(height: 4),
-            Text('수정: ${formatTimeAgo(memo.updatedAt)}'),
-            const SizedBox(height: 4),
-            if (memo.tags.isNotEmpty)
-              Row(
-                children: [
-                  ...memo.tags.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final tag = entry.value;
-                    if (idx == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Chip(label: Text(tag)),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                  if (memo.tags.length > 1)
-                    Text('+${memo.tags.length - 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-          ],
-        ),
+  return GestureDetector(
+    onTap: () {
+      if (isDeleteMode) {
+        toggleSelectForDelete(originalIndex);
+      } else {
+        // TODO: 메모 상세 페이지로 이동
+      }
+    },
+    child: Container(
+      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isSelectedForDelete ? Colors.red.shade100 : Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(8),
+        border: isSelectedForDelete ? Border.all(color: Colors.red, width: 2) : null,
       ),
-    );
-  }
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(memo.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text('생성: ${formatTimeAgo(memo.createdAt)}'),
+          const SizedBox(height: 4),
+          Text('수정: ${formatTimeAgo(memo.updatedAt)}'),
+          const SizedBox(height: 4),
+          if (memo.tags.isNotEmpty)
+            isGrid
+                ? Row(
+                    children: [
+                      ...memo.tags.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final tag = entry.value;
+                        if (idx == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Chip(label: Text(tag)),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                      if (memo.tags.length > 1)
+                        Text('+${memo.tags.length - 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  )
+                : Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: memo.tags.map((tag) => Chip(label: Text(tag))).toList(),
+                  ),
+        ],
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -243,63 +257,85 @@ class _MemoGroupPageState extends State<MemoGroupPage> {
     // 현재 보여지는 메모 개수 (검색 중일 때만 필터된 갯수, 아니면 전체)
     final int currentMemoCount = showMemos ? sortedMemos.length : 0;
 
-    Widget content;
-    if (!showMemos) {
-      content = const Center(child: Text('검색어를 입력해주세요.'));
-    } else if (currentMemoCount == 0) {
-      content = const Center(child: Text('검색 결과가 없습니다.'));
-    } else {
-      content = isGrid
-          ? GridView.builder(
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: currentMemoCount,
-              itemBuilder: (context, index) => _buildMemoCard(index),
-            )
-          : ListView.builder(
-              itemCount: currentMemoCount,
-              itemBuilder: (context, index) => _buildMemoCard(index),
-            );
-    }
+   Widget content;
+if (!showMemos) {
+  content = const Center(child: Text('검색어를 입력해주세요.'));
+} else if (currentMemoCount == 0) {
+  content = const Center(child: Text('검색 결과가 없습니다.'));
+} else {
+  content = isGrid
+      ? GridView.builder(
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: currentMemoCount,
+          itemBuilder: (context, index) => _buildMemoCard(index, isGrid),
+        )
+      : ListView.builder(
+          itemCount: currentMemoCount,
+          itemBuilder: (context, index) => _buildMemoCard(index, isGrid),
+        );
+}
 
     return Scaffold(
-      appBar: MemoGroupAppBar(
-        isSearching: isSearching,
-        isDeleteMode: isDeleteMode,
-        memoCount: currentMemoCount,
-        searchController: _searchController,
-        onCancelSearch: cancelSearch,
-        onSearchPressed: startSearch,
-        onCancelDelete: cancelDelete,
-        isGrid: isGrid,
-        sortOption: selectedSort,
-        onSortChanged: updateSort,
-        onDeleteModeStart: startDeleteMode,
-        onRename: () {},
-        onEditGroup: () {},
-        onSharingSettingsToggle: () {},
-        onGridToggle: toggleGridView,
-        selectedDeleteCount: selectedForDelete.length,
-        onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+  appBar: MemoGroupAppBar(
+    groupName: widget.groupName,  // 이 부분 꼭 추가
+    isSearching: isSearching,
+    isDeleteMode: isDeleteMode,
+    memoCount: currentMemoCount,
+    searchController: _searchController,
+    onCancelSearch: cancelSearch,
+    onSearchPressed: startSearch,
+    onCancelDelete: cancelDelete,
+    isGrid: isGrid,
+    sortOption: selectedSort,
+    onSortChanged: updateSort,
+    onDeleteModeStart: startDeleteMode,
+    onRename: () {},
+    onEditGroup: () {},
+    onSharingSettingsToggle: () {},
+    onGridToggle: toggleGridView,
+    selectedDeleteCount: selectedForDelete.length,
+    onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+  ),
+  body: Column(
+    children: [
+      Expanded(child: content),
+    ],
+  ),
+  floatingActionButton: isDeleteMode
+    ? null
+    : SizedBox(
+        width: 70,
+        height: 70,
+        child: FloatingActionButton(
+          onPressed: () {
+            // TODO: 메모 작성 페이지로 이동
+          },
+          backgroundColor: const Color(0xFF61CFB2), // 원형 배경 색상
+          elevation: 0,
+          shape: const CircleBorder(), // 완전한 원형 보장
+          child: Stack(
+            alignment: Alignment.center,
+            children: const [
+              Icon(
+                Icons.insert_drive_file_outlined,
+                size: 26,
+                color: Colors.white, // 아이콘 색상
+              ),
+              Icon(
+                Icons.add,
+                size: 14,
+                color: Colors.white, // 흰색 + 아이콘을 중앙에
+              ),
+            ],
+          ),
+        ),
       ),
-      body: Column(
-        children: [
-          Expanded(child: content),
-        ],
-      ),
-      floatingActionButton: isDeleteMode
-          ? null
-          : FloatingActionButton(
-              onPressed: () {
-                // TODO: 메모 작성 페이지로 이동
-              },
-              child: const Icon(Icons.add),
-            ),
     );
   }
 }
