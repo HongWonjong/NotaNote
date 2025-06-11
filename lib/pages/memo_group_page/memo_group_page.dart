@@ -178,7 +178,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               builder: (context) => MemoPage(
                 groupId: memo.groupId,
                 noteId: memo.noteId,
-                pageId: memo.noteId,
+                pageId: '1',
               ),
             ),
           );
@@ -288,7 +288,22 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           floatingActionButton: isDeleteMode
               ? null
               : FloatingActionButton(
-            onPressed: () {},
+            onPressed: () async {
+              final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+              final newNoteId = await memoViewModel.addMemo();
+              if (newNoteId != null && mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MemoPage(
+                      groupId: widget.groupId,
+                      noteId: newNoteId,
+                      pageId: '1',
+                    ),
+                  ),
+                );
+              }
+            },
             child: const Icon(Icons.add),
           ),
         );
