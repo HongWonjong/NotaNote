@@ -168,11 +168,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       body: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+                  SizedBox(height: 60), // TagWidget 공간 확보
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
@@ -203,6 +203,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
+            child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+          ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => isKeyboardVisible
                 ? Positioned(
@@ -223,7 +229,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
           if (isBoxVisible)
             Positioned(
-              top: MediaQuery.of(context).viewInsets.bottom, // EditorToolbar 높이(약 56px) 고려
+              bottom: MediaQuery.of(context).viewInsets.bottom,
               left: 0,
               right: 0,
               child: Container(
