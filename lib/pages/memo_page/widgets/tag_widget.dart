@@ -135,6 +135,10 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                               ),
                             ),
                             backgroundColor: Color(0xFFF1F1F1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              side: BorderSide.none,
+                            ),
                           ),
                         ),
                       ...tags.map((tag) {
@@ -148,49 +152,42 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                               });
                             }
                           },
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Chip(
-                                side: BorderSide.none,
-                                label: Text(
-
-                                  tag,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF184E40),
-                                  ),
-                                ),
-                                backgroundColor: const Color(0xFFD8F3EC),
+                          child: Chip(
+                            side: BorderSide.none,
+                            label: Text(
+                              tag,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF184E40),
                               ),
-                              if (isSelected)
-                                Positioned(
-                                  right: -8.0,
-                                  top: -8.0,
-                                  child: Container(
-                                    width: 24.0,
-                                    height: 24.0,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        print('X button tapped for tag: $tag');
-                                        _removeTag(tag);
-                                      },
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 16.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                            ),
+                            backgroundColor: const Color(0xFFD8F3EC),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              side: BorderSide.none,
+                            ),
+                            deleteIcon: isSelected
+                                ? Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFB1E7D9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Color(0xFF4D4D4D),
+                                size: 16,
+                              ),
+                            )
+                                : null,
+                            onDeleted: isSelected
+                                ? () {
+                              print('X button tapped for tag: $tag');
+                              _removeTag(tag);
+                            }
+                                : null,
                           ),
                         );
                       }).toList(),
@@ -224,11 +221,15 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                             ),
                           ),
                           backgroundColor: Color(0xFFD8F3EC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            side: BorderSide.none,
+                          ),
                           padding: EdgeInsets.zero,
                         ),
                       if (tags.isNotEmpty && tags.length < 3 && !_isEditingNewTag)
                         Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
+                          padding: EdgeInsets.symmetric(vertical: 4),
                           child: Container(
                             height: 40,
                             width: 40,
@@ -249,7 +250,8 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                               },
                               constraints: const BoxConstraints(),
                             ),
-                          ),)
+                          ),
+                        )
                     ],
                   ),
                 ),
