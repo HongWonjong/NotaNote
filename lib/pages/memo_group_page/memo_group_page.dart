@@ -243,19 +243,28 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Container(
+                                    height: 26,
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: ShapeDecoration(
                                       color: Color(0xFFF0F0F0),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
-                                    child: Text(
-                                      memo.tags[0],
-                                      style: TextStyle(
-                                        color: Color(0xFF4C4C4C),
-                                        fontSize: 12,
-                                        fontFamily: 'Pretendard',
-                                        height: 0.12,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${memo.tags[0]}',
+                                          style: TextStyle(
+                                            color: Color(0xFF4C4C4C),
+                                            fontSize: 12,
+                                            fontFamily: 'Pretendard',
+                                            height: 0.12,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   if (isGrid && memo.tags.length > 1)
@@ -275,19 +284,28 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                     ...memo.tags.skip(1).take(2).map((tag) => Padding(
                                       padding: const EdgeInsets.only(left: 6),
                                       child: Container(
+                                        height: 26,
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: ShapeDecoration(
                                           color: Color(0xFFF0F0F0),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                         ),
-                                        child: Text(
-                                          tag,
-                                          style: TextStyle(
-                                            color: Color(0xFF4C4C4C),
-                                            fontSize: 12,
-                                            fontFamily: 'Pretendard',
-                                            height: 0.12,
-                                          ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              '$tag',
+                                              style: TextStyle(
+                                                color: Color(0xFF4C4C4C),
+                                                fontSize: 12,
+                                                fontFamily: 'Pretendard',
+                                                height: 0.12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     )),
