@@ -8,8 +8,7 @@ import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
-import 'package:nota_note/pages/note_list_page/note_list_page.dart';
-
+import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
@@ -523,7 +522,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => NoteListPage(
+                                        builder: (context) => MemoGroupPage(
                                           groupId: groups[index].id,
                                           groupName: groups[index].name,
                                         ),
