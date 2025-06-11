@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/pages/main_page/main_page.dart';
@@ -12,14 +11,12 @@ import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nota_note/firebase_options.dart';
-import 'pages/memo_page/memo_page.dart';
-import 'pages/main_page/main_page.dart';
-import 'package:nota_note/services/initializer.dart'; // Initializer 임포트
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart'; // FlutterQuillLocalizations 임포트
 import 'package:flutter_localizations/flutter_localizations.dart'; // 기본 로컬라이제이션
 import 'services/local_storage_service.dart';
 
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +25,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // dotenv 초기화
+
+  // dotenv 초기화 (한 번만)
   await dotenv.load(fileName: ".env");
   print('dotenv 로드 완료');
 
@@ -37,8 +35,12 @@ void main() async {
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
-  // LocalStorageService 초기화 (캐시 미리 로드)
+
+  // LocalStorageService 초기화 (캐시 미리 로드) - 한 번만 호출
   await LocalStorageService().database;
+
+  // timeago 한국어 메시지 설정
+  timeago.setLocaleMessages('ko', timeago.KoMessages());
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -92,7 +94,7 @@ class MyApp extends ConsumerWidget {
                 Scaffold(body: Center(child: Text('유저 정보 에러: $e'))),
             data: (user) {
               if (user == null) return const LoginPage();
-              return MyHomePage();
+              return const MyHomePage();
             },
           );
         },
@@ -119,8 +121,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const MemoGroupPage()),
+                  MaterialPageRoute(builder: (context) => const MemoGroupPage()),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동'),
@@ -133,8 +134,8 @@ class MyHomePage extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => MemoPage(
                       groupId: 'group1', // 테스트용 값
-                      noteId: 'note1', // 테스트용 값
-                      pageId: 'page1', // 테스트용 값
+                      noteId: 'note1',   // 테스트용 값
+                      pageId: 'page1',   // 테스트용 값
                     ),
                   ),
                 );
