@@ -80,6 +80,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final pageViewModel = ref.watch(pageViewModelProvider({
       'groupId': widget.groupId,
       'noteId': widget.noteId,
@@ -164,12 +165,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20.0),
-        child: KeyboardVisibilityBuilder(
-          builder: (context, isKeyboardVisible) => Stack(
-            children: [
-              Column(
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20.0),
+            child: KeyboardVisibilityBuilder(
+              builder: (context, isKeyboardVisible) => Column(
                 children: [
                   TagWidget(groupId: widget.groupId, noteId: widget.noteId),
                   Expanded(
@@ -198,24 +199,40 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       ),
                     ),
                   ),
-                  if (isKeyboardVisible)
-                    EditorToolbar(
-                      controller: _controller,
-                      groupId: widget.groupId,
-                      noteId: widget.noteId,
-                      pageId: widget.pageId,
-                    ),
                 ],
               ),
-              if (isBoxVisible)
-                Positioned(
-                  bottom: 80.0 + MediaQuery.of(context).viewInsets.bottom,
-                  right: 22.0,
-                  child: RecordingControllerBox(controller: _controller),
-                ),
-            ],
+            ),
           ),
-        ),
+          KeyboardVisibilityBuilder(
+            builder: (context, isKeyboardVisible) => isKeyboardVisible
+                ? Positioned(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 0,
+              right: 0,
+              child: Container(
+                width: screenWidth,
+                child: EditorToolbar(
+                  controller: _controller,
+                  groupId: widget.groupId,
+                  noteId: widget.noteId,
+                  pageId: widget.pageId,
+                ),
+              ),
+            )
+                : SizedBox.shrink(),
+          ),
+          if (isBoxVisible)
+            Positioned(
+              top: MediaQuery.of(context).viewInsets.bottom, // EditorToolbar 높이(약 56px) 고려
+              left: 0,
+              right: 0,
+              child: Container(
+                width: screenWidth,
+                alignment: Alignment.center,
+                child: RecordingControllerBox(controller: _controller),
+              ),
+            ),
+        ],
       ),
     );
   }
