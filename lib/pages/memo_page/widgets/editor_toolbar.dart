@@ -333,22 +333,22 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.format_bold),
-              color: _isFormatActive(Attribute.bold) ? Colors.blue : null,
+              color: _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.bold),
             ),
             IconButton(
               icon: Icon(Icons.format_italic),
-              color: _isFormatActive(Attribute.italic) ? Colors.blue : null,
+              color: _isFormatActive(Attribute.italic) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.italic),
             ),
             IconButton(
               icon: Icon(Icons.format_underline),
-              color: _isFormatActive(Attribute.underline) ? Colors.blue : null,
+              color: _isFormatActive(Attribute.underline) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.underline),
             ),
             IconButton(
               icon: Icon(Icons.format_strikethrough),
-              color: _isFormatActive(Attribute.strikeThrough) ? Colors.blue : null,
+              color: _isFormatActive(Attribute.strikeThrough) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.strikeThrough),
             ),
             IconButton(
@@ -361,37 +361,37 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: Icon(Icons.format_align_left),
-              color: _isAlignActive('left') ? Colors.blue : null,
+              color: _isAlignActive('left') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleAlign('left'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_center),
-              color: _isAlignActive('center') ? Colors.blue : null,
+              color: _isAlignActive('center') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleAlign('center'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_right),
-              color: _isAlignActive('right') ? Colors.blue : null,
+              color: _isAlignActive('right') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleAlign('right'),
             ),
             IconButton(
               icon: Icon(Icons.format_align_justify),
-              color: _isAlignActive('justify') ? Colors.blue : null,
+              color: _isAlignActive('justify') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleAlign('justify'),
             ),
             IconButton(
               icon: Icon(Icons.format_list_numbered),
-              color: _isListActive('ordered') ? Colors.blue : null,
+              color: _isListActive('ordered') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleList('ordered'),
             ),
             IconButton(
               icon: Icon(Icons.format_list_bulleted),
-              color: _isListActive('bullet') ? Colors.blue : null,
+              color: _isListActive('bullet') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleList('bullet'),
             ),
             IconButton(
               icon: Icon(Icons.check_box_outlined),
-              color: _isListActive('checked') ? Colors.blue : null,
+              color: _isListActive('checked') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleList('checked'),
             ),
             IconButton(
