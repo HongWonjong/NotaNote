@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -273,7 +275,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(recordingState.isRecording ? Icons.stop : Icons.mic_none_rounded),
+                  icon: recordingState.isRecording ? Icon(Icons.stop) : FaIcon(FontAwesomeIcons.microphone),
                   onPressed: () async {
                     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
                     if (recordingState.isRecording) {
@@ -299,7 +301,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ],
             ),
             IconButton(
-              icon: Icon(Icons.camera_alt_outlined),
+              icon: FaIcon(FontAwesomeIcons.camera),
               onPressed: () {
                 ref.read(imageUploadProvider({
                   'groupId': widget.groupId,
@@ -310,7 +312,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.photo_library),
+              icon: FaIcon(FontAwesomeIcons.image),
               onPressed: () {
                 ref.read(imageUploadProvider({
                   'groupId': widget.groupId,
@@ -321,7 +323,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.link),
+              icon: FaIcon(FontAwesomeIcons.link),
               onPressed: () {},
             ),
             CompositedTransformTarget(
@@ -332,35 +334,35 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.format_bold),
+              icon: FaIcon(FontAwesomeIcons.bold),
               color: _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.bold),
             ),
             IconButton(
-              icon: Icon(Icons.format_italic),
+              icon: FaIcon(FontAwesomeIcons.italic),
               color: _isFormatActive(Attribute.italic) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.italic),
             ),
             IconButton(
-              icon: Icon(Icons.format_underline),
+              icon: FaIcon(FontAwesomeIcons.underline),
               color: _isFormatActive(Attribute.underline) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.underline),
             ),
             IconButton(
-              icon: Icon(Icons.format_strikethrough),
+              icon: FaIcon(FontAwesomeIcons.strikethrough),
               color: _isFormatActive(Attribute.strikeThrough) ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleFormat(Attribute.strikeThrough),
             ),
             IconButton(
-              icon: Icon(Icons.palette),
+              icon: FaIcon(FontAwesomeIcons.palette),
               onPressed: () {},
             ),
             IconButton(
-              icon: Icon(Icons.border_color),
+              icon: FaIcon(FontAwesomeIcons.highlighter),
               onPressed: () {},
             ),
             IconButton(
-              icon: Icon(Icons.format_align_left),
+              icon: FaIcon(FontAwesomeIcons.highlighter),
               color: _isAlignActive('left') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleAlign('left'),
             ),
@@ -385,7 +387,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               onPressed: () => _toggleList('ordered'),
             ),
             IconButton(
-              icon: Icon(Icons.format_list_bulleted),
+              icon: FaIcon(FontAwesomeIcons.highlighter),
               color: _isListActive('bullet') ? Color(0xFF61CFB2) : null,
               onPressed: () => _toggleList('bullet'),
             ),
@@ -395,15 +397,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               onPressed: () => _toggleList('checked'),
             ),
             IconButton(
-              icon: Icon(Icons.code),
+              icon: FaIcon(FontAwesomeIcons.code),
               onPressed: _insertCodeBlock,
             ),
             IconButton(
-              icon: Icon(Icons.table_chart),
+              icon: FaIcon(FontAwesomeIcons.table),
               onPressed: () {},
             ),
             IconButton(
-              icon: Text('AI'),
+              icon: Text('AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
               onPressed: () {},
             ),
           ],
