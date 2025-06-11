@@ -7,6 +7,7 @@ class GroupModel {
   final List<String> noteIds;
   final List<String> userIds;
   final String creatorId;
+  final int noteCount;
 
   GroupModel({
     required this.id,
@@ -15,12 +16,12 @@ class GroupModel {
     required this.noteIds,
     required this.userIds,
     required this.creatorId,
+    this.noteCount = 0,
   });
 
-  factory GroupModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupModel.fromFirestore(DocumentSnapshot doc, {int noteCount = 0}) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
 
-    // createdAt이 없거나 변환 실패시 현재 시간으로 대체
     DateTime createdDate;
     try {
       createdDate = data['createdAt'] != null
@@ -37,6 +38,7 @@ class GroupModel {
       noteIds: List<String>.from(data['noteIds'] ?? []),
       userIds: List<String>.from(data['userIds'] ?? []),
       creatorId: data['creatorId'] as String? ?? '',
+      noteCount: noteCount,
     );
   }
 

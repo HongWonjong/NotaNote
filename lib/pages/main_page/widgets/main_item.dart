@@ -5,24 +5,20 @@ import 'package:nota_note/viewmodels/group_viewmodel.dart';
 class MainItem extends ConsumerWidget {
   final String title;
   final String groupId;
+  final int noteCount;
   final VoidCallback? onTap;
 
   const MainItem({
     required this.title,
     required this.groupId,
+    required this.noteCount,
     this.onTap,
     super.key,
   });
 
-  // 그룹 이름 변경 다이얼로그 표시
   void _showRenameDialog(BuildContext context, WidgetRef ref) {
-    // ScaffoldMessenger 미리 가져오기
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    // StatefulBuilder를 사용하여 다이얼로그 내부에서 상태 관리
-    String newName = title; // 현재 이름으로 초기화
-
-    print('[MainItem] 이름 변경 다이얼로그 표시: 그룹ID=$groupId, 현재이름=$title');
+    String newName = title;
 
     showDialog(
       context: context,
@@ -31,7 +27,6 @@ class MainItem extends ConsumerWidget {
         content: StatefulBuilder(
           builder: (context, setState) {
             return TextField(
-              // 컨트롤러를 사용하지 않고 onChanged로 값 관리
               onChanged: (value) {
                 newName = value;
               },
@@ -40,7 +35,6 @@ class MainItem extends ConsumerWidget {
                 border: OutlineInputBorder(),
               ),
               autofocus: true,
-              // 초기값 설정
               controller: TextEditingController(text: title),
             );
           },
@@ -53,19 +47,12 @@ class MainItem extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               if (newName.trim().isNotEmpty && newName.trim() != title) {
-                print('[MainItem] 이름 변경 시도: $newName');
-
-                Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
-
-                print('[MainItem] 유효한 이름, 뷰모델 renameGroup 호출');
+                Navigator.pop(dialogContext);
                 final success = await ref
                     .read(groupViewModelProvider)
                     .renameGroup(groupId, newName.trim());
 
-                print('[MainItem] 이름 변경 결과: $success');
-
                 if (success) {
-                  print('[MainItem] 이름 변경 성공 메시지 표시');
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('그룹 이름이 변경되었습니다'),
@@ -73,9 +60,7 @@ class MainItem extends ConsumerWidget {
                     ),
                   );
                 } else {
-                  // 에러 메시지 표시
                   final error = ref.read(groupViewModelProvider).error;
-                  print('[MainItem] 이름 변경 실패 메시지 표시: $error');
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(error ?? '이름 변경 실패'),
@@ -84,7 +69,6 @@ class MainItem extends ConsumerWidget {
                   );
                 }
               } else {
-                print('[MainItem] 이름 변경 없음: $newName');
                 Navigator.pop(dialogContext);
               }
             },
@@ -95,9 +79,7 @@ class MainItem extends ConsumerWidget {
     );
   }
 
-  // 그룹 삭제 확인 다이얼로그 표시
   void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref) {
-    // 컨텍스트 안전하게 사용하기 위해 ScaffoldMessenger 미리 가져오기
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     showDialog(
@@ -115,10 +97,9 @@ class MainItem extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(dialogContext); // 먼저 다이얼로그 닫기
-
+              Navigator.pop(dialogContext);
               final success =
-                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
+              await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
               if (success) {
                 scaffoldMessenger.showSnackBar(
@@ -128,7 +109,6 @@ class MainItem extends ConsumerWidget {
                   ),
                 );
               } else {
-                // 에러 메시지 표시
                 final error = ref.read(groupViewModelProvider).error;
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
@@ -199,8 +179,7 @@ class MainItem extends ConsumerWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    '(3)',
-                    //TODO: 하드코딩 -> 실제 그룹갯수
+                    '($noteCount)',
                     style: TextStyle(fontSize: 14, color: Color(0xff999999)),
                   ),
                 ],
