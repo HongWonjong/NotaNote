@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'popup_menu.dart'; // SettingsMenu, SortOption 포함
+import 'popup_menu.dart'; // SettingsMenu,
+import 'package:nota_note/models/sort_options.dart';
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isSearching;

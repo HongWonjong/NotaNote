@@ -1,10 +1,6 @@
-// popup_menu.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'sort_option.dart';
-
-enum SortOption { dateDesc, dateAsc, titleAsc }
-
+import 'package:nota_note/models/sort_options.dart';
 class SettingsMenu extends StatefulWidget {
   final bool isGrid;
   final SortOption sortOption;
@@ -54,6 +50,9 @@ class _SettingsMenuState extends State<SettingsMenu> {
           case 5:
             widget.onEditGroup();
             break;
+          case 6:
+            widget.onGridToggle(!widget.isGrid);
+            break;
         }
       },
       itemBuilder: (context) => [
@@ -66,19 +65,10 @@ class _SettingsMenuState extends State<SettingsMenu> {
           child: ListTile(leading: Icon(Icons.sort), title: Text('정렬')),
         ),
         PopupMenuItem(
-          enabled: false,
-          child: GestureDetector(
-            onTap: () {
-              widget.onGridToggle(!widget.isGrid);
-              Navigator.of(context).pop();
-            },
-            child: Row(
-              children: [
-                Icon(widget.isGrid ? Icons.view_list : Icons.grid_view),
-                const SizedBox(width: 8),
-                Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
-              ],
-            ),
+          value: 6,
+          child: ListTile(
+            leading: Icon(widget.isGrid ? Icons.view_list : Icons.grid_view),
+            title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
           ),
         ),
         const PopupMenuItem(
@@ -147,10 +137,10 @@ class _SettingsMenuState extends State<SettingsMenu> {
                     value: canEdit,
                     onChanged: canRead
                         ? (value) {
-                            setState(() {
-                              canEdit = value ?? false;
-                            });
-                          }
+                      setState(() {
+                        canEdit = value ?? false;
+                      });
+                    }
                         : null,
                   ),
                   const SizedBox(height: 16),
@@ -171,7 +161,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
                 TextButton(
                   onPressed: () {
-                    // TODO: 권한 저장 로직 구현 가능
+                    widget.onSharingSettingsToggle(); // 공유 설정 저장 콜백 호출
                     Navigator.pop(context);
                   },
                   child: const Text('확인'),
@@ -193,14 +183,17 @@ class _SettingsMenuState extends State<SettingsMenu> {
           children: SortOption.values.map((option) {
             String label;
             switch (option) {
-              case SortOption.dateDesc:
-                label = '최신순';
+              case SortOption.titleAsc:
+                label = '제목순';
                 break;
               case SortOption.dateAsc:
                 label = '오래된순';
                 break;
-              case SortOption.titleAsc:
-                label = '제목순';
+              case SortOption.dateDesc:
+                label = '최신순';
+                break;
+              case SortOption.updatedDesc:
+                label = '업데이트 최신순';
                 break;
             }
             return RadioListTile<SortOption>(
