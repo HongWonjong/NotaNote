@@ -1,56 +1,70 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/memo.dart';
+import 'package:uuid/uuid.dart';
 
 final memoViewModelProvider =
-ChangeNotifierProvider.family<MemoViewModel, String>((ref, groupId) => MemoViewModel(ref, groupId));
+Provider.family<MemoViewModel, String>((ref, groupId) => MemoViewModel(ref, groupId));
 
-class MemoViewModel extends ChangeNotifier {
+class MemoViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Ref _ref;
   final String _groupId;
 
-  List<Memo> _memos = [];
-  bool _isLoading = false;
-  String? _error;
-
   MemoViewModel(this._ref, this._groupId);
 
-  List<Memo> get memos => _memos;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
+  Stream<List<Memo>> get memosStream {
+    return _firestore
+        .collection('notegroups')
+        .doc(_groupId)
+        .collection('notes')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Memo.fromFirestore(doc, _groupId))
+        .toList());
+  }
 
-  Future<void> fetchMemos() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
+  Future<String?> addMemo() async {
     try {
-      final querySnapshot = await _firestore
+      final noteId = const Uuid().v4();
+      final now = DateTime.now();
+      final docRef = _firestore
           .collection('notegroups')
           .doc(_groupId)
           .collection('notes')
-          .get();
+          .doc(noteId);
 
-      _memos = querySnapshot.docs
-          .map((doc) => Memo.fromFirestore(doc, _groupId))
-          .toList();
+      await docRef.set({
+        'title': '제목 없음',
+        'tags': [],
+        'createdAt': Timestamp.fromDate(now),
+        'updatedAt': Timestamp.fromDate(now),
+        'pageId': '1',
+      });
 
-      _isLoading = false;
-      notifyListeners();
+      return noteId;
     } catch (e) {
-      _error = "메모를 불러오는 중 오류가 발생했습니다: $e";
-      _isLoading = false;
-      notifyListeners();
+      throw Exception("메모 추가 중 오류가 발생했습니다: $e");
+    }
+  }
+
+  Future<void> updateMemoTitle(String noteId, String title) async {
+    try {
+      final docRef = _firestore
+          .collection('notegroups')
+          .doc(_groupId)
+          .collection('notes')
+          .doc(noteId);
+      await docRef.update({
+        'title': title,
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+    } catch (e) {
+      throw Exception("메모 제목 업데이트 중 오류가 발생했습니다: $e");
     }
   }
 
   Future<void> deleteMemos(List<String> noteIds) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       final batch = _firestore.batch();
       for (var noteId in noteIds) {
@@ -62,11 +76,8 @@ class MemoViewModel extends ChangeNotifier {
         batch.delete(docRef);
       }
       await batch.commit();
-      await fetchMemos(); // 메모 목록 갱신
     } catch (e) {
-      _error = "메모 삭제 중 오류가 발생했습니다: $e";
-      _isLoading = false;
-      notifyListeners();
+      throw Exception("메모 삭제 중 오류가 발생했습니다: $e");
     }
   }
 }

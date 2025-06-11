@@ -6,6 +6,7 @@ import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'popup_menu.dart';
 import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
+
 class MemoGroupPage extends ConsumerStatefulWidget {
   final String groupId;
   final String groupName;
@@ -35,7 +36,6 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(memoViewModelProvider(widget.groupId)).fetchMemos();
     _searchController.addListener(() {
       setState(() {
         searchText = _searchController.text;
@@ -94,16 +94,15 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     });
   }
 
-  List<Memo> get filteredMemos {
-    final memos = ref.watch(memoViewModelProvider(widget.groupId)).memos;
+  List<Memo> getFilteredMemos(List<Memo> memos) {
     if (searchText.isEmpty) return memos;
     return memos.where((memo) {
       return memo.tags.any((tag) => tag.contains(searchText));
     }).toList();
   }
 
-  List<Memo> get sortedMemos {
-    List<Memo> temp = List.from(filteredMemos);
+  List<Memo> getSortedMemos(List<Memo> memos) {
+    List<Memo> temp = List.from(memos);
     temp.sort((a, b) => Memo.compare(a, b, selectedSort));
     return temp;
   }
@@ -131,7 +130,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           ),
           TextButton(
             onPressed: () async {
-              final count = selectedForDelete.length; // 삭제 개수 저장
+              final count = selectedForDelete.length;
               await ref.read(memoViewModelProvider(widget.groupId)).deleteMemos(selectedForDelete.toList());
               cancelDelete();
               Navigator.pop(context);
@@ -165,8 +164,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     }
   }
 
-  Widget _buildMemoCard(int index) {
-    final memo = sortedMemos[index];
+  Widget _buildMemoCard(Memo memo) {
     final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
 
     return GestureDetector(
@@ -180,7 +178,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               builder: (context) => MemoPage(
                 groupId: memo.groupId,
                 noteId: memo.noteId,
-                pageId: memo.noteId, // pageId를 noteId로 가정
+                pageId: '1',
               ),
             ),
           );
@@ -229,77 +227,87 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final memoViewModel = ref.watch(memoViewModelProvider(widget.groupId));
-    final bool showMemos = !(isSearching && searchText.isEmpty);
-    final int currentMemoCount = showMemos ? sortedMemos.length : 0;
+    return StreamBuilder<List<Memo>>(
+      stream: ref.watch(memoViewModelProvider(widget.groupId)).memosStream,
+      builder: (context, snapshot) {
+        Widget content;
+        int currentMemoCount = 0;
 
-    Widget content;
-    if (memoViewModel.isLoading) {
-      content = const Center(child: CircularProgressIndicator());
-    } else if (memoViewModel.error != null) {
-      content = Center(child: Text(memoViewModel.error!));
-    } else if (!showMemos) {
-      content = const Center(child: Text('검색어를 입력해주세요.'));
-    } else if (currentMemoCount == 0) {
-      content = const Center(child: Text('검색 결과가 없습니다.'));
-    } else {
-      content = isGrid
-          ? GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 1.2,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemCount: currentMemoCount,
-        itemBuilder: (context, index) => _buildMemoCard(index),
-      )
-          : ListView.builder(
-        itemCount: currentMemoCount,
-        itemBuilder: (context, index) => _buildMemoCard(index),
-      );
-    }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          content = const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          content = Center(child: Text('오류: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          content = const Center(child: Text('메모가 없습니다.'));
+        } else {
+          final memos = getSortedMemos(getFilteredMemos(snapshot.data!));
+          currentMemoCount = memos.length;
+          content = isGrid
+              ? GridView.builder(
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 1.2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: currentMemoCount,
+            itemBuilder: (context, index) => _buildMemoCard(memos[index]),
+          )
+              : ListView.builder(
+            itemCount: currentMemoCount,
+            itemBuilder: (context, index) => _buildMemoCard(memos[index]),
+          );
+        }
 
-    return Scaffold(
-      appBar: MemoGroupAppBar(
-        isSearching: isSearching,
-        isDeleteMode: isDeleteMode,
-        memoCount: currentMemoCount,
-        searchController: _searchController,
-        onCancelSearch: cancelSearch,
-        onSearchPressed: startSearch,
-        onCancelDelete: cancelDelete,
-        isGrid: isGrid,
-        sortOption: selectedSort,
-        onSortChanged: updateSort,
-        onDeleteModeStart: startDeleteMode,
-        onRename: () {
-          // TODO: 그룹 이름 변경 로직
-        },
-        onEditGroup: () {
-          // TODO: 그룹 수정 로직
-        },
-        onSharingSettingsToggle: () {
-          // TODO: 공유 설정 로직
-        },
-        onGridToggle: toggleGridView,
-        selectedDeleteCount: selectedForDelete.length,
-        onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
-      ),
-      body: Column(
-        children: [
-          Expanded(child: content),
-        ],
-      ),
-      floatingActionButton: isDeleteMode
-          ? null
-          : FloatingActionButton(
-        onPressed: () {
-          // TODO: 메모 작성 페이지로 이동
-        },
-        child: const Icon(Icons.add),
-      ),
+        return Scaffold(
+          appBar: MemoGroupAppBar(
+            isSearching: isSearching,
+            isDeleteMode: isDeleteMode,
+            memoCount: currentMemoCount,
+            searchController: _searchController,
+            onCancelSearch: cancelSearch,
+            onSearchPressed: startSearch,
+            onCancelDelete: cancelDelete,
+            isGrid: isGrid,
+            sortOption: selectedSort,
+            onSortChanged: updateSort,
+            onDeleteModeStart: startDeleteMode,
+            onRename: () {},
+            onEditGroup: () {},
+            onSharingSettingsToggle: () {},
+            onGridToggle: toggleGridView,
+            selectedDeleteCount: selectedForDelete.length,
+            onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+          ),
+          body: Column(
+            children: [
+              Expanded(child: content),
+            ],
+          ),
+          floatingActionButton: isDeleteMode
+              ? null
+              : FloatingActionButton(
+            onPressed: () async {
+              final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+              final newNoteId = await memoViewModel.addMemo();
+              if (newNoteId != null && mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MemoPage(
+                      groupId: widget.groupId,
+                      noteId: newNoteId,
+                      pageId: '1',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
     );
   }
 }

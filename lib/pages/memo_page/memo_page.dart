@@ -9,6 +9,7 @@ import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'dart:async';
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -45,16 +46,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           print('Auto-save skipped: Widget not mounted');
           return;
         }
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).saveToFirestore(_controller).then((_) {
-          print('Auto-save completed');
-          print('Saved Delta: ${_controller.document.toDelta().toJson()}');
-        }).catchError((e) {
-          print('Auto-save failed: $e');
-        });
+        _saveContentAndTitle();
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,6 +59,33 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         }).notifier).loadFromFirestore(_controller);
       }
     });
+  }
+
+  Future<void> _saveContentAndTitle() async {
+    try {
+      await ref.read(pageViewModelProvider({
+        'groupId': widget.groupId,
+        'noteId': widget.noteId,
+        'pageId': widget.pageId,
+      }).notifier).saveToFirestore(_controller);
+      print('Auto-save completed');
+      print('Saved Delta: ${_controller.document.toDelta().toJson()}');
+
+      final delta = _controller.document.toDelta().toJson();
+      String firstText = '제목 없음';
+      for (var op in delta) {
+        if (op['insert'] is String) {
+          firstText = (op['insert'] as String).trim().split('\n').first;
+          if (firstText.isEmpty) firstText = '제목 없음';
+          if (firstText.length > 50) firstText = firstText.substring(0, 50);
+          break;
+        }
+      }
+      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+      print('Title updated: $firstText');
+    } catch (e) {
+      print('Save failed: $e');
+    }
   }
 
   @override
@@ -135,11 +154,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           icon: Icon(Icons.arrow_back),
           onPressed: () async {
             if (mounted) {
-              await ref.read(pageViewModelProvider({
-                'groupId': widget.groupId,
-                'noteId': widget.noteId,
-                'pageId': widget.pageId,
-              }).notifier).saveToFirestore(_controller);
+              await _saveContentAndTitle();
             }
             Navigator.pop(context);
           },
@@ -149,11 +164,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             icon: Icon(Icons.ios_share_outlined),
             onPressed: () {
               if (mounted) {
-                ref.read(pageViewModelProvider({
-                  'groupId': widget.groupId,
-                  'noteId': widget.noteId,
-                  'pageId': widget.pageId,
-                }).notifier).saveToFirestore(_controller);
+                _saveContentAndTitle();
               }
             },
           ),
@@ -172,7 +183,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60), // TagWidget 공간 확보
+                  SizedBox(height: 60),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
