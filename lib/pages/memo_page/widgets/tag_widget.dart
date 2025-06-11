@@ -93,6 +93,18 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                         spacing: 8.0,
                         runSpacing: 4.0,
                         children: [
+                          if (tags.isEmpty)
+                            Chip(
+                              label: Text(
+                                '태그 없음',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              backgroundColor: Colors.grey[200],
+                            ),
                           ...tags.map((tag) {
                             final isSelected = _selectedTag == tag;
                             return GestureDetector(
@@ -110,9 +122,13 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   Chip(
                                     label: Text(
                                       tag,
-                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF184E40),
+                                      ),
                                     ),
-                                    backgroundColor: Colors.grey[200],
+                                    backgroundColor: const Color(0xFFD8F3EC),
                                   ),
                                   if (isSelected)
                                     Positioned(
@@ -146,13 +162,13 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                           }).toList(),
                           Container(
                             decoration: ShapeDecoration(
-                              color: Colors.grey[200],
+                              color: const Color(0xFFD8F3EC),
                               shape: const CupertinoRectangleBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(6)),
                               ),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.add, size: 20.0, color: Colors.black),
+                              icon: const Icon(Icons.add, size: 20.0, color: const Color(0xFF184E40)),
                               onPressed: () {
                                 print('Tag add button pressed');
                                 if (mounted) {
