@@ -121,7 +121,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MemoGroupPage()),
+                  MaterialPageRoute(builder: (context) => const MemoGroupPage(groupId: 'group1', groupName: '그룹1',)),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동'),
