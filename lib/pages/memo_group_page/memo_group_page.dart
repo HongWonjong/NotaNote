@@ -184,8 +184,9 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           );
         }
       },
-      child: Container(
-        width: isGrid ? null : 375,
+      child: isGrid
+          ? Container(
+        width: null,
         height: 130,
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -267,7 +268,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                       ],
                                     ),
                                   ),
-                                  if (isGrid && memo.tags.length > 1)
+                                  if (memo.tags.length > 1)
                                     Padding(
                                       padding: const EdgeInsets.only(left: 6),
                                       child: Text(
@@ -280,35 +281,6 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                         ),
                                       ),
                                     ),
-                                  if (!isGrid)
-                                    ...memo.tags.skip(1).take(2).map((tag) => Padding(
-                                      padding: const EdgeInsets.only(left: 6),
-                                      child: Container(
-                                        height: 26,
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: ShapeDecoration(
-                                          color: Color(0xFFF0F0F0),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              '$tag',
-                                              style: TextStyle(
-                                                color: Color(0xFF4C4C4C),
-                                                fontSize: 12,
-                                                fontFamily: 'Pretendard',
-                                                height: 0.12,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )),
                                 ],
                               ),
                             ),
@@ -349,6 +321,85 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      )
+          : Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelectedForDelete ? Colors.red.shade100 : Colors.white,
+          border: Border(
+            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    memo.title,
+                    style: TextStyle(
+                      color: Color(0xFF191919),
+                      fontSize: 16,
+                      fontFamily: 'Pretendard',
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  if (memo.tags.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: memo.tags.take(3).map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: ShapeDecoration(
+                          color: Color(0xFFF0F0F0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            color: Color(0xFF4C4C4C),
+                            fontSize: 12,
+                            fontFamily: 'Pretendard',
+                            height: 1.2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )).toList(),
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        formatTimeAgo(memo.updatedAt),
+                        style: TextStyle(
+                          color: Color(0xFF999999),
+                          fontSize: 14,
+                          fontFamily: 'Pretendard',
+                          height: 1.2,
+                        ),
+                      ),
+                      if (isDeleteMode)
+                        Checkbox(
+                          value: isSelectedForDelete,
+                          onChanged: (value) {
+                            toggleSelectForDelete(memo.noteId);
+                          },
+                        ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
