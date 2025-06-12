@@ -165,6 +165,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/Share.svg',
+              width: 24,
+              height: 24,
             ),
             onPressed: () {
               if (mounted) {
@@ -175,6 +177,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/DotCircle.svg',
+              width: 24,
+              height: 24,
             ),
             onPressed: () {},
           ),
