@@ -40,7 +40,7 @@ class CameraSelectionDialog extends ConsumerWidget {
           Container(
             width: 37,
             height: 4,
-            decoration:  ShapeDecoration(
+            decoration: ShapeDecoration(
               color: Color(0xFF4C4C4C),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             ),
@@ -65,18 +65,21 @@ class CameraSelectionDialog extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    '사진 촬영하기',
-                    style: TextStyle(
-                      color: Color(0xFF4C4C4C),
-                      fontSize: 16,
-                      fontFamily: 'Pretendard',
+                  SizedBox(
+                    width: 150, // 고정 너비 설정
+                    child: Text(
+                      '사진 촬영하기',
+                      style: TextStyle(
+                        color: Color(0xFF4C4C4C),
+                        fontSize: 16,
+                        fontFamily: 'Pretendard',
+                      ),
                     ),
                   ),
                   SvgPicture.asset(
                     'assets/icons/Camera.svg',
-                    width: 32,
-                    height: 32,
+                    width: 24,
+                    height: 24,
                   ),
                 ],
               ),
@@ -101,12 +104,15 @@ class CameraSelectionDialog extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    '이미지 선택하기',
-                    style: TextStyle(
-                      color: Color(0xFF4C4C4C),
-                      fontSize: 16,
-                      fontFamily: 'Pretendard',
+                  SizedBox(
+                    width: 150, // 고정 너비 설정
+                    child: Text(
+                      '이미지 선택하기',
+                      style: TextStyle(
+                        color: Color(0xFF4C4C4C),
+                        fontSize: 16,
+                        fontFamily: 'Pretendard',
+                      ),
                     ),
                   ),
                   SvgPicture.asset(
