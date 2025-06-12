@@ -21,7 +21,7 @@ class RecordPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: SvgPicture.asset(
-              'assets/icons/MoreHoriz.svg',
+              'assets/icons/DotCircle.svg',
               color: Colors.black,
             ),
             onPressed: () {
