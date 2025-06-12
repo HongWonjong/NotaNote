@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BottomSheetMenu extends StatelessWidget {
   @override
@@ -50,7 +51,8 @@ class BottomSheetMenu extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Container(
+                SvgPicture.asset(
+                  'assets/icons/DownloadSimple.svg',
                   width: 20,
                   height: 20,
                 ),
@@ -79,7 +81,8 @@ class BottomSheetMenu extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Container(
+                SvgPicture.asset(
+                  'assets/icons/Edit.svg',
                   width: 20,
                   height: 20,
                 ),
@@ -108,7 +111,8 @@ class BottomSheetMenu extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Container(
+                SvgPicture.asset(
+                  'assets/icons/Name.svg',
                   width: 20,
                   height: 20,
                 ),
@@ -137,7 +141,9 @@ class BottomSheetMenu extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Container(
+                SvgPicture.asset(
+                  'assets/icons/Delete.svg',
+                  color: Color(0xFFFF2F2F),
                   width: 20,
                   height: 20,
                 ),
