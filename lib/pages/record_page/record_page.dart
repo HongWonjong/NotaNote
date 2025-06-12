@@ -13,7 +13,7 @@ class RecordPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text('녹음 기록'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, size: 24,),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -23,6 +23,8 @@ class RecordPage extends ConsumerWidget {
             icon: SvgPicture.asset(
               'assets/icons/DotCircle.svg',
               color: Colors.black,
+              width: 24,
+              height: 24,
             ),
             onPressed: () {
               print('설정 버튼 클릭');
