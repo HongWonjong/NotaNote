@@ -263,38 +263,45 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Container(
-                                      height: 26,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: ShapeDecoration(
-                                        color: (searchText.isNotEmpty &&
-                                                memo.tags.isNotEmpty &&
-                                                memo.tags[0].contains(searchText))
-                                            ? Color(0xFF61CFB2)
-                                            : Color(0xFFF0F0F0),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            '${memo.tags[0]}',
-                                            style: TextStyle(
-                                              color: (searchText.isNotEmpty &&
-                                                      memo.tags.isNotEmpty &&
-                                                      memo.tags[0].contains(searchText))
-                                                  ? Colors.white
-                                                  : Color(0xFF4C4C4C),
-                                              fontSize: 12,
-                                              fontFamily: 'Pretendard',
-                                              height: 0.12,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+  height: 26,
+  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  decoration: ShapeDecoration(
+    color: (searchText.isNotEmpty &&
+            memo.tags.isNotEmpty &&
+            memo.tags[0].contains(searchText))
+        ? Color(0xFFB1E7D9)
+        : Color(0xFFF0F0F0),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: BorderSide(
+        color: (searchText.isNotEmpty &&
+                memo.tags.isNotEmpty &&
+                memo.tags[0].contains(searchText))
+            ? Color(0xFF61CFB2)
+            : Colors.transparent,
+        width: 1,
+      ),
+    ),
+  ),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Text(
+        '${memo.tags[0]}',
+        style: TextStyle(
+          color: Color(0xFF191919),
+          fontSize: 12,
+          fontFamily: 'Pretendard',
+          height: 0.12,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
+  ),
+),
+
                                     if (memo.tags.length > 1)
                                       Padding(
                                         padding: const EdgeInsets.only(left: 6),
