@@ -121,12 +121,7 @@ class MyHomePage extends StatelessWidget {
                 // 테스트 데이터로 MemoGroupPage 직접 이동 (이전 코드 용도)
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => MemoGroupPage(
-                      groupId: 'testGroupId',
-                      groupName: '테스트 그룹 이름',
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (context) => const MemoGroupPage(groupId: 'group1', groupName: '그룹1',)),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동 (테스트)'),

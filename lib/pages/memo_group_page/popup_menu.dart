@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nota_note/models/sort_options.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-enum SortOption { dateDesc, dateAsc, titleAsc }
 
 class SettingsMenu extends StatefulWidget {
   final bool isGrid;
@@ -64,6 +63,12 @@ class _SettingsMenuState extends State<SettingsMenu> {
           case 5:
             widget.onDeleteModeStart();
             break;
+          case 6:
+            widget.onGridToggle(!widget.isGrid);
+            break;
+          case 6:
+            widget.onGridToggle(!widget.isGrid);
+            break;
         }
       },
       itemBuilder: (context) => [
@@ -76,9 +81,13 @@ class _SettingsMenuState extends State<SettingsMenu> {
         ),
         const PopupMenuItem(
           value: 2,
+          child: ListTile(leading: Icon(Icons.sort), title: Text('정렬')),
+        ),
+        PopupMenuItem(
+          value: 6,
           child: ListTile(
-            leading: Icon(Icons.swap_vert),
-            title: Text('정렬'),
+            leading: Icon(widget.isGrid ? Icons.view_list : Icons.grid_view),
+            title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
           ),
         ),
         const PopupMenuItem(
@@ -142,29 +151,35 @@ class _SettingsMenuState extends State<SettingsMenu> {
     ),
     const Spacer(flex: 2),
     TextButton(
-      onPressed: () => Navigator.pop(context),
-      child: const Text(
-        '확인',
-        style: TextStyle(color: Color(0xFF61CFB2)),
-      ),
-    ),
+  onPressed: () {
+    widget.onSortChanged(tempSelectedOption);
+    Navigator.pop(context);
+  },
+  child: const Text(
+    '확인',
+    style: TextStyle(color: Color(0xFF61CFB2)),
+  ),
+),
   ],
 ),
                     const SizedBox(height: 8),
                     const Divider(),
                     ...SortOption.values.map((option) {
-                      String label;
-                      switch (option) {
-                        case SortOption.dateDesc:
-                          label = '수정일';
-                          break;
-                        case SortOption.dateAsc:
-                          label = '생성일';
-                          break;
-                        case SortOption.titleAsc:
-                          label = '제목';
-                          break;
-                      }
+                     String label;
+                  switch (option) {
+                    case SortOption.titleAsc:
+                      label = '제목';
+                      break;
+                    case SortOption.dateAsc:
+                      label = '생성일';
+                      break;
+                   case SortOption.dateDesc:
+                      label = '최신순';
+                      break;
+                      default:
+                      label = '알 수 없음';
+                    }
+                  if (label == '알 수 없음') return const SizedBox.shrink();
 
                       final isSelected = tempSelectedOption == option;
 

@@ -9,6 +9,8 @@ import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -27,6 +29,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   Timer? _autoSaveTimer;
+  String? _lastDeltaJson;
 
   @override
   void initState() {
@@ -39,22 +42,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     _controller.addListener(() {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
+      final currentDeltaJson = _controller.document.toDelta().toJson().toString();
+      if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
-        if (!mounted) {
-          print('Auto-save skipped: Widget not mounted');
-          return;
-        }
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).saveToFirestore(_controller).then((_) {
-          print('Auto-save completed');
-          print('Saved Delta: ${_controller.document.toDelta().toJson()}');
-        }).catchError((e) {
-          print('Auto-save failed: $e');
-        });
+        if (!mounted) return;
+        _saveContentAndTitle();
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -69,6 +62,35 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     });
   }
 
+  Future<void> _saveContentAndTitle() async {
+    try {
+      final delta = _controller.document.toDelta();
+      final deltaJson = delta.toJson();
+      if (deltaJson.isEmpty || (deltaJson.length == 1 && deltaJson[0]['insert'] == '\n')) {
+        return;
+      }
+      await ref.read(pageViewModelProvider({
+        'groupId': widget.groupId,
+        'noteId': widget.noteId,
+        'pageId': widget.pageId,
+      }).notifier).saveToFirestore(_controller);
+      _lastDeltaJson = deltaJson.toString();
+
+      String firstText = '제목 없음';
+      for (var op in deltaJson) {
+        if (op['insert'] is String) {
+          firstText = (op['insert'] as String).trim().split('\n').first;
+          if (firstText.isEmpty) firstText = '제목 없음';
+          if (firstText.length > 50) firstText = firstText.substring(0, 50);
+          break;
+        }
+      }
+      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+    } catch (e) {
+      debugPrint('Save failed: $e');
+    }
+  }
+
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
@@ -81,11 +103,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final pageViewModel = ref.watch(pageViewModelProvider({
-      'groupId': widget.groupId,
-      'noteId': widget.noteId,
-      'pageId': widget.pageId,
-    }));
     final isBoxVisible = ref.watch(recordingBoxVisibilityProvider);
     final imageUploadViewModel = ref.watch(imageUploadProvider({
       'groupId': widget.groupId,
@@ -100,8 +117,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       'controller': _controller,
     }));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (imageUploadState == ImageUploadState.loading) {
+    if (imageUploadState == ImageUploadState.loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -113,20 +130,24 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             ),
           ),
         );
-      } else if (imageUploadState == ImageUploadState.success) {
+      });
+    } else if (imageUploadState == ImageUploadState.success) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('이미지 업로드 성공')),
         );
         imageUploadViewModel.reset();
-      } else if (imageUploadState == ImageUploadState.error) {
+      });
+    } else if (imageUploadState == ImageUploadState.error) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(imageUploadViewModel.errorMessage ?? '이미지 업로드 실패')),
         );
         imageUploadViewModel.reset();
-      }
-    });
+      });
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -135,33 +156,27 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           icon: Icon(Icons.arrow_back),
           onPressed: () async {
             if (mounted) {
-              await ref.read(pageViewModelProvider({
-                'groupId': widget.groupId,
-                'noteId': widget.noteId,
-                'pageId': widget.pageId,
-              }).notifier).saveToFirestore(_controller);
+              await _saveContentAndTitle();
             }
             Navigator.pop(context);
           },
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.ios_share_outlined),
+            icon: SvgPicture.asset(
+              'assets/icons/Share.svg',
+            ),
             onPressed: () {
               if (mounted) {
-                ref.read(pageViewModelProvider({
-                  'groupId': widget.groupId,
-                  'noteId': widget.noteId,
-                  'pageId': widget.pageId,
-                }).notifier).saveToFirestore(_controller);
+                _saveContentAndTitle();
               }
             },
           ),
           IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              print('설정 버튼 클릭');
-            },
+            icon: SvgPicture.asset(
+              'assets/icons/DotCircle.svg',
+            ),
+            onPressed: () {},
           ),
         ],
       ),
@@ -172,7 +187,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60), // TagWidget 공간 확보
+                  SizedBox(height: 60),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
@@ -184,11 +199,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                           embedBuilders: FlutterQuillEmbeds.editorBuilders(
                             imageEmbedConfig: QuillEditorImageEmbedConfig(
                               imageProviderBuilder: (context, imageUrl) {
-                                print('Rendering image: $imageUrl');
                                 try {
                                   return imageUploadViewModel.getImageProviderSync(imageUrl);
                                 } catch (e) {
-                                  print('Failed to load image: $e');
+                                  debugPrint('Failed to load image: $e');
                                   return AssetImage('assets/placeholder.png');
                                 }
                               },
@@ -229,7 +243,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
           if (isBoxVisible)
             Positioned(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: MediaQuery.of(context).viewInsets.bottom,
               left: 0,
               right: 0,
               child: Container(

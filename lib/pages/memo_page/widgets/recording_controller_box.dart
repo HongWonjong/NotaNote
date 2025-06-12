@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nota_note/pages/record_page/record_page.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
@@ -150,6 +151,10 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '녹음기록',
             onTap: () {
               _toggleMenu(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RecordPage()),
+              );
             },
           ),
           _buildMenuItem(
