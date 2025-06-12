@@ -60,9 +60,13 @@ class Memo {
       case SortOption.dateAsc:
         return a.createdAt.compareTo(b.createdAt);
       case SortOption.dateDesc:
-        return b.createdAt.compareTo(a.createdAt);
+        return b.updatedAt.compareTo(a.updatedAt);
       case SortOption.updatedDesc:
         return b.updatedAt.compareTo(a.updatedAt);
+      case SortOption.updatedElapsedAsc:
+        return a.updatedAt.compareTo(b.updatedAt);
+      case SortOption.titleAsc:
+        return a.title.compareTo(b.title);
     }
   }
 }

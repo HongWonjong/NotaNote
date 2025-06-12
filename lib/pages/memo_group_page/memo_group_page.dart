@@ -445,6 +445,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
         return Scaffold(
           appBar: MemoGroupAppBar(
+            groupName: widget.groupName,
             isSearching: isSearching,
             isDeleteMode: isDeleteMode,
             memoCount: currentMemoCount,

@@ -3,6 +3,8 @@ import 'popup_menu.dart'; // SettingsMenu,
 import 'package:nota_note/models/sort_options.dart';
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String groupName;  // 그룹 이름 추가
+
   final bool isSearching;
   final bool isDeleteMode;
   final int memoCount;
@@ -20,12 +22,12 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSharingSettingsToggle;
   final Function(bool) onGridToggle;
 
-  // 삭제 모드일 때 선택된 아이템 개수와 삭제 버튼 콜백 추가
   final int selectedDeleteCount;
   final VoidCallback? onDeletePressed;
 
   const MemoGroupAppBar({
     super.key,
+    required this.groupName,  // 추가
     required this.isSearching,
     required this.isDeleteMode,
     required this.memoCount,
@@ -63,7 +65,7 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return AppBar(
-      title: const Text('메모 그룹'),
+      title: Text(groupName),  // 고정 텍스트 대신 그룹 이름 표시
       leading: isDeleteMode
           ? IconButton(icon: const Icon(Icons.close), onPressed: onCancelDelete)
           : null,
@@ -82,7 +84,6 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
             onSortChanged: onSortChanged,
             onDeleteModeStart: onDeleteModeStart,
             onRename: onRename,
-            onEditGroup: onEditGroup,
             onSharingSettingsToggle: onSharingSettingsToggle,
             onGridToggle: onGridToggle,
           ),

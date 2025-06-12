@@ -1,6 +1,7 @@
 enum SortOption {
-  alphabetical, // 가나다순
-  oldest,       // 오래된순
-  latest,       // 최신순
-  updatedLatest,
+  titleAsc,
+  dateAsc,
+  dateDesc,
+  updatedElapsedAsc,   // 수정시간 오래된 순
+  updatedElapsedDesc,  // 수정시간 최신 순
 }

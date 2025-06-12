@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
   kakao_flutter_sdk: ^1.9.7+3
   flutter_sound: ^9.28.0
   audioplayers: ^6.4.0
