@@ -7,7 +7,13 @@ import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
+
+import 'package:nota_note/pages/note_list_page/note_list_page.dart';
+import 'package:nota_note/services/auth_service.dart';
+import 'package:nota_note/pages/login_page/login_page.dart';
+
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
+
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -187,6 +193,27 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 
+  void _handleLogout() async {
+    final authService = ref.read(authServiceProvider);
+    final success = await authService.logout(ref);
+
+    if (success) {
+      // 로그아웃 성공 시 로그인 페이지로 이동
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false, // 모든 이전 경로 제거
+      );
+    } else {
+      // 로그아웃 실패 시 에러 메시지 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그아웃 중 오류가 발생했습니다.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final groupViewModel = ref.watch(groupViewModelProvider);
@@ -238,6 +265,16 @@ class _MainPageState extends ConsumerState<MainPage> {
                           ),
                         ],
                       ),
+                    ),
+                    // 로그아웃 버튼 추가
+                    IconButton(
+                      onPressed: _handleLogout,
+                      icon: Icon(
+                        Icons.logout,
+                        color: Colors.red[300],
+                        size: 20,
+                      ),
+                      tooltip: '로그아웃',
                     ),
                   ],
                 ),
