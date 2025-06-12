@@ -336,7 +336,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: SvgPicture.asset('assets/icons/Bold.svg'),
-              color: _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : null,
+              color: _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : Colors.black,
               onPressed: () => _toggleFormat(Attribute.bold),
             ),
             IconButton(
