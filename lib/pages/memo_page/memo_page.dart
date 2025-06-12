@@ -35,7 +35,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
+      // 언어 선택 등 RecordingControllerBox 조작 시 박스가 유지되도록 조건 추가
+      if (_focusNode.hasFocus && !ref.read(recordingBoxVisibilityProvider)) {
         ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       }
     });
@@ -253,7 +254,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               child: Container(
                 width: screenWidth,
                 alignment: Alignment.center,
-                child: RecordingControllerBox(controller: _controller),
+                child: RecordingControllerBox(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                ),
               ),
             ),
         ],
