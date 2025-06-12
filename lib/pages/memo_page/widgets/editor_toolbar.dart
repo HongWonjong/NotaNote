@@ -10,7 +10,6 @@ import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
   final String groupId;
@@ -276,7 +275,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: recordingState.isRecording ? SvgPicture.asset('assets/icons/Stop.svg') : SvgPicture.asset('assets/icons/Mic.svg'),
+                  icon: recordingState.isRecording
+                      ? SvgPicture.asset(
+                    'assets/icons/Stop.svg',
+                    colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                  )
+                      : SvgPicture.asset(
+                    'assets/icons/Mic.svg',
+                    colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                  ),
                   onPressed: () async {
                     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
                     if (recordingState.isRecording) {
@@ -302,7 +309,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ],
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Camera.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Camera.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: () {
                 ref.read(imageUploadProvider({
                   'groupId': widget.groupId,
@@ -324,85 +334,158 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               },
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Link.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Link.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: () {},
             ),
             CompositedTransformTarget(
               link: _layerLink,
               child: IconButton(
-                icon: SvgPicture.asset('assets/icons/Fontsize.svg'),
+                icon: SvgPicture.asset(
+                  'assets/icons/Fontsize.svg',
+                  colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                ),
                 onPressed: () => _toggleDropdown(context),
               ),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Bold.svg'),
-              color: _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/Bold.svg',
+                colorFilter: ColorFilter.mode(
+                  _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleFormat(Attribute.bold),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Italic.svg'),
-              color: _isFormatActive(Attribute.italic) ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/Italic.svg',
+                colorFilter: ColorFilter.mode(
+                  _isFormatActive(Attribute.italic) ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleFormat(Attribute.italic),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Underline.svg'),
-              color: _isFormatActive(Attribute.underline) ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/Underline.svg',
+                colorFilter: ColorFilter.mode(
+                  _isFormatActive(Attribute.underline) ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleFormat(Attribute.underline),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/TextStrikethrough.svg'),
-              color: _isFormatActive(Attribute.strikeThrough) ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/TextStrikethrough.svg',
+                colorFilter: ColorFilter.mode(
+                  _isFormatActive(Attribute.strikeThrough) ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleFormat(Attribute.strikeThrough),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Palette.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Palette.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: () {},
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Highlight.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Highlight.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: () {},
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/TextAlignLeft.svg'),
-              color: _isAlignActive('left') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/TextAlignLeft.svg',
+                colorFilter: ColorFilter.mode(
+                  _isAlignActive('left') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleAlign('left'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/TextAlignCenter.svg'),
-              color: _isAlignActive('center') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/TextAlignCenter.svg',
+                colorFilter: ColorFilter.mode(
+                  _isAlignActive('center') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleAlign('center'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/TextAlignRight.svg'),
-              color: _isAlignActive('right') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/TextAlignRight.svg',
+                colorFilter: ColorFilter.mode(
+                  _isAlignActive('right') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleAlign('right'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/TextAlignJustify.svg'),
-              color: _isAlignActive('justify') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/TextAlignJustify.svg',
+                colorFilter: ColorFilter.mode(
+                  _isAlignActive('justify') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleAlign('justify'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/NumberStyleTable.svg'),
-              color: _isListActive('ordered') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/NumberStyleTable.svg',
+                colorFilter: ColorFilter.mode(
+                  _isListActive('ordered') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleList('ordered'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/DotStyleTable.svg'),
-              color: _isListActive('bullet') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/DotStyleTable.svg',
+                colorFilter: ColorFilter.mode(
+                  _isListActive('bullet') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleList('bullet'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/CheckStyleTable.svg'),
-              color: _isListActive('checked') ? Color(0xFF61CFB2) : null,
+              icon: SvgPicture.asset(
+                'assets/icons/CheckStyleTable.svg',
+                colorFilter: ColorFilter.mode(
+                  _isListActive('checked') ? Color(0xFF61CFB2) : Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
               onPressed: () => _toggleList('checked'),
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Code.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Code.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: _insertCodeBlock,
             ),
             IconButton(
-              icon: SvgPicture.asset('assets/icons/Table.svg'),
+              icon: SvgPicture.asset(
+                'assets/icons/Table.svg',
+                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              ),
               onPressed: () {},
             ),
           ],

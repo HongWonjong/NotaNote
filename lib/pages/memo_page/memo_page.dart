@@ -10,6 +10,7 @@ import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -162,7 +163,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.ios_share_outlined),
+            icon: SvgPicture.asset(
+              'assets/icons/Share.svg',
+            ),
             onPressed: () {
               if (mounted) {
                 _saveContentAndTitle();
@@ -170,7 +173,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.menu),
+            icon: SvgPicture.asset(
+              'assets/icons/DotCircle.svg',
+            ),
             onPressed: () {},
           ),
         ],
