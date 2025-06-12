@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nota_note/pages/record_page/record_page.dart';
+import 'package:nota_note/providers/language_provider.dart';
+
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
+  final FocusNode? focusNode;
 
-  const RecordingControllerBox({this.controller, super.key});
+  const RecordingControllerBox({this.controller, this.focusNode, super.key});
 
   @override
   _RecordingControllerBoxState createState() => _RecordingControllerBoxState();
@@ -15,9 +19,9 @@ class RecordingControllerBox extends ConsumerStatefulWidget {
 
 class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox> {
   bool _isMenuVisible = false;
-  String _selectedLanguage = '한국어';
   OverlayEntry? _menuOverlayEntry;
   final LayerLink _layerLink = LayerLink();
+  final GlobalKey _languageButtonKey = GlobalKey();
 
   String _mapLanguageToCode(String language) {
     switch (language) {
@@ -27,6 +31,17 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         return 'en';
       default:
         return 'ko';
+    }
+  }
+
+  String _mapCodeToLanguage(String code) {
+    switch (code) {
+      case 'ko':
+        return '한국어';
+      case 'en':
+        return '영어';
+      default:
+        return '한국어';
     }
   }
 
@@ -41,25 +56,28 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
       _isMenuVisible = true;
     }
     setState(() {});
+    if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+      widget.focusNode!.requestFocus();
+    }
   }
 
   OverlayEntry _createMenuOverlayEntry(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 160.0,
+        width: 200.0,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(227, -270.0),
+          offset: Offset(190, -320.0),
           child: Material(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(12.0),
             elevation: 2.0,
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
+              padding: EdgeInsets.symmetric(vertical: 6.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(color: Colors.grey[400]!, width: 1.0),
               ),
               child: _buildMenuItems(context),
@@ -73,31 +91,51 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
   Widget _buildMenuItems(BuildContext context) {
     final recordingState = ref.watch(recordingViewModelProvider);
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
+    final selectedLanguageCode = ref.watch(languageProvider);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
           child: Row(
             children: [
-              Icon(Icons.language, size: 16.0),
+              Container(
+                width: 20,
+                height: 20,
+                child: Icon(Icons.language, size: 20.0, color: Color(0xFF4C4C4C)),
+              ),
               SizedBox(width: 8.0),
               Expanded(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  value: _selectedLanguage,
-                  items: ['한국어', '영어'].map((language) => DropdownMenuItem(
-                    value: language,
-                    child: Text(language, style: TextStyle(fontSize: 14.0)),
-                  )).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedLanguage = value!;
-                      _toggleMenu(context);
-                    });
+                child: GestureDetector(
+                  key: _languageButtonKey,
+                  onTap: () {
+                    _toggleMenu(context); // 메뉴 닫기
+                    _showLanguageMenu(context);
                   },
-                  underline: SizedBox(),
+                  child: Container(
+                    height: 32,
+                    padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
+                    decoration: ShapeDecoration(
+                      color: Color(0xFFF0F0F0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _mapCodeToLanguage(selectedLanguageCode),
+                          style: TextStyle(
+                            color: Color(0xFF191919),
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            height: 0.11,
+                          ),
+                        ),
+                        Icon(Icons.arrow_drop_down, size: 24, color: Color(0xFF191919)),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -114,7 +152,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                 final recording = recordingState.recordings.last;
                 await recordingViewModel.transcribeRecording(
                   recording.path,
-                  _mapLanguageToCode(_selectedLanguage),
+                  selectedLanguageCode,
                   widget.controller!,
                 );
               }
@@ -135,6 +173,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
               }
             },
           ),
+          Container(
+            width: 166,
+            height: 1,
+            decoration: BoxDecoration(color: Color(0xFFCCCCCC)),
+          ),
           _buildMenuItem(
             context,
             icon: Icons.download,
@@ -150,6 +193,10 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '녹음기록',
             onTap: () {
               _toggleMenu(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RecordPage()),
+              );
             },
           ),
           _buildMenuItem(
@@ -163,24 +210,122 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
               }
               _toggleMenu(context);
             },
+            textColor: Color(0xFFFF2F2F),
           ),
         ],
       ],
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+  void _showLanguageMenu(BuildContext context) {
+    final languages = [
+      {'display': '한국어', 'code': 'ko'},
+      {'display': '영어', 'code': 'en'},
+    ];
+    final RenderBox? buttonBox = _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    final buttonSize = buttonBox?.size ?? Size.zero;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // 메뉴가 화면 상단을 벗어나지 않도록 Y 위치 조정
+    double topPosition = buttonPosition.dy - 120; // 메뉴 높이(약 100) + 여백
+    if (topPosition < 0) {
+      topPosition = buttonPosition.dy + buttonSize.height + 8; // 버튼 아래로 이동
+    }
+
+    // 메뉴가 화면 오른쪽을 벗어나지 않도록 X 위치 조정
+    double leftPosition = buttonPosition.dx;
+    if (leftPosition + 200 > screenWidth) {
+      leftPosition = screenWidth - 200 - 8; // 오른쪽 여백 8
+    }
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      pageBuilder: (context, _, __) {
+        return Stack(
+          children: [
+            Positioned(
+              left: leftPosition,
+              top: topPosition,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[400]!),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: languages.map((language) {
+                      return GestureDetector(
+                        onTap: () {
+                          ref.read(languageProvider.notifier).state = language['code']!;
+                          if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+                            widget.focusNode!.requestFocus();
+                          }
+                          Navigator.pop(context);
+                          _toggleMenu(context); // 메뉴 다시 열기
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          child: Text(
+                            language['display']!,
+                            style: TextStyle(
+                              color: Color(0xFF191919),
+                              fontSize: 14,
+                              fontFamily: 'Pretendard',
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap, Color textColor = const Color(0xFF4C4C4C)}) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
+      onTap: () {
+        onTap();
+        if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+          widget.focusNode!.requestFocus();
+        }
+      },
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 16.0),
+            Container(
+              width: 20,
+              height: 20,
+              child: Icon(icon, size: 20.0, color: textColor),
+            ),
             SizedBox(width: 8.0),
-            Text(label, style: TextStyle(fontSize: 14.0)),
+            Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontFamily: 'Pretendard',
+                height: 0.09,
+              ),
+            ),
           ],
         ),
       ),
@@ -244,6 +389,9 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                   constraints: BoxConstraints(),
                                   onPressed: () {
                                     recordingViewModel.playRecording(recording.path);
+                                    if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+                                      widget.focusNode!.requestFocus();
+                                    }
                                   },
                                 ),
                                 SizedBox(width: 4.0),
@@ -269,7 +417,9 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                   icon: Icon(Icons.more_horiz, size: 20.0),
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(),
-                  onPressed: () => _toggleMenu(context),
+                  onPressed: () {
+                    _toggleMenu(context);
+                  },
                 ),
               ],
             ),
