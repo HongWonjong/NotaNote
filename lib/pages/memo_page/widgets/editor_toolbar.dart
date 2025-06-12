@@ -359,7 +359,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               onPressed: () {},
             ),
             IconButton(
-              icon: FaIcon(FontAwesomeIcons.highlighter),
+              icon: SvgPicture.asset('assets/icons/Highlight.svg'),
               onPressed: () {},
             ),
             IconButton(
@@ -403,10 +403,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             ),
             IconButton(
               icon: SvgPicture.asset('assets/icons/Table.svg'),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Text('AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
               onPressed: () {},
             ),
           ],
