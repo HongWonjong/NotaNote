@@ -165,33 +165,51 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   }
 
   Widget _buildMemoCard(Memo memo) {
-    final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
+  final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
 
-    return GestureDetector(
-      onTap: () {
-        if (isDeleteMode) {
-          toggleSelectForDelete(memo.noteId);
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MemoPage(
-                groupId: memo.groupId,
-                noteId: memo.noteId,
-                pageId: '1',
-              ),
+  Widget buildCheckCircle() {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isSelectedForDelete ? Color(0xFF61CFB2) : Colors.transparent,
+        border: Border.all(
+          color: Color(0xFF61CFB2),
+          width: 2,
+        ),
+      ),
+      child: isSelectedForDelete
+          ? Icon(Icons.check, color: Colors.white, size: 16)
+          : null,
+    );
+  }
+
+  return GestureDetector(
+    onTap: () {
+      if (isDeleteMode) {
+        toggleSelectForDelete(memo.noteId);
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MemoPage(
+              groupId: memo.groupId,
+              noteId: memo.noteId,
+              pageId: '1',
             ),
-          );
-        }
-      },
-      child: isGrid
-          ? Container(
+          ),
+        );
+      }
+    },
+    child: isGrid
+    ? Container(
         width: null,
         height: 130,
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelectedForDelete ? Colors.red.shade100 : Colors.white,
+          color: Colors.white,
           border: Border(
             left: BorderSide(color: Color(0xFFF0F0F0)),
             top: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
@@ -200,214 +218,234 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           ),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            Expanded(
-              child: Container(
-                height: 98,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: Text(
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 98,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            memo.title,
+                            style: TextStyle(
+                              color: Color(0xFF191919),
+                              fontSize: 16,
+                              fontFamily: 'Pretendard',
+                              height: 0.09,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          height: 55,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (memo.tags.isNotEmpty)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      height: 26,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: ShapeDecoration(
+                                        color: (searchText.isNotEmpty &&
+                                                memo.tags.isNotEmpty &&
+                                                memo.tags[0].contains(searchText))
+                                            ? Color(0xFF61CFB2)
+                                            : Color(0xFFF0F0F0),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${memo.tags[0]}',
+                                            style: TextStyle(
+                                              color: (searchText.isNotEmpty &&
+                                                      memo.tags.isNotEmpty &&
+                                                      memo.tags[0].contains(searchText))
+                                                  ? Colors.white
+                                                  : Color(0xFF4C4C4C),
+                                              fontSize: 12,
+                                              fontFamily: 'Pretendard',
+                                              height: 0.12,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (memo.tags.length > 1)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 6),
+                                        child: Text(
+                                          '+${memo.tags.length - 1}',
+                                          style: TextStyle(
+                                            color: Color(0xFF7F7F7F),
+                                            fontSize: 12,
+                                            fontFamily: 'Pretendard',
+                                            height: 0.12,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      formatTimeAgo(memo.updatedAt),
+                                      style: TextStyle(
+                                        color: Color(0xFF999999),
+                                        fontSize: 14,
+                                        fontFamily: 'Pretendard',
+                                        height: 0.11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (isDeleteMode)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    toggleSelectForDelete(memo.noteId);
+                  },
+                  child: buildCheckCircle(),
+                ),
+              ),
+          ],
+        ),
+      )
+    : Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+          ),
+        ),
+        child: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         memo.title,
                         style: TextStyle(
                           color: Color(0xFF191919),
                           fontSize: 16,
                           fontFamily: 'Pretendard',
-                          height: 0.09,
+                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      height: 55,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (memo.tags.isNotEmpty)
-                            Container(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    height: 26,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: ShapeDecoration(
-                                      color: Color(0xFFF0F0F0),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${memo.tags[0]}',
-                                          style: TextStyle(
-                                            color: Color(0xFF4C4C4C),
-                                            fontSize: 12,
-                                            fontFamily: 'Pretendard',
-                                            height: 0.12,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (memo.tags.length > 1)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 6),
-                                      child: Text(
-                                        '+${memo.tags.length - 1}',
-                                        style: TextStyle(
-                                          color: Color(0xFF7F7F7F),
-                                          fontSize: 12,
-                                          fontFamily: 'Pretendard',
-                                          height: 0.12,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          Container(
-                            width: double.infinity,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  formatTimeAgo(memo.updatedAt),
-                                  style: TextStyle(
-                                    color: Color(0xFF999999),
-                                    fontSize: 14,
-                                    fontFamily: 'Pretendard',
-                                    height: 0.11,
+                      const SizedBox(height: 8),
+                      if (memo.tags.isNotEmpty)
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: memo.tags.take(3).map((tag) {
+                            final bool isHighlighted = searchText.isNotEmpty && tag.contains(searchText);
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: ShapeDecoration(
+                                color: isHighlighted ? Color(0xFFB1E7D9) : Color(0xFFF0F0F0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: isHighlighted ? Color(0xFF61CFB2) : Colors.transparent,
+                                    width: 1,
                                   ),
                                 ),
-                                if (isDeleteMode)
-                                  Expanded(
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Checkbox(
-                                        value: isSelectedForDelete,
-                                        onChanged: (value) {
-                                          toggleSelectForDelete(memo.noteId);
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      )
-          : Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelectedForDelete ? Colors.red.shade100 : Colors.white,
-          border: Border(
-            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    memo.title,
-                    style: TextStyle(
-                      color: Color(0xFF191919),
-                      fontSize: 16,
-                      fontFamily: 'Pretendard',
-                      height: 1.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  if (memo.tags.isNotEmpty)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: memo.tags.take(3).map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: ShapeDecoration(
-                          color: Color(0xFFF0F0F0),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: Text(
+                                tag,
+                                style: TextStyle(
+                                  color: Color(0xFF191919),
+                                  fontSize: 12,
+                                  fontFamily: 'Pretendard',
+                                  height: 1.2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
                         ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            color: Color(0xFF4C4C4C),
-                            fontSize: 12,
-                            fontFamily: 'Pretendard',
-                            height: 1.2,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )).toList(),
-                    ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                      const SizedBox(height: 8),
                       Text(
                         formatTimeAgo(memo.updatedAt),
                         style: TextStyle(
-                          color: Color(0xFF999999),
+                          color: Color(0xFF191919),
                           fontSize: 14,
                           fontFamily: 'Pretendard',
                           height: 1.2,
                         ),
                       ),
-                      if (isDeleteMode)
-                        Checkbox(
-                          value: isSelectedForDelete,
-                          onChanged: (value) {
-                            toggleSelectForDelete(memo.noteId);
-                          },
-                        ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+            if (isDeleteMode)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: GestureDetector(
+                  onTap: () {
+                    toggleSelectForDelete(memo.noteId);
+                  },
+                  child: buildCheckCircle(),
+                ),
+              ),
           ],
         ),
       ),
-    );
-  }
-
+  );
+}
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Memo>>(
@@ -445,25 +483,31 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
         return Scaffold(
           appBar: MemoGroupAppBar(
-            groupName: widget.groupName,
-            isSearching: isSearching,
-            isDeleteMode: isDeleteMode,
-            memoCount: currentMemoCount,
-            searchController: _searchController,
-            onCancelSearch: cancelSearch,
-            onSearchPressed: startSearch,
-            onCancelDelete: cancelDelete,
-            isGrid: isGrid,
-            sortOption: selectedSort,
-            onSortChanged: updateSort,
-            onDeleteModeStart: startDeleteMode,
-            onRename: () {},
-            onEditGroup: () {},
-            onSharingSettingsToggle: () {},
-            onGridToggle: toggleGridView,
-            selectedDeleteCount: selectedForDelete.length,
-            onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
-          ),
+  groupName: widget.groupName,
+  isSearching: isSearching,
+  isDeleteMode: isDeleteMode,
+  memoCount: currentMemoCount,
+  searchController: _searchController,
+  onCancelSearch: cancelSearch,
+  onSearchPressed: startSearch,
+  onCancelDelete: cancelDelete,
+  isGrid: isGrid,
+  sortOption: selectedSort,
+  onSortChanged: updateSort,
+  onDeleteModeStart: startDeleteMode,
+  onRename: () {},
+  onEditGroup: () {},
+  onSharingSettingsToggle: () {},
+  onGridToggle: toggleGridView,
+  selectedDeleteCount: selectedForDelete.length,
+  onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+
+  // 여기에 onSearchChanged 추가
+  onSearchChanged: (String value) {
+    // 예) setState(() => _searchQuery = value);
+    // 또는 원하는 검색어 처리 함수 호출
+  },
+),
           body: Column(
             children: [
               Expanded(child: content),

@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nota_note/models/sort_options.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/models/sort_options.dart';
 
+// 멤버 모델
+class Member {
+  String name;
+  String email;
+  String imageUrl;
+  String role;
+  bool isEditable;
+
+  Member({
+    required this.name,
+    required this.email,
+    required this.imageUrl,
+    required this.role,
+    required this.isEditable,
+  });
+}
+
+// SettingsMenu 위젯
 class SettingsMenu extends StatefulWidget {
   final bool isGrid;
   final SortOption sortOption;
@@ -20,7 +38,7 @@ class SettingsMenu extends StatefulWidget {
     required this.onDeleteModeStart,
     required this.onRename,
     required this.onSharingSettingsToggle,
-    required this.onGridToggle,
+    required this.onGridToggle, required VoidCallback onEditGroup,
   });
 
   @override
@@ -28,14 +46,13 @@ class SettingsMenu extends StatefulWidget {
 }
 
 class _SettingsMenuState extends State<SettingsMenu> {
-  // 내부 role <-> 사용자 표시 텍스트 매핑
+  // role <-> 표시 텍스트 매핑
   final Map<String, String> roleDisplayMap = {
     '소유자': '소유자',
     '뷰어': '읽기 전용',
     '에디터': '편집 전용',
   };
 
-  // 사용자 표시 텍스트 -> 내부 role 변환
   final Map<String, String> displayRoleToInternal = {
     '읽기 전용': '뷰어',
     '편집 전용': '에디터',
@@ -62,9 +79,6 @@ class _SettingsMenuState extends State<SettingsMenu> {
             break;
           case 5:
             widget.onDeleteModeStart();
-            break;
-          case 6:
-            widget.onGridToggle(!widget.isGrid);
             break;
           case 6:
             widget.onGridToggle(!widget.isGrid);
@@ -143,43 +157,43 @@ class _SettingsMenuState extends State<SettingsMenu> {
                 child: Column(
                   children: [
                     Row(
-  children: [
-    const Spacer(flex: 3),
-    const Text(
-      '정렬 기준',
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-    ),
-    const Spacer(flex: 2),
-    TextButton(
-  onPressed: () {
-    widget.onSortChanged(tempSelectedOption);
-    Navigator.pop(context);
-  },
-  child: const Text(
-    '확인',
-    style: TextStyle(color: Color(0xFF61CFB2)),
-  ),
-),
-  ],
-),
+                      children: [
+                        const Spacer(flex: 3),
+                        const Text(
+                          '정렬 기준',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        const Spacer(flex: 2),
+                        TextButton(
+                          onPressed: () {
+                            widget.onSortChanged(tempSelectedOption);
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            '확인',
+                            style: TextStyle(color: Color(0xFF61CFB2)),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     const Divider(),
                     ...SortOption.values.map((option) {
-                     String label;
-                  switch (option) {
-                    case SortOption.titleAsc:
-                      label = '제목';
-                      break;
-                    case SortOption.dateAsc:
-                      label = '생성일';
-                      break;
-                   case SortOption.dateDesc:
-                      label = '최신순';
-                      break;
-                      default:
-                      label = '알 수 없음';
-                    }
-                  if (label == '알 수 없음') return const SizedBox.shrink();
+                      String label;
+                      switch (option) {
+                        case SortOption.titleAsc:
+                          label = '제목';
+                          break;
+                        case SortOption.dateAsc:
+                          label = '생성일';
+                          break;
+                        case SortOption.dateDesc:
+                          label = '최신순';
+                          break;
+                        default:
+                          label = '알 수 없음';
+                      }
+                      if (label == '알 수 없음') return const SizedBox.shrink();
 
                       final isSelected = tempSelectedOption == option;
 
@@ -218,170 +232,159 @@ class _SettingsMenuState extends State<SettingsMenu> {
   }
 
   void _showSharingSettings() {
-  List<Member> members = [
-    Member(
-      name: '홍길동',
-      email: 'owner@example.com',
-      imageUrl: 'https://i.pravatar.cc/150?img=3',
-      role: '소유자',
-      isEditable: false,
-    ),
-    Member(
-      name: '김영희',
-      email: 'viewer@example.com',
-      imageUrl: 'https://i.pravatar.cc/150?img=5',
-      role: '뷰어',
-      isEditable: true,
-    ),
-    Member(
-      name: '박철수',
-      email: 'editor@example.com',
-      imageUrl: 'https://i.pravatar.cc/150?img=8',
-      role: '에디터',
-      isEditable: true,
-    ),
-  ];
-
-  int selectedMemberIndex = 1;
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (context) {
-      return StatefulBuilder(builder: (context, setState) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
-          child: SizedBox(
-            height: 520,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-  children: [
-    const Spacer(flex: 3),
-    const Text(
-      '공유',
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-    ),
-    const Spacer(flex: 2),
-    TextButton(
-      onPressed: () => Navigator.pop(context),
-      child: const Text(
-        '확인',
-        style: TextStyle(color: Color(0xFF61CFB2)),
+    List<Member> members = [
+      Member(
+        name: '홍길동',
+        email: 'owner@example.com',
+        imageUrl: 'https://i.pravatar.cc/150?img=3',
+        role: '소유자',
+        isEditable: false,
       ),
-    ),
-  ],
-),
-                const SizedBox(height: 16),
-                // 멤버 목록
-                const Divider(),
-                const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: members.length,
-                    itemBuilder: (context, index) {
-                      final member = members[index];
-                      return GestureDetector(
-                        onTap: member.isEditable
-                            ? () => setState(() {
-                                  selectedMemberIndex = index;
-                                })
-                            : null,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                          child: _buildMemberTile(
-                            imageUrl: member.imageUrl,
-                            name: member.name,
-                            email: member.email,
-                            role: member.role,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const Divider(), 
-                const SizedBox(height: 16),
-                if (members[selectedMemberIndex].isEditable) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                  const Text(
-                  '권한 설정',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: DropdownButton<String>(
-          value: roleDisplayMap[members[selectedMemberIndex].role],
-          style: const TextStyle(color: Colors.black),
-          onChanged: (String? newDisplayRole) {
-            if (newDisplayRole != null) {
-              setState(() {
-                members[selectedMemberIndex].role =
-                    displayRoleToInternal[newDisplayRole]!;
-              });
-            }
-          },
-          items: ['읽기 전용', '편집 전용'].map((String displayText) {
-            return DropdownMenuItem<String>(
-              value: displayText,
-              child: Text(displayText),
-            );
-          }).toList(),
-          underline: Container(),
-          icon: const Icon(Icons.arrow_drop_down),
-          dropdownColor: Colors.white,
-        ),
+      Member(
+        name: '김영희',
+        email: 'viewer@example.com',
+        imageUrl: 'https://i.pravatar.cc/150?img=5',
+        role: '뷰어',
+        isEditable: true,
       ),
-    ],
-  ),
-  const SizedBox(height: 24),
-                ],
-                // 링크 공유하기 버튼
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
+      Member(
+        name: '박철수',
+        email: 'editor@example.com',
+        imageUrl: 'https://i.pravatar.cc/150?img=8',
+        role: '에디터',
+        isEditable: true,
+      ),
+    ];
+
+    int selectedMemberIndex = 1;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
+            child: SizedBox(
+              height: 520,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Spacer(flex: 3),
+                      const Text(
+                        '공유',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
-                    ),
-                    icon: const Icon(Icons.link),
-                    label: const Text('링크 공유하기'),
-                    onPressed: () {
-                      Clipboard.setData(const ClipboardData(text: 'https://example.com/memo_group_link'));
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('링크가 클립보드에 복사되었습니다.')),
-                      );
-                    },
+                      const Spacer(flex: 2),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          '확인',
+                          style: TextStyle(color: Color(0xFF61CFB2)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: members.length,
+                      itemBuilder: (context, index) {
+                        final member = members[index];
+                        return GestureDetector(
+                          onTap: member.isEditable
+                              ? () => setState(() {
+                                    selectedMemberIndex = index;
+                                  })
+                              : null,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
+                            child: _buildMemberTile(
+                              imageUrl: member.imageUrl,
+                              name: member.name,
+                              email: member.email,
+                              role: member.role,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  if (members[selectedMemberIndex].isEditable) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '권한 설정',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        DropdownButton<String>(
+                          value: roleDisplayMap[members[selectedMemberIndex].role] ?? '읽기 전용',
+                          items: const [
+                            DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
+                            DropdownMenuItem(value: '편집 전용', child: Text('편집 전용')),
+                          ],
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() {
+                              members[selectedMemberIndex].role = displayRoleToInternal[value] ?? '뷰어';
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ] else
+                    const Text('권한 설정이 불가능한 멤버입니다.'),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  const Text('링크 공유', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'https://nota.page/abc123',
+                          style: TextStyle(color: Color(0xFF61CFB2)),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy),
+                        onPressed: () {
+                          Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('링크가 복사되었습니다.')),
+                          );
+                        },
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // 링크 공유 기능 추가 가능
+                        },
+                        child: const Text('공유'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      });
-    },
-  );
-}
+          );
+        });
+      },
+    );
+  }
 
   Widget _buildMemberTile({
     required String imageUrl,
@@ -391,35 +394,25 @@ class _SettingsMenuState extends State<SettingsMenu> {
   }) {
     return Row(
       children: [
-        CircleAvatar(radius: 20, backgroundImage: NetworkImage(imageUrl)),
+        CircleAvatar(
+          backgroundImage: NetworkImage(imageUrl),
+          radius: 20,
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(email, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(email, style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
-        Text(role, style: const TextStyle(color: Colors.grey)),
+        Text(
+          role,
+          style: const TextStyle(color: Colors.grey),
+        ),
       ],
     );
   }
-}
-
-class Member {
-  String name;
-  String email;
-  String imageUrl;
-  String role;
-  bool isEditable;
-
-  Member({
-    required this.name,
-    required this.email,
-    required this.imageUrl,
-    required this.role,
-    required this.isEditable,
-  });
 }
