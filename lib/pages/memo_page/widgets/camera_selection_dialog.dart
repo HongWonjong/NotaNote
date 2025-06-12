@@ -75,8 +75,8 @@ class CameraSelectionDialog extends ConsumerWidget {
                   ),
                   SvgPicture.asset(
                     'assets/icons/Camera.svg',
-                    width: 24,
-                    height: 24,
+                    width: 32,
+                    height: 32,
                   ),
                 ],
               ),
