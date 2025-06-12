@@ -34,7 +34,6 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
     state = ImageUploadState.loading;
     errorMessage = null;
 
-
     if (kDebugMode && Platform.isIOS) {
     } else {
       final permission = source == ImageSource.gallery ? Permission.photos : Permission.camera;
@@ -60,15 +59,38 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
     }
 
     final imageFile = File(pickedFile.path);
-    final imageUrl = await _uploadImageToStorage(imageFile);
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    if (imageUrl != null) {
-      final fileName = _generateFileName(imageUrl);
+    try {
+      // 1. 로컬 캐시 저장
       final localPath = await _localStorageService.saveImageFileToLocal(imageFile, fileName);
 
+      // 2. Quill 문서에 로컬 경로 삽입 및 데이터베이스 저장
+      final index = controller.selection.start;
+      controller.document.insert(index, '\n');
+      controller.document.insert(
+        index + 1,
+        Embeddable('image', localPath),
+      );
+      controller.updateSelection(
+        TextSelection.collapsed(offset: index + 2),
+        ChangeSource.local,
+      );
+      await ref.read(pageViewModelProvider({
+        'groupId': groupId,
+        'noteId': noteId,
+        'pageId': pageId,
+      }).notifier).saveToFirestore(controller);
+
+      // 3. 스토리지 업로드
+      final imageUrl = await _uploadImageToStorage(imageFile, fileName);
+      if (imageUrl == null) {
+        throw Exception('이미지 업로드 실패');
+      }
+
+      // 4. 로컬 저장소에 URL과 매핑 및 데이터베이스 업데이트
       final style = controller.getSelectionStyle();
       final formattingData = jsonEncode(style.attributes);
-
       await _localStorageService.saveImageLocally(
         groupId: groupId,
         noteId: noteId,
@@ -78,17 +100,12 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
         formattingData: formattingData,
       );
 
-      final index = controller.selection.start;
-      controller.document.insert(index, '\n');
+      // Quill 문서에서 로컬 경로를 URL로 교체
+      controller.document.delete(index + 1, 1);
       controller.document.insert(
         index + 1,
         Embeddable('image', imageUrl),
       );
-      controller.updateSelection(
-        TextSelection.collapsed(offset: index + 2),
-        ChangeSource.local,
-      );
-
       await ref.read(pageViewModelProvider({
         'groupId': groupId,
         'noteId': noteId,
@@ -96,15 +113,24 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
       }).notifier).saveToFirestore(controller);
 
       state = ImageUploadState.success;
-    } else {
+    } catch (e) {
+      // 에러 처리: 롤백
+      final index = controller.selection.start;
+      controller.document.delete(index, 2);
+      await ref.read(pageViewModelProvider({
+        'groupId': groupId,
+        'noteId': noteId,
+        'pageId': pageId,
+      }).notifier).saveToFirestore(controller);
+      await _localStorageService.deleteImageLocally(groupId, noteId, pageId, fileName);
+
       state = ImageUploadState.error;
-      errorMessage = errorMessage ?? '이미지 업로드 실패';
+      errorMessage = errorMessage ?? '이미지 업로드 실패: $e';
     }
   }
 
-  Future<String?> _uploadImageToStorage(File imageFile) async {
+  Future<String?> _uploadImageToStorage(File imageFile, String fileName) async {
     try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('notegroups/$groupId/notes/$noteId/pages/$pageId/images/$fileName');
@@ -112,7 +138,7 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
       final snapshot = await uploadTask;
       final imageUrl = await storageRef.getDownloadURL();
       return imageUrl;
-    } catch (e, stackTrace) {
+    } catch (e) {
       if (e is FirebaseException) {
         switch (e.code) {
           case 'unauthorized':
@@ -131,14 +157,18 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
     }
   }
 
-  ImageProvider<Object> getImageProviderSync(String imageUrl) {
-    final localPath = _localStorageService.getLocalImagePathSync(groupId, noteId, pageId, imageUrl);
-    if (localPath.isNotEmpty) {
+  ImageProvider<Object> getImageProviderSync(String imageSource) {
+    if (File(imageSource).existsSync()) {
+      return FileImage(File(imageSource));
+    }
+
+    final localPath = _localStorageService.getLocalImagePathSync(groupId, noteId, pageId, imageSource);
+    if (localPath.isNotEmpty && File(localPath).existsSync()) {
       return FileImage(File(localPath));
     }
 
-    cacheImageLocally(imageUrl);
-    return NetworkImage(imageUrl);
+    cacheImageLocally(imageSource);
+    return NetworkImage(imageSource);
   }
 
   Future<void> cacheImageLocally(String imageUrl) async {
@@ -160,9 +190,7 @@ class ImageUploadViewModel extends StateNotifier<ImageUploadState> {
         localPath: localPath,
         formattingData: formattingData,
       );
-
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   String _generateFileName(String imageUrl) {
