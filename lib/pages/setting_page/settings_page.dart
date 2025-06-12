@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/services/auth_service.dart';
+import 'package:nota_note/pages/login_page/login_page.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -89,6 +91,30 @@ class SettingsPage extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 30),
+          ListTile(
+            title: const Text(
+              '로그아웃',
+              style: TextStyle(color: Color(0xFF545454)),
+            ),
+            onTap: () async {
+              final authService = ref.read(authServiceProvider);
+              final success = await authService.logout(ref);
+
+              if (success) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (route) => false,
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('로그아웃 중 오류가 발생했습니다.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+          ),
           ListTile(
             title: const Text(
               '탈퇴하기',
