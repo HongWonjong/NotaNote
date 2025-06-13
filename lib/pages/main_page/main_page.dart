@@ -283,8 +283,11 @@ class _MainPageState extends ConsumerState<MainPage> {
                   children: [
                     SvgPicture.asset(
                       'assets/icons/folder_icon.svg',
-                      colorFilter:
-                          ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                      colorFilter: ColorFilter.mode(
+                          _isGroupExpanded
+                              ? Color(0xFF60CFB1)
+                              : Color(0xffBFBFBF),
+                          BlendMode.srcIn),
                     ),
                     SizedBox(width: 8),
                     Text(
