@@ -22,10 +22,14 @@ class CameraSelectionDialog extends ConsumerWidget {
 
   Future<bool> _checkAndRequestPermission(ImageSource source, BuildContext context) async {
     final permission = source == ImageSource.camera ? Permission.camera : Permission.photos;
+    print('권한 확인 중: $source');
     final status = await permission.status;
+    print('현재 권한 상태: $status');
 
     if (status.isDenied || status.isPermanentlyDenied) {
+      print('권한 요청 시작');
       final result = await permission.request();
+      print('권한 요청 결과: $result');
       if (result.isDenied || result.isPermanentlyDenied) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +49,9 @@ class CameraSelectionDialog extends ConsumerWidget {
         return false;
       }
     }
-    return status.isGranted || (await permission.status).isGranted;
+    final finalStatus = await permission.status;
+    print('최종 권한 상태: $finalStatus');
+    return finalStatus.isGranted;
   }
 
   @override
@@ -77,6 +83,7 @@ class CameraSelectionDialog extends ConsumerWidget {
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
+              Navigator.pop(context); // 먼저 바텀 시트를 닫음
               final hasPermission = await _checkAndRequestPermission(ImageSource.camera, context);
               if (hasPermission && context.mounted) {
                 ref.read(imageUploadProvider({
@@ -85,7 +92,6 @@ class CameraSelectionDialog extends ConsumerWidget {
                   'pageId': pageId,
                   'controller': controller,
                 }).notifier).pickAndUploadImage(ImageSource.camera, context);
-                Navigator.pop(context);
               }
             },
             splashColor: Colors.grey.withOpacity(0.2),
@@ -119,6 +125,7 @@ class CameraSelectionDialog extends ConsumerWidget {
           ),
           InkWell(
             onTap: () async {
+              Navigator.pop(context); // 먼저 바텀 시트를 닫음
               final hasPermission = await _checkAndRequestPermission(ImageSource.gallery, context);
               if (hasPermission && context.mounted) {
                 ref.read(imageUploadProvider({
@@ -127,7 +134,6 @@ class CameraSelectionDialog extends ConsumerWidget {
                   'pageId': pageId,
                   'controller': controller,
                 }).notifier).pickAndUploadImage(ImageSource.gallery, context);
-                Navigator.pop(context);
               }
             },
             splashColor: Colors.grey.withOpacity(0.2),
