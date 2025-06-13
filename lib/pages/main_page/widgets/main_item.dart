@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 
 class MainItem extends ConsumerWidget {
@@ -99,7 +100,7 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext);
               final success =
-              await ref.read(groupViewModelProvider).deleteGroup(groupId);
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
               if (success) {
                 scaffoldMessenger.showSnackBar(
@@ -165,10 +166,12 @@ class MainItem extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  Image.asset(
-                    'assets/group_folder_icon.png',
+                  SvgPicture.asset(
+                    'assets/icons/group_folder_icon.svg',
                     width: 16,
                     height: 16,
+                    colorFilter:
+                        ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
                   ),
                   SizedBox(width: 8),
                   Text(
@@ -240,7 +243,11 @@ class MainItem extends ConsumerWidget {
                             fontSize: 16,
                           ),
                         ),
-                        Image.asset('assets/share_icon.png')
+                        SvgPicture.asset(
+                          'assets/icons/share_icon.svg',
+                          colorFilter: ColorFilter.mode(
+                              Color(0xFF4C4C4C), BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),
@@ -263,7 +270,11 @@ class MainItem extends ConsumerWidget {
                             fontSize: 16,
                           ),
                         ),
-                        Image.asset('assets/edit_icon.png')
+                        SvgPicture.asset(
+                          'assets/icons/edit_icon.svg',
+                          colorFilter: ColorFilter.mode(
+                              Color(0xFF4C4C4C), BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),
@@ -287,7 +298,11 @@ class MainItem extends ConsumerWidget {
                             color: Colors.red,
                           ),
                         ),
-                        Image.asset('assets/trash_red_icon.png')
+                        SvgPicture.asset(
+                          'assets/icons/trash_red_icon.svg',
+                          colorFilter:
+                              ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),

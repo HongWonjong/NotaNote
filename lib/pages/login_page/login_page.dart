@@ -116,10 +116,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       final user = await ref
                           .read(appleAuthViewModelProvider)
                           .signInWithApple(); // UserModel 반환
+
                       if (user == null || !context.mounted) {
                         log('[로그인] Apple 로그인 실패 또는 context 미탑재');
                         return;
                       }
+
                       log('[로그인] Apple 로그인 성공 → 홈 이동');
                       Navigator.pushReplacement(
                         context,
