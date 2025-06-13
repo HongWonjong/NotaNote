@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'popup_menu.dart'; // SettingsMenu,
+import 'popup_menu.dart'; // 수정한 SettingsMenu
 import 'package:nota_note/models/sort_options.dart';
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String groupName;  // 그룹 이름 추가
+  final String groupId;      // 그룹 ID 추가
+  final String groupName;
 
   final bool isSearching;
   final bool isDeleteMode;
@@ -25,9 +26,12 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int selectedDeleteCount;
   final VoidCallback? onDeletePressed;
 
+  final Function(String) onSearchChanged;  // 추가: 검색어 변경 콜백
+
   const MemoGroupAppBar({
     super.key,
-    required this.groupName,  // 추가
+    required this.groupId,           // 생성자에 추가
+    required this.groupName,
     required this.isSearching,
     required this.isDeleteMode,
     required this.memoCount,
@@ -43,6 +47,7 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onEditGroup,
     required this.onSharingSettingsToggle,
     required this.onGridToggle,
+    required this.onSearchChanged,  // 생성자에 포함
     this.selectedDeleteCount = 0,
     this.onDeletePressed,
   });
@@ -59,36 +64,50 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: onCancelSearch,
         ),
-        title: _SearchField(controller: searchController),
+        title: _SearchField(
+          controller: searchController,
+          onChanged: onSearchChanged,  // 변경 콜백 연결
+        ),
         bottom: _buildCountText(memoCount),
       );
     }
 
     return AppBar(
-      title: Text(groupName),  // 고정 텍스트 대신 그룹 이름 표시
+      title: Text(groupName),
       leading: isDeleteMode
-          ? IconButton(icon: const Icon(Icons.close), onPressed: onCancelDelete)
+          ? IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: onCancelDelete,
+            )
           : null,
-      actions: [
-        if (isDeleteMode) ...[
-          IconButton(
-            icon: Icon(Icons.delete,
-                color: selectedDeleteCount > 0 ? Colors.red : Colors.grey),
-            onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
-          )
-        ] else ...[
-          IconButton(icon: const Icon(Icons.search), onPressed: onSearchPressed),
-          SettingsMenu(
-            isGrid: isGrid,
-            sortOption: sortOption,
-            onSortChanged: onSortChanged,
-            onDeleteModeStart: onDeleteModeStart,
-            onRename: onRename,
-            onSharingSettingsToggle: onSharingSettingsToggle,
-            onGridToggle: onGridToggle,
-          ),
-        ],
-      ],
+      actions: isDeleteMode
+          ? [
+              TextButton(
+                onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
+                child: Text(
+                  '삭제',
+                  style: TextStyle(
+                    color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ]
+          : [
+              IconButton(icon: const Icon(Icons.search), onPressed: onSearchPressed),
+              SettingsMenu(
+                isGrid: isGrid,
+                sortOption: sortOption,
+                onSortChanged: onSortChanged,
+                onDeleteModeStart: onDeleteModeStart,
+                onRename: onRename,
+                onSharingSettingsToggle: onSharingSettingsToggle,
+                onGridToggle: onGridToggle,
+                groupId: groupId,         // 수정된 부분
+                groupTitle: groupName,    // 수정된 부분
+              ),
+            ],
       bottom: _buildCountText(memoCount),
     );
   }
@@ -107,8 +126,13 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _SearchField extends StatelessWidget {
   final TextEditingController controller;
+  final Function(String) onChanged;  // 추가: onChanged 콜백
 
-  const _SearchField({required this.controller});
+  const _SearchField({
+    Key? key,
+    required this.controller,
+    required this.onChanged,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +160,7 @@ class _SearchField extends StatelessWidget {
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
+              onChanged: onChanged,  // 입력 변경 콜백 연결
             ),
           ),
         ],
