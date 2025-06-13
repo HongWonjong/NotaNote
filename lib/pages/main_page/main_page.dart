@@ -196,14 +196,12 @@ class _MainPageState extends ConsumerState<MainPage> {
     final authService = ref.read(authServiceProvider);
     final success = await authService.logout(ref);
 
-    if (success) {
-      // 로그아웃 성공 시 로그인 페이지로 이동
+    if (success && mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LoginPage()),
-        (route) => false, // 모든 이전 경로 제거
+        (route) => false,
       );
-    } else {
-      // 로그아웃 실패 시 에러 메시지 표시
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그아웃 중 오류가 발생했습니다.'),
