@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/group_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
 import 'package:nota_note/pages/setting_page/settings_page.dart';
@@ -13,7 +14,6 @@ import 'package:nota_note/services/auth_service.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
-
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -151,7 +151,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                   decoration: InputDecoration(
                     hintText: '그룹 이름',
                     contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey[300]!),
@@ -284,8 +284,8 @@ class _MainPageState extends ConsumerState<MainPage> {
               children: [
                 Row(
                   children: [
-                    Image.asset(
-                      'assets/folder_icon.png',
+                    SvgPicture.asset(
+                      'assets/icons/folder_icon.svg',
                       color: Color(0xffBFBFBF),
                     ),
                     SizedBox(width: 8),
@@ -372,8 +372,8 @@ class _MainPageState extends ConsumerState<MainPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image.asset(
-                  'assets/trash_icon.png',
+                SvgPicture.asset(
+                  'assets/icons/trash_icon.svg',
                   color: Color(0xffBFBFBF),
                 ),
                 SizedBox(width: 8),
@@ -390,8 +390,8 @@ class _MainPageState extends ConsumerState<MainPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image.asset(
-                  'assets/setting_icon.png',
+                SvgPicture.asset(
+                  'assets/icons/setting_icon.svg',
                   color: Color(0xffBFBFBF),
                 ),
                 SizedBox(width: 8),
@@ -486,57 +486,57 @@ class _MainPageState extends ConsumerState<MainPage> {
                   child: isLoading
                       ? Center(child: CircularProgressIndicator())
                       : groups.isEmpty
-                      ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.folder_open,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          '생성된 그룹이 없습니다',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '새 그룹을 추가해보세요',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                      : ListView.separated(
-                    padding: EdgeInsets.zero,
-                    itemCount: groups.length,
-                    separatorBuilder: (context, index) => Container(),
-                    itemBuilder: (context, index) {
-                      return MainItem(
-                        title: groups[index].name,
-                        groupId: groups[index].id,
-                        noteCount: groups[index].noteCount,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MemoGroupPage(
-                                groupId: groups[index].id,
-                                groupName: groups[index].name,
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.folder_open,
+                                    size: 48,
+                                    color: Colors.grey[400],
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    '생성된 그룹이 없습니다',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    '새 그룹을 추가해보세요',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
                               ),
+                            )
+                          : ListView.separated(
+                              padding: EdgeInsets.zero,
+                              itemCount: groups.length,
+                              separatorBuilder: (context, index) => Container(),
+                              itemBuilder: (context, index) {
+                                return MainItem(
+                                  title: groups[index].name,
+                                  groupId: groups[index].id,
+                                  noteCount: groups[index].noteCount,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MemoGroupPage(
+                                          groupId: groups[index].id,
+                                          groupName: groups[index].name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -551,7 +551,7 @@ class _MainPageState extends ConsumerState<MainPage> {
           backgroundColor: Color(0xFF61CFB2),
           shape: CircleBorder(),
           elevation: 0,
-          child: Image.asset('assets/floatingActionButton_icon.png'),
+          child: SvgPicture.asset('assets/icons/floatingActionButton_icon.svg'),
         ),
       ),
     );
