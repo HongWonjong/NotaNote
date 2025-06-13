@@ -9,7 +9,6 @@ import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
-import 'package:nota_note/pages/note_list_page/note_list_page.dart';
 import 'package:nota_note/services/auth_service.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 
@@ -52,7 +51,7 @@ class _MainPageState extends ConsumerState<MainPage> {
           viewModel.fetchGroupsWithNoteCounts();
         });
       });
-    } else {
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그인이 필요합니다. 로그인 페이지로 이동해주세요.'),
