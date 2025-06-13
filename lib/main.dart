@@ -28,15 +28,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Crashlytics로 오류 기록용
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-
-  // Dart 비동기 오류 수집 (예: Future에서 발생한 예외)
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
   await dotenv.load(fileName: ".env");
   print('dotenv 로드 완료');
 
