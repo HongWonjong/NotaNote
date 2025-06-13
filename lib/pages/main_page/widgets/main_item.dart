@@ -246,7 +246,7 @@ class MainItem extends ConsumerWidget {
                         SvgPicture.asset(
                           'assets/icons/share_icon.svg',
                           colorFilter: ColorFilter.mode(
-                              Color(0xffBFBFBF), BlendMode.srcIn),
+                              Color(0xFF4C4C4C), BlendMode.srcIn),
                         )
                       ],
                     ),
@@ -273,7 +273,7 @@ class MainItem extends ConsumerWidget {
                         SvgPicture.asset(
                           'assets/icons/edit_icon.svg',
                           colorFilter: ColorFilter.mode(
-                              Color(0xffBFBFBF), BlendMode.srcIn),
+                              Color(0xFF4C4C4C), BlendMode.srcIn),
                         )
                       ],
                     ),
