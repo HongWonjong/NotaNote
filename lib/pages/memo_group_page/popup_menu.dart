@@ -122,8 +122,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
         PopupMenuItem(
           value: 5,
           child: ListTile(
-            leading: Image.asset(
-              'assets/trash_icon.png',
+            leading: SvgPicture.asset(
+              'assets/icons/Delete.svg',
               width: 24,
               height: 24,
               color: Colors.red,
@@ -257,132 +257,131 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
 
     int selectedMemberIndex = 1;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setState) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
-            child: SizedBox(
-              height: 520,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+  showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.white,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  ),
+  builder: (context) {
+    return StatefulBuilder(builder: (context, setState) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
+        child: SizedBox(
+          height: 520,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      const Spacer(flex: 3),
-                      const Text(
-                        '공유',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                      const Spacer(flex: 2),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(color: Color(0xFF61CFB2)),
-                        ),
-                      ),
-                    ],
+                  const Spacer(flex: 3),
+                  const Text(
+                    '공유',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: members.length,
-                      itemBuilder: (context, index) {
-                        final member = members[index];
-                        return GestureDetector(
-                          onTap: member.isEditable
-                              ? () => setState(() {
-                                    selectedMemberIndex = index;
-                                  })
-                              : null,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                            child: _buildMemberTile(
-                              imageUrl: member.imageUrl,
-                              name: member.name,
-                              email: member.email,
-                              role: member.role,
-                            ),
-                          ),
-                        );
-                      },
+                  const Spacer(flex: 2),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      '확인',
+                      style: TextStyle(color: Color(0xFF61CFB2)),
                     ),
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  if (members[selectedMemberIndex].isEditable) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          '권한 설정',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        DropdownButton<String>(
-                          value: roleDisplayMap[members[selectedMemberIndex].role] ?? '읽기 전용',
-                          items: const [
-                            DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
-                            DropdownMenuItem(value: '편집 전용', child: Text('편집 전용')),
-                          ],
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() {
-                              members[selectedMemberIndex].role = displayRoleToInternal[value] ?? '뷰어';
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ] else
-                    const Text('권한 설정이 불가능한 멤버입니다.'),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 12),
-                  const Text('링크 공유', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'https://nota.page/abc123',
-                          style: TextStyle(color: Color(0xFF61CFB2)),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.copy),
-                        onPressed: () {
-                          Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('링크가 복사되었습니다.')),
-                          );
-                        },
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // 링크 공유 기능 추가 가능
-                        },
-                        child: const Text('공유'),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
-          );
-        });
-      },
-    );
+              const SizedBox(height: 16),
+              const Divider(),
+              const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: members.length,
+                  itemBuilder: (context, index) {
+                    final member = members[index];
+                    return GestureDetector(
+                      onTap: member.isEditable
+                          ? () => setState(() {
+                                selectedMemberIndex = index;
+                              })
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
+                        child: _buildMemberTile(
+                          imageUrl: member.imageUrl,
+                          name: member.name,
+                          email: member.email,
+                          role: member.role,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(),
+              const SizedBox(height: 16),
+              if (members[selectedMemberIndex].isEditable) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '권한 설정',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    DropdownButton<String>(
+                      value: roleDisplayMap[members[selectedMemberIndex].role] ?? '읽기 전용',
+                      items: const [
+                        DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
+                        DropdownMenuItem(value: '편집 전용', child: Text('편집 전용')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          members[selectedMemberIndex].role = displayRoleToInternal[value] ?? '뷰어';
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ] else
+                const Text('권한 설정이 불가능한 멤버입니다.'),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+              const Text('링크 공유', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('링크가 복사되었습니다.')),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    '링크 공유하기',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  },
+);
   }
 
   Widget _buildMemberTile({
