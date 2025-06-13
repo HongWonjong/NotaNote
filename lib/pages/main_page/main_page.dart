@@ -283,7 +283,8 @@ class _MainPageState extends ConsumerState<MainPage> {
                   children: [
                     SvgPicture.asset(
                       'assets/icons/folder_icon.svg',
-                      color: Color(0xffBFBFBF),
+                      colorFilter:
+                          ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
                     ),
                     SizedBox(width: 8),
                     Text(
@@ -371,7 +372,8 @@ class _MainPageState extends ConsumerState<MainPage> {
               children: [
                 SvgPicture.asset(
                   'assets/icons/trash_icon.svg',
-                  color: Color(0xffBFBFBF),
+                  colorFilter:
+                      ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -389,7 +391,8 @@ class _MainPageState extends ConsumerState<MainPage> {
               children: [
                 SvgPicture.asset(
                   'assets/icons/setting_icon.svg',
-                  color: Color(0xffBFBFBF),
+                  colorFilter:
+                      ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
                 ),
                 SizedBox(width: 8),
                 GestureDetector(
