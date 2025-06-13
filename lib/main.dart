@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
@@ -24,6 +27,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Crashlytics로 오류 기록용
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+
+  // Dart 비동기 오류 수집 (예: Future에서 발생한 예외)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   await dotenv.load(fileName: ".env");
   print('dotenv 로드 완료');
@@ -80,9 +92,10 @@ class MyApp extends ConsumerWidget {
           final userAsync = ref.watch(userProfileProvider(userId));
 
           return userAsync.when(
-            loading: () =>
-                const Scaffold(body: Center(child: CircularProgressIndicator())),
-            error: (e, _) => Scaffold(body: Center(child: Text('유저 정보 에러: $e'))),
+            loading: () => const Scaffold(
+                body: Center(child: CircularProgressIndicator())),
+            error: (e, _) =>
+                Scaffold(body: Center(child: Text('유저 정보 에러: $e'))),
             data: (user) {
               if (user == null) return const LoginPage();
               return const MyHomePage();
@@ -121,7 +134,11 @@ class MyHomePage extends StatelessWidget {
                 // 테스트 데이터로 MemoGroupPage 직접 이동 (이전 코드 용도)
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MemoGroupPage(groupId: 'group1', groupName: '그룹1',)),
+                  MaterialPageRoute(
+                      builder: (context) => const MemoGroupPage(
+                            groupId: 'group1',
+                            groupName: '그룹1',
+                          )),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동 (테스트)'),
@@ -145,7 +162,8 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OnBoardingPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const OnBoardingPage()),
                 );
               },
               child: const Text('온보딩 페이지로 이동'),
