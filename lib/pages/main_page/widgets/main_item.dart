@@ -171,7 +171,7 @@ class MainItem extends ConsumerWidget {
                     width: 16,
                     height: 16,
                     colorFilter:
-                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                        ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
                   ),
                   SizedBox(width: 8),
                   Text(
