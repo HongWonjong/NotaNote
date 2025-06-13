@@ -95,11 +95,16 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   }
 
   List<Memo> getFilteredMemos(List<Memo> memos) {
-    if (searchText.isEmpty) return memos;
-    return memos.where((memo) {
-      return memo.tags.any((tag) => tag.contains(searchText));
-    }).toList();
-  }
+  if (searchText.isEmpty) return memos;
+
+  final query = searchText.toLowerCase();
+
+  return memos.where((memo) {
+    final titleMatch = memo.title.toLowerCase().contains(query);
+    final tagMatch = memo.tags.any((tag) => tag.toLowerCase().contains(query));
+    return titleMatch || tagMatch;
+  }).toList();
+}
 
   List<Memo> getSortedMemos(List<Memo> memos) {
     List<Memo> temp = List.from(memos);
@@ -116,6 +121,61 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
       }
     });
   }
+  TextSpan _highlightSearchText(String text, String query) {
+  if (query.isEmpty) return TextSpan(
+    text: text,
+    style: const TextStyle(
+      color: Color(0xFF191919),
+      fontSize: 16,
+      fontFamily: 'Pretendard',
+      height: 0.09,
+    ),
+  );
+
+  final matches = <TextSpan>[];
+  final pattern = RegExp(RegExp.escape(query), caseSensitive: false);
+  int start = 0;
+
+  pattern.allMatches(text).forEach((match) {
+    if (match.start > start) {
+      matches.add(TextSpan(
+        text: text.substring(start, match.start),
+        style: const TextStyle(
+          color: Color(0xFF191919),
+          fontSize: 16,
+          fontFamily: 'Pretendard',
+          height: 0.09,
+        ),
+      ));
+    }
+
+    matches.add(TextSpan(
+      text: text.substring(match.start, match.end),
+      style: const TextStyle(
+        color: Color(0xFF3BC49F), // 강조 색상
+        fontSize: 16,
+        fontFamily: 'Pretendard',
+        height: 0.09,
+      ),
+    ));
+
+    start = match.end;
+  });
+
+  if (start < text.length) {
+    matches.add(TextSpan(
+      text: text.substring(start),
+      style: const TextStyle(
+        color: Color(0xFF191919),
+        fontSize: 16,
+        fontFamily: 'Pretendard',
+        height: 0.09,
+      ),
+    ));
+  }
+
+  return TextSpan(children: matches);
+}
 
   void _confirmDeleteDialog() {
     showDialog(
@@ -229,25 +289,19 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                   child: Container(
                     height: 98,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: Text(
-                            memo.title,
-                            style: TextStyle(
-                              color: Color(0xFF191919),
-                              fontSize: 16,
-                              fontFamily: 'Pretendard',
-                              height: 0.09,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+  mainAxisSize: MainAxisSize.min,
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    SizedBox(
+      width: double.infinity,
+      child: Text.rich(
+        _highlightSearchText(memo.title, searchText),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+    const SizedBox(height: 12),
                         Container(
                           width: double.infinity,
                           height: 55,
@@ -379,17 +433,11 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        memo.title,
-                        style: TextStyle(
-                          color: Color(0xFF191919),
-                          fontSize: 16,
-                          fontFamily: 'Pretendard',
-                          height: 1.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                     Text.rich(
+  _highlightSearchText(memo.title, searchText),
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+),
                       const SizedBox(height: 8),
                       if (memo.tags.isNotEmpty)
                         Wrap(
@@ -489,59 +537,59 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
         }
 
         return Scaffold(
-          appBar: MemoGroupAppBar(
-  groupName: widget.groupName,
-  isSearching: isSearching,
-  isDeleteMode: isDeleteMode,
-  memoCount: currentMemoCount,
-  searchController: _searchController,
-  onCancelSearch: cancelSearch,
-  onSearchPressed: startSearch,
-  onCancelDelete: cancelDelete,
-  isGrid: isGrid,
-  sortOption: selectedSort,
-  onSortChanged: updateSort,
-  onDeleteModeStart: startDeleteMode,
-  onRename: () {},
-  onEditGroup: () {},
-  onSharingSettingsToggle: () {},
-  onGridToggle: toggleGridView,
-  selectedDeleteCount: selectedForDelete.length,
-  onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+  appBar: MemoGroupAppBar(
+    groupId: widget.groupId, // 여기 꼭 추가
+    groupName: widget.groupName,
+    isSearching: isSearching,
+    isDeleteMode: isDeleteMode,
+    memoCount: currentMemoCount,
+    searchController: _searchController,
+    onCancelSearch: cancelSearch,
+    onSearchPressed: startSearch,
+    onCancelDelete: cancelDelete,
+    isGrid: isGrid,
+    sortOption: selectedSort,
+    onSortChanged: updateSort,
+    onDeleteModeStart: startDeleteMode,
+    onRename: () {},
+    onEditGroup: () {},
+    onSharingSettingsToggle: () {},
+    onGridToggle: toggleGridView,
+    selectedDeleteCount: selectedForDelete.length,
+    onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
 
-  // 여기에 onSearchChanged 추가
-  onSearchChanged: (String value) {
-    // 예) setState(() => _searchQuery = value);
-    // 또는 원하는 검색어 처리 함수 호출
-  },
-),
-          body: Column(
-            children: [
-              Expanded(child: content),
-            ],
-          ),
-          floatingActionButton: isDeleteMode
-              ? null
-              : FloatingActionButton(
-            onPressed: () async {
-              final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
-              final newNoteId = await memoViewModel.addMemo();
-              if (newNoteId != null && mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MemoPage(
-                      groupId: widget.groupId,
-                      noteId: newNoteId,
-                      pageId: '1',
-                    ),
+    onSearchChanged: (String value) {
+      // 예) setState(() => _searchQuery = value);
+      // 또는 원하는 검색어 처리 함수 호출
+    },
+  ),
+  body: Column(
+    children: [
+      Expanded(child: content),
+    ],
+  ),
+  floatingActionButton: isDeleteMode
+      ? null
+      : FloatingActionButton(
+          onPressed: () async {
+            final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+            final newNoteId = await memoViewModel.addMemo();
+            if (newNoteId != null && mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MemoPage(
+                    groupId: widget.groupId,
+                    noteId: newNoteId,
+                    pageId: '1',
                   ),
-                );
-              }
-            },
-            child: const Icon(Icons.add),
-          ),
-        );
+                ),
+              );
+            }
+          },
+          child: const Icon(Icons.add),
+        ),
+);
       },
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/sort_options.dart';
+import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
 
 // 멤버 모델
 class Member {
@@ -21,7 +23,7 @@ class Member {
 }
 
 // SettingsMenu 위젯
-class SettingsMenu extends StatefulWidget {
+class SettingsMenu extends ConsumerStatefulWidget {
   final bool isGrid;
   final SortOption sortOption;
   final Function(SortOption) onSortChanged;
@@ -29,6 +31,8 @@ class SettingsMenu extends StatefulWidget {
   final Function() onRename;
   final Function() onSharingSettingsToggle;
   final Function(bool) onGridToggle;
+  final String groupId;
+  final String groupTitle;
 
   const SettingsMenu({
     super.key,
@@ -38,15 +42,16 @@ class SettingsMenu extends StatefulWidget {
     required this.onDeleteModeStart,
     required this.onRename,
     required this.onSharingSettingsToggle,
-    required this.onGridToggle, required VoidCallback onEditGroup,
+    required this.onGridToggle,
+    required this.groupId,
+    required this.groupTitle,
   });
 
   @override
-  State<SettingsMenu> createState() => _SettingsMenuState();
+  ConsumerState<SettingsMenu> createState() => _SettingsMenuState();
 }
 
-class _SettingsMenuState extends State<SettingsMenu> {
-  // role <-> 표시 텍스트 매핑
+class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   final Map<String, String> roleDisplayMap = {
     '소유자': '소유자',
     '뷰어': '읽기 전용',
@@ -75,13 +80,15 @@ class _SettingsMenuState extends State<SettingsMenu> {
             _showSharingSettings();
             break;
           case 4:
-            widget.onRename();
+            showRenameGroupDialog(
+              context: context,
+              ref: ref,
+              groupId: widget.groupId,
+              currentTitle: widget.groupTitle,
+            );
             break;
           case 5:
             widget.onDeleteModeStart();
-            break;
-          case 6:
-            widget.onGridToggle(!widget.isGrid);
             break;
         }
       },
@@ -96,13 +103,6 @@ class _SettingsMenuState extends State<SettingsMenu> {
         const PopupMenuItem(
           value: 2,
           child: ListTile(leading: Icon(Icons.sort), title: Text('정렬')),
-        ),
-        PopupMenuItem(
-          value: 6,
-          child: ListTile(
-            leading: Icon(widget.isGrid ? Icons.view_list : Icons.grid_view),
-            title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
-          ),
         ),
         const PopupMenuItem(
           value: 3,
@@ -137,7 +137,6 @@ class _SettingsMenuState extends State<SettingsMenu> {
       ],
     );
   }
-
   void _showSortOptionsDialog() {
     SortOption tempSelectedOption = widget.sortOption;
 

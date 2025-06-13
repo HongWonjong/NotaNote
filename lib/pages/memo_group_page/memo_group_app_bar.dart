@@ -3,6 +3,7 @@ import 'popup_menu.dart'; // 수정한 SettingsMenu
 import 'package:nota_note/models/sort_options.dart';
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String groupId;      // 그룹 ID 추가
   final String groupName;
 
   final bool isSearching;
@@ -29,6 +30,7 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const MemoGroupAppBar({
     super.key,
+    required this.groupId,           // 생성자에 추가
     required this.groupName,
     required this.isSearching,
     required this.isDeleteMode,
@@ -45,7 +47,7 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onEditGroup,
     required this.onSharingSettingsToggle,
     required this.onGridToggle,
-    required this.onSearchChanged,  // 추가: 생성자에 포함
+    required this.onSearchChanged,  // 생성자에 포함
     this.selectedDeleteCount = 0,
     this.onDeletePressed,
   });
@@ -73,15 +75,24 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(groupName),
       leading: isDeleteMode
-          ? IconButton(icon: const Icon(Icons.close), onPressed: onCancelDelete)
+          ? IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: onCancelDelete,
+            )
           : null,
       actions: isDeleteMode
           ? [
-              IconButton(
-                icon: Icon(Icons.delete,
-                    color: selectedDeleteCount > 0 ? Colors.red : Colors.grey),
+              TextButton(
                 onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
-              )
+                child: Text(
+                  '삭제',
+                  style: TextStyle(
+                    color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ]
           : [
               IconButton(icon: const Icon(Icons.search), onPressed: onSearchPressed),
@@ -91,9 +102,10 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onSortChanged: onSortChanged,
                 onDeleteModeStart: onDeleteModeStart,
                 onRename: onRename,
-                onEditGroup: onEditGroup,
                 onSharingSettingsToggle: onSharingSettingsToggle,
                 onGridToggle: onGridToggle,
+                groupId: groupId,         // 수정된 부분
+                groupTitle: groupName,    // 수정된 부분
               ),
             ],
       bottom: _buildCountText(memoCount),
