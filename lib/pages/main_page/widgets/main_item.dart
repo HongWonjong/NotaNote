@@ -170,6 +170,8 @@ class MainItem extends ConsumerWidget {
                     'assets/icons/group_folder_icon.svg',
                     width: 16,
                     height: 16,
+                    colorFilter:
+                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
                   ),
                   SizedBox(width: 8),
                   Text(
@@ -241,7 +243,11 @@ class MainItem extends ConsumerWidget {
                             fontSize: 16,
                           ),
                         ),
-                        SvgPicture.asset('assets/icons/share_icon.svg')
+                        SvgPicture.asset(
+                          'assets/icons/share_icon.svg',
+                          colorFilter: ColorFilter.mode(
+                              Color(0xffBFBFBF), BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),
@@ -264,7 +270,11 @@ class MainItem extends ConsumerWidget {
                             fontSize: 16,
                           ),
                         ),
-                        SvgPicture.asset('assets/icons/edit_icon.svg')
+                        SvgPicture.asset(
+                          'assets/icons/edit_icon.svg',
+                          colorFilter: ColorFilter.mode(
+                              Color(0xffBFBFBF), BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),
@@ -288,7 +298,11 @@ class MainItem extends ConsumerWidget {
                             color: Colors.red,
                           ),
                         ),
-                        SvgPicture.asset('assets/icons/trash_red_icon.svg')
+                        SvgPicture.asset(
+                          'assets/icons/trash_red_icon.svg',
+                          colorFilter:
+                              ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                        )
                       ],
                     ),
                   ),
