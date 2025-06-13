@@ -142,4 +142,35 @@ class LocalStorageService {
     await imageFile.copy(localPath);
     return localPath;
   }
+
+  Future<void> deleteImageLocally(
+      String groupId,
+      String noteId,
+      String pageId,
+      String fileName,
+      ) async {
+    try {
+      // 1. 로컬 파일 삭제
+      final directory = await getApplicationDocumentsDirectory();
+      final localPath = join(directory.path, 'images', fileName);
+      final file = File(localPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      // 2. 데이터베이스에서 메타데이터 삭제
+      final db = await database;
+      await db.delete(
+        'images',
+        where: 'groupId = ? AND noteId = ? AND pageId = ? AND localPath = ?',
+        whereArgs: [groupId, noteId, pageId, localPath],
+      );
+
+      // 3. 캐시에서 제거
+      _imagePathCache ??= {};
+      _imagePathCache!.removeWhere((key, value) => key.startsWith('$groupId:$noteId:$pageId:') && value == localPath);
+    } catch (e) {
+      print('Failed to delete local image: $e');
+    }
+  }
 }

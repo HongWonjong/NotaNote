@@ -39,13 +39,13 @@ dependencies:
   cloud_firestore: ^5.6.8
   flutter_riverpod: ^2.6.1
   cupertino_icons: ^1.0.8
+  firebase_crashlytics: ^4.3.7
   google_sign_in: ^6.3.0
   crypto: ^3.0.6
   image_picker: ^1.1.2
   sign_in_with_apple: ^7.0.1
   timeago: ^3.7.1
   intl: ^0.20.2
-  firebase_crashlytics: ^4.3.7
 
 dev_dependencies:
   flutter_test:
