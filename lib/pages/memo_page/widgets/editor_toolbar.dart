@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'camera_selection_dialog.dart';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -314,23 +312,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
               onPressed: () {
-                ref.read(imageUploadProvider({
-                  'groupId': widget.groupId,
-                  'noteId': widget.noteId,
-                  'pageId': widget.pageId,
-                  'controller': widget.controller,
-                }).notifier).pickAndUploadImage(ImageSource.camera, context);
-              },
-            ),
-            IconButton(
-              icon: FaIcon(FontAwesomeIcons.image),
-              onPressed: () {
-                ref.read(imageUploadProvider({
-                  'groupId': widget.groupId,
-                  'noteId': widget.noteId,
-                  'pageId': widget.pageId,
-                  'controller': widget.controller,
-                }).notifier).pickAndUploadImage(ImageSource.gallery, context);
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => CameraSelectionDialog(
+                    groupId: widget.groupId,
+                    noteId: widget.noteId,
+                    pageId: widget.pageId,
+                    controller: widget.controller,
+                  ),
+                );
               },
             ),
             IconButton(
