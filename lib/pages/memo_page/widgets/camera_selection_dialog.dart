@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CameraSelectionDialog extends ConsumerWidget {
   final String groupId;
@@ -18,6 +19,40 @@ class CameraSelectionDialog extends ConsumerWidget {
     required this.controller,
     super.key,
   });
+
+  Future<bool> _checkAndRequestPermission(ImageSource source, BuildContext context) async {
+    final permission = source == ImageSource.camera ? Permission.camera : Permission.photos;
+    print('권한 확인 중: $source');
+    final status = await permission.status;
+    print('현재 권한 상태: $status');
+
+    if (status.isDenied || status.isPermanentlyDenied) {
+      print('권한 요청 시작');
+      final result = await permission.request();
+      print('권한 요청 결과: $result');
+      if (result.isDenied || result.isPermanentlyDenied) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                source == ImageSource.camera
+                    ? '카메라 권한이 필요합니다. 설정에서 권한을 허용해주세요.'
+                    : '사진 라이브러리 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
+              ),
+              action: SnackBarAction(
+                label: '설정',
+                onPressed: openAppSettings,
+              ),
+            ),
+          );
+        }
+        return false;
+      }
+    }
+    final finalStatus = await permission.status;
+    print('최종 권한 상태: $finalStatus');
+    return finalStatus.isGranted;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,14 +82,17 @@ class CameraSelectionDialog extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           InkWell(
-            onTap: () {
-              ref.read(imageUploadProvider({
-                'groupId': groupId,
-                'noteId': noteId,
-                'pageId': pageId,
-                'controller': controller,
-              }).notifier).pickAndUploadImage(ImageSource.camera, context);
-              Navigator.pop(context);
+            onTap: () async {
+              Navigator.pop(context); // 먼저 바텀 시트를 닫음
+              final hasPermission = await _checkAndRequestPermission(ImageSource.camera, context);
+              if (hasPermission && context.mounted) {
+                ref.read(imageUploadProvider({
+                  'groupId': groupId,
+                  'noteId': noteId,
+                  'pageId': pageId,
+                  'controller': controller,
+                }).notifier).pickAndUploadImage(ImageSource.camera, context);
+              }
             },
             splashColor: Colors.grey.withOpacity(0.2),
             highlightColor: Colors.grey.withOpacity(0.1),
@@ -66,7 +104,7 @@ class CameraSelectionDialog extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 150, // 고정 너비 설정
+                    width: 150,
                     child: Text(
                       '사진 촬영하기',
                       style: TextStyle(
@@ -86,14 +124,17 @@ class CameraSelectionDialog extends ConsumerWidget {
             ),
           ),
           InkWell(
-            onTap: () {
-              ref.read(imageUploadProvider({
-                'groupId': groupId,
-                'noteId': noteId,
-                'pageId': pageId,
-                'controller': controller,
-              }).notifier).pickAndUploadImage(ImageSource.gallery, context);
-              Navigator.pop(context);
+            onTap: () async {
+              Navigator.pop(context); // 먼저 바텀 시트를 닫음
+              final hasPermission = await _checkAndRequestPermission(ImageSource.gallery, context);
+              if (hasPermission && context.mounted) {
+                ref.read(imageUploadProvider({
+                  'groupId': groupId,
+                  'noteId': noteId,
+                  'pageId': pageId,
+                  'controller': controller,
+                }).notifier).pickAndUploadImage(ImageSource.gallery, context);
+              }
             },
             splashColor: Colors.grey.withOpacity(0.2),
             highlightColor: Colors.grey.withOpacity(0.1),
@@ -105,7 +146,7 @@ class CameraSelectionDialog extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 150, // 고정 너비 설정
+                    width: 150,
                     child: Text(
                       '이미지 선택하기',
                       style: TextStyle(
