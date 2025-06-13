@@ -119,6 +119,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                       if (user == null || !context.mounted) {
                         log('[로그인] Apple 로그인 실패 또는 context 미탑재');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Apple 로그인에 실패했습니다')),
+                        );
                         return;
                       }
 
