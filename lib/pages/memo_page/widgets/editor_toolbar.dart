@@ -8,6 +8,7 @@ import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'camera_selection_dialog.dart';
 import 'color_picker_widget.dart';
+import 'highlight_picker_widget.dart';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -29,10 +30,13 @@ class EditorToolbar extends ConsumerStatefulWidget {
 class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry? _overlayEntry;
   OverlayEntry? _colorOverlayEntry;
+  OverlayEntry? _highlightOverlayEntry;
   final LayerLink _layerLink = LayerLink();
   final LayerLink _colorLayerLink = LayerLink();
+  final LayerLink _highlightLayerLink = LayerLink();
   bool _isDropdownOpen = false;
   bool _isColorPickerOpen = false;
+  bool _isHighlightPickerOpen = false;
 
   @override
   void initState() {
@@ -68,6 +72,21 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       _colorOverlayEntry = _createColorOverlayEntry(context);
       Overlay.of(context).insert(_colorOverlayEntry!);
       _isColorPickerOpen = true;
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _toggleHighlightPicker(BuildContext context) {
+    if (_isHighlightPickerOpen) {
+      _highlightOverlayEntry?.remove();
+      _highlightOverlayEntry = null;
+      _isHighlightPickerOpen = false;
+    } else {
+      _highlightOverlayEntry = _createHighlightOverlayEntry(context);
+      Overlay.of(context).insert(_highlightOverlayEntry!);
+      _isHighlightPickerOpen = true;
     }
     if (mounted) {
       setState(() {});
@@ -117,6 +136,23 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
           child: ColorPickerWidget(
             controller: widget.controller,
             onClose: () => _toggleColorPicker(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  OverlayEntry _createHighlightOverlayEntry(BuildContext context) {
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: 232.0,
+        child: CompositedTransformFollower(
+          link: _highlightLayerLink,
+          showWhenUnlinked: false,
+          offset: Offset(-100, -65),
+          child: HighlightPickerWidget(
+            controller: widget.controller,
+            onClose: () => _toggleHighlightPicker(context),
           ),
         ),
       ),
@@ -290,6 +326,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   void dispose() {
     _overlayEntry?.remove();
     _colorOverlayEntry?.remove();
+    _highlightOverlayEntry?.remove();
     widget.controller.removeListener(() {});
     super.dispose();
   }
@@ -430,12 +467,18 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 onPressed: () => _toggleColorPicker(context),
               ),
             ),
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/Highlight.svg',
-                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+            CompositedTransformTarget(
+              link: _highlightLayerLink,
+              child: IconButton(
+                icon: SvgPicture.asset(
+                  'assets/icons/Highlight.svg',
+                  colorFilter: ColorFilter.mode(
+                    _isHighlightPickerOpen ? Color(0xFF61CFB2) : Colors.black,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                onPressed: () => _toggleHighlightPicker(context),
               ),
-              onPressed: () {},
             ),
             IconButton(
               icon: SvgPicture.asset(
