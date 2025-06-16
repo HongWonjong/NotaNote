@@ -7,6 +7,7 @@ import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 
+/// 사용자 프로필 페이지
 class UserProfilePage extends ConsumerWidget {
   final String userId;
 
@@ -31,18 +32,24 @@ class UserProfilePage extends ConsumerWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.grey[700]),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               userAsync.whenOrNull(
-                data: (user) {
+                data: (user) async {
                   if (user != null) {
-                    Navigator.push(
+                    final changed = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => UserProfileEditPage(user: user),
                       ),
                     );
+
+                    // 변경이 감지되었을 때만 invalidate 수행
+                    if (changed == true) {
+                      ref.invalidate(userProfileProvider(userId));
+                    }
                   }
                 },
               );
@@ -66,7 +73,6 @@ class UserProfilePage extends ConsumerWidget {
             return const Center(child: Text('사용자 정보를 찾을 수 없습니다.'));
           }
 
-          //가로스크롤뷰
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -82,7 +88,7 @@ class UserProfilePage extends ConsumerWidget {
                         userId: user.userId,
                         currentPhotoUrl: user.photoUrl,
                         displayName: user.displayName,
-                        isEditable: false, // 수정 불가
+                        isEditable: false,
                       ),
                       Positioned(
                         bottom: 0,
@@ -97,7 +103,8 @@ class UserProfilePage extends ConsumerWidget {
                           ),
                           child: Center(
                             child: SvgPicture.asset(
-                                'assets/icons/ProfileCamera.svg'),
+                              'assets/icons/ProfileCamera.svg',
+                            ),
                           ),
                         ),
                       ),
@@ -107,7 +114,7 @@ class UserProfilePage extends ConsumerWidget {
 
                 const SizedBox(height: 24),
 
-                // 닉네임, 이메일 (읽기 전용)
+                // 닉네임, 이메일 정보
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -177,7 +184,6 @@ class UserProfilePage extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Divider(color: Colors.grey[200], thickness: 6),
 
-                // 계정 전환
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -222,8 +228,11 @@ class UserProfilePage extends ConsumerWidget {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: SvgPicture.asset('assets/icons/Plus.svg',
-                        width: 20, height: 20),
+                    child: SvgPicture.asset(
+                      'assets/icons/Plus.svg',
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
                   title: Text(
                     '계정 추가하기',

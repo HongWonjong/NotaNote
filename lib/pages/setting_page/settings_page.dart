@@ -25,7 +25,6 @@ class SettingsPage extends ConsumerWidget {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.grey[700]), // 뒤로가기 아이콘
       ),
       body: Column(

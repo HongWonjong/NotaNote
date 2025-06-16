@@ -1,9 +1,8 @@
-// lib/pages/user_profile_page/widgets/profile_image_widget.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:nota_note/services/firebase_storage_service.dart';
 
 /// 프로필 이미지 위젯 (이미지 선택 및 업로드 기능 포함)
@@ -27,6 +26,13 @@ class ProfileImageWidget extends ConsumerStatefulWidget {
 
 class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
   bool _isUploading = false;
+  late String _photoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoUrl = widget.currentPhotoUrl; // 초기 이미지 URL 저장
+  }
 
   /// 이미지 선택 및 업로드 처리
   Future<void> _pickAndUploadImage() async {
@@ -34,19 +40,35 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
 
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-
     if (picked == null) return;
 
     setState(() => _isUploading = true);
-
     final File imageFile = File(picked.path);
 
     try {
-      // Firebase Storage에 업로드 및 Firestore 반영
+      // 1. Firebase Storage에 업로드
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(widget.userId)
+          .child('profile.jpg');
+      final uploadTask = await storageRef.putFile(imageFile);
+
+      // 2. 업로드된 이미지의 다운로드 URL 획득
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+      // 3. Firestore 업데이트 (기존 함수 호출)
       await uploadProfileImage(
         userId: widget.userId,
         imageFile: imageFile,
       );
+
+      // 4. UI에 즉시 반영
+      if (mounted) {
+        setState(() {
+          _photoUrl = downloadUrl;
+        });
+      }
     } catch (e) {
       debugPrint('이미지 업로드 실패: $e');
       if (context.mounted) {
@@ -63,17 +85,16 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 프로필 이미지 영역 (수정 가능 시 터치 가능)
+        // 프로필 이미지 (수정 가능 시 터치 가능)
         GestureDetector(
           onTap:
               _isUploading || !widget.isEditable ? null : _pickAndUploadImage,
           child: CircleAvatar(
             radius: 40,
-            backgroundColor: Colors.grey[300], // gray[300]
-            backgroundImage: widget.currentPhotoUrl.isNotEmpty
-                ? NetworkImage(widget.currentPhotoUrl)
-                : null,
-            child: widget.currentPhotoUrl.isEmpty
+            backgroundColor: Colors.grey[300],
+            backgroundImage:
+                _photoUrl.isNotEmpty ? NetworkImage(_photoUrl) : null,
+            child: _photoUrl.isEmpty
                 ? Text(
                     widget.displayName.characters.first,
                     style: TextStyle(fontSize: 24, color: Colors.grey[100]),
@@ -82,7 +103,7 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
           ),
         ),
 
-        // 업로드 중이면 로딩 인디케이터 표시
+        // 업로드 중 로딩 표시
         if (_isUploading)
           Positioned.fill(
             child: Container(

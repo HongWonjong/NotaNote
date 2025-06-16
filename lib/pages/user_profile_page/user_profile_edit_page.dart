@@ -1,3 +1,5 @@
+// lib/pages/user_profile_page/user_profile_edit_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/user_model.dart';
@@ -21,6 +23,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   late TextEditingController _emailController;
   late TextEditingController _nameController;
 
+  final FocusNode _nameFocusNode = FocusNode(); // 추가
+  final FocusNode _emailFocusNode = FocusNode(); // 추가
+
   @override
   void initState() {
     super.initState();
@@ -32,13 +37,16 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   void dispose() {
     _emailController.dispose();
     _nameController.dispose();
+    _nameFocusNode.dispose(); // 해제
+    _emailFocusNode.dispose(); // 해제
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(), // 외부 터치 시 키보드 닫기
+      behavior: HitTestBehavior.opaque, // 키보드 문제 방지
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
           leading: const BackButton(color: Colors.grey),
@@ -54,16 +62,21 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
+          iconTheme: IconThemeData(color: Colors.grey[700]),
           actions: [
             TextButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
+
                 await updateUserProfile(
                   userId: widget.user.userId,
                   email: _emailController.text,
                   displayName: _nameController.text,
                 );
-                if (mounted) Navigator.pop(context);
+
+                if (mounted) {
+                  Navigator.pop(context, true); // true 전달
+                }
               },
               child: Text(
                 '완료',
@@ -125,7 +138,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 닉네임 입력
+                      // 닉네임
                       Text(
                         '닉네임',
                         style: TextStyle(
@@ -140,6 +153,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                         alignment: Alignment.centerRight,
                         children: [
                           TextFormField(
+                            focusNode: _nameFocusNode,
                             controller: _nameController,
                             maxLength: 10,
                             style: TextStyle(
@@ -184,7 +198,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
 
                       const SizedBox(height: 24),
 
-                      // 이메일 입력
+                      // 이메일
                       Text(
                         '이메일',
                         style: TextStyle(
@@ -196,6 +210,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
+                        focusNode: _emailFocusNode,
                         controller: _emailController,
                         style: TextStyle(
                           fontSize: 16,
@@ -293,7 +308,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
 
                 Divider(color: Colors.grey[200], thickness: 6),
 
-                // 로그아웃, 계정 탈퇴
+                // 로그아웃/탈퇴
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
