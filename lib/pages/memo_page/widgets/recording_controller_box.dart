@@ -6,6 +6,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:nota_note/pages/record_page/record_page.dart';
 import 'package:nota_note/providers/language_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
@@ -117,24 +118,27 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
               ),
               SizedBox(width: 8.0),
               Expanded(
-                child: GestureDetector(
-                  key: _languageButtonKey,
-                  onTap: () {
-                    _toggleMenu(context);
-                    _showLanguageMenu(context);
-                  },
-                  child: Container(
-                    height: 32,
-                    padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
-                    decoration: ShapeDecoration(
-                      color: Color(0xFFF0F0F0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _mapCodeToLanguage(selectedLanguageCode),
+                child: Container(
+                  height: 32,
+                  padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
+                  decoration: ShapeDecoration(
+                    color: Color(0xFFF0F0F0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedLanguageCode,
+                    onChanged: (value) {
+                      ref.read(languageProvider.notifier).state = value!;
+                      if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+                        widget.focusNode!.requestFocus();
+                      }
+                      _toggleMenu(context);
+                    },
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: 'ko',
+                        child: Text(
+                          '한국어',
                           style: TextStyle(
                             color: Color(0xFF191919),
                             fontSize: 14,
@@ -142,9 +146,27 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                             height: 0.11,
                           ),
                         ),
-                        Icon(Icons.arrow_drop_down, size: 24, color: Color(0xFF191919)),
-                      ],
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'en',
+                        child: Text(
+                          '영어',
+                          style: TextStyle(
+                            color: Color(0xFF191919),
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            height: 0.11,
+                          ),
+                        ),
+                      ),
+                    ],
+                    underline: SizedBox(),
+                    icon: SvgPicture.asset(
+                      'assets/icons/DropDownArrow.svg',
+                      width: 20,
+                      height: 20,
                     ),
+                    isExpanded: true,
                   ),
                 ),
               ),
@@ -168,21 +190,6 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
               }
             },
           ),
-/*          _buildMenuItem( // 텍스트로 변환 클릭 시 요약을 선택할 수 있도록 UI 추후 개선
-            context,
-            svgPath: 'assets/icons/Edit.svg',
-            label: 'AI 요약',
-            onTap: () async {
-              _toggleMenu(context);
-              if (widget.controller != null) {
-                final recording = recordingState.recordings.last;
-                await recordingViewModel.summarizeRecording(
-                  recording.path,
-                  widget.controller!,
-                );
-              }
-            },
-          ),*/
           Container(
             width: 166,
             height: 1,
@@ -396,7 +403,13 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                         child: Consumer(
                           builder: (context, ref, child) {
                             final state = ref.watch(recordingViewModelProvider);
-                            final isPlaying = state.currentlyPlayingPath == recording.path;
+                            final isPlaying = recordingViewModel.isPlaying(recording.path);
+                            final currentPosition = state.currentPosition;
+                            final displayDuration = isPlaying
+                                ? currentPosition
+                                : (state.isCompleted && state.currentlyPlayingPath == recording.path)
+                                ? Duration.zero
+                                : recording.duration;
                             return Row(
                               children: [
                                 IconButton(
@@ -414,7 +427,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                   padding: EdgeInsets.zero,
                                   constraints: BoxConstraints(),
                                   onPressed: () {
-                                    recordingViewModel.playRecording(recording.path);
+                                    if (isPlaying) {
+                                      recordingViewModel.pausePlayback();
+                                    } else {
+                                      recordingViewModel.playRecording(recording.path);
+                                    }
                                     if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
                                       widget.focusNode!.requestFocus();
                                     }
@@ -422,8 +439,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                 ),
                                 SizedBox(width: 4.0),
                                 Text(
-                                  '${recording.duration.inMinutes.toString().padLeft(2, '0')}:${(recording.duration.inSeconds % 60).toString().padLeft(2, '0')}',
-                                  style: TextStyle(fontSize: 14.0),
+                                  '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    color: isPlaying ? Color(0xFF61CFB2) : Colors.black,
+                                  ),
                                 ),
                               ],
                             );
