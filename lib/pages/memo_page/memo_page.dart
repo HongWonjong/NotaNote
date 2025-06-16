@@ -237,38 +237,34 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
           ),
           KeyboardVisibilityBuilder(
-            builder: (context, isKeyboardVisible) => isKeyboardVisible
-                ? Positioned(
+            builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
               left: 0,
               right: 0,
               child: Container(
                 width: screenWidth,
-                child: EditorToolbar(
-                  controller: _controller,
-                  groupId: widget.groupId,
-                  noteId: widget.noteId,
-                  pageId: widget.pageId,
-                ),
-              ),
-            )
-                : SizedBox.shrink(),
-          ),
-          if (isBoxVisible)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: -260,
-              child: Container(
-                width: screenWidth,
-                alignment: Alignment.center,
-                child: RecordingControllerBox(
-                  controller: _controller,
-                  focusNode: _focusNode,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isBoxVisible)
+                      RecordingControllerBox(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                      ),
+                    SizedBox(height: 10,),
+                    if (isKeyboardVisible)
+                      EditorToolbar(
+                        controller: _controller,
+                        groupId: widget.groupId,
+                        noteId: widget.noteId,
+                        pageId: widget.pageId,
+                      ),
+                  ],
                 ),
               ),
             ),
+          ),
           if (_isPopupVisible)
             GestureDetector(
               onTap: _togglePopupMenu,
