@@ -60,3 +60,9 @@ flutter:
     - assets/images/
     - assets/icons/
   uses-material-design: true
+  
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.ttf
+

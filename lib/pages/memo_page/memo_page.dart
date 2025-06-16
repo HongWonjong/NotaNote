@@ -10,6 +10,7 @@ import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:nota_note/pages/memo_page/widgets/popup_menu_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
 
@@ -30,12 +31,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final ScrollController _scrollController = ScrollController();
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
+  bool _isPopupVisible = false;
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      // 언어 선택 등 RecordingControllerBox 조작 시 박스가 유지되도록 조건 추가
       if (_focusNode.hasFocus && !ref.read(recordingBoxVisibilityProvider)) {
         ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       }
@@ -92,6 +93,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }
   }
 
+  void _togglePopupMenu() {
+    setState(() {
+      _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
@@ -117,6 +124,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       'pageId': widget.pageId,
       'controller': _controller,
     }));
+    final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
     if (imageUploadState == ImageUploadState.loading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -181,7 +189,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               width: 24,
               height: 24,
             ),
-            onPressed: () {},
+            onPressed: _togglePopupMenu,
           ),
         ],
       ),
@@ -229,34 +237,47 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
           ),
           KeyboardVisibilityBuilder(
-            builder: (context, isKeyboardVisible) => isKeyboardVisible
-                ? Positioned(
+            builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
               left: 0,
               right: 0,
               child: Container(
                 width: screenWidth,
-                child: EditorToolbar(
-                  controller: _controller,
-                  groupId: widget.groupId,
-                  noteId: widget.noteId,
-                  pageId: widget.pageId,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isBoxVisible)
+                      RecordingControllerBox(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                      ),
+                    SizedBox(height: 10,),
+                    if (isKeyboardVisible)
+                      EditorToolbar(
+                        controller: _controller,
+                        groupId: widget.groupId,
+                        noteId: widget.noteId,
+                        pageId: widget.pageId,
+                      ),
+                  ],
                 ),
               ),
-            )
-                : SizedBox.shrink(),
+            ),
           ),
-          if (isBoxVisible)
-            Positioned(
-              top: MediaQuery.of(context).viewInsets.bottom,
-              left: 0,
-              right: 0,
+          if (_isPopupVisible)
+            GestureDetector(
+              onTap: _togglePopupMenu,
               child: Container(
-                width: screenWidth,
-                alignment: Alignment.center,
-                child: RecordingControllerBox(
-                  controller: _controller,
-                  focusNode: _focusNode,
+                color: Colors.transparent,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: appBarHeight / 8,
+                      right: 10,
+                      child: PopupMenuWidget(onClose: _togglePopupMenu),
+                    ),
+                  ],
                 ),
               ),
             ),
