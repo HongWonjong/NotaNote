@@ -395,7 +395,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                     builder: (context, constraints) {
                       final recording = recordingState.recordings.last;
                       return Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        padding: EdgeInsets.symmetric(vertical: 4.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8.0),
@@ -437,7 +437,6 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                     }
                                   },
                                 ),
-                                SizedBox(width: 4.0),
                                 Text(
                                   '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
                                   style: TextStyle(
