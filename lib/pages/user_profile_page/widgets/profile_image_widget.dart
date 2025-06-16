@@ -1,4 +1,5 @@
 // lib/pages/user_profile_page/widgets/profile_image_widget.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,24 +11,27 @@ class ProfileImageWidget extends ConsumerStatefulWidget {
   final String userId;
   final String currentPhotoUrl;
   final String displayName;
+  final bool isEditable; // 프로필 수정 가능 여부
 
   const ProfileImageWidget({
     super.key,
     required this.userId,
     required this.currentPhotoUrl,
     required this.displayName,
+    this.isEditable = false,
   });
 
   @override
-  ConsumerState<ProfileImageWidget> createState() =>
-      _ProfileImageWidgetState();
+  ConsumerState<ProfileImageWidget> createState() => _ProfileImageWidgetState();
 }
 
 class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
   bool _isUploading = false;
 
-  /// 갤러리에서 이미지 선택 후 업로드
+  /// 이미지 선택 및 업로드 처리
   Future<void> _pickAndUploadImage() async {
+    if (!widget.isEditable) return;
+
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
 
@@ -38,7 +42,7 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
     final File imageFile = File(picked.path);
 
     try {
-      // Firebase Storage에 이미지 업로드 및 Firestore 업데이트 포함
+      // Firebase Storage에 업로드 및 Firestore 반영
       await uploadProfileImage(
         userId: widget.userId,
         imageFile: imageFile,
@@ -59,25 +63,26 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 프로필 이미지 (제스처 감지로 이미지 선택 가능)
+        // 프로필 이미지 영역 (수정 가능 시 터치 가능)
         GestureDetector(
-          onTap: _isUploading ? null : _pickAndUploadImage,
+          onTap:
+              _isUploading || !widget.isEditable ? null : _pickAndUploadImage,
           child: CircleAvatar(
             radius: 40,
-            backgroundColor: const Color(0xFFD9D9D9),
+            backgroundColor: Colors.grey[300], // gray[300]
             backgroundImage: widget.currentPhotoUrl.isNotEmpty
                 ? NetworkImage(widget.currentPhotoUrl)
                 : null,
             child: widget.currentPhotoUrl.isEmpty
                 ? Text(
                     widget.displayName.characters.first,
-                    style: const TextStyle(fontSize: 24, color: Colors.white),
+                    style: TextStyle(fontSize: 24, color: Colors.grey[100]),
                   )
                 : null,
           ),
         ),
 
-        // 업로드 중 로딩 표시
+        // 업로드 중이면 로딩 인디케이터 표시
         if (_isUploading)
           Positioned.fill(
             child: Container(

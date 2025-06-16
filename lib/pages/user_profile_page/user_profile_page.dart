@@ -1,11 +1,11 @@
-// lib/pages/user_profile_page/user_profile_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
-import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
+import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 
 class UserProfilePage extends ConsumerWidget {
   final String userId;
@@ -19,13 +19,44 @@ class UserProfilePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(color: Colors.grey),
-        title: const Text(
-          '내 프로필',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          '프로필',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Pretendard',
+            color: Colors.grey[900],
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: () {
+              userAsync.whenOrNull(
+                data: (user) {
+                  if (user != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UserProfileEditPage(user: user),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+            child: Text(
+              '수정',
+              style: TextStyle(
+                color: Colors.grey[900],
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          )
+        ],
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -35,151 +66,222 @@ class UserProfilePage extends ConsumerWidget {
             return const Center(child: Text('사용자 정보를 찾을 수 없습니다.'));
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 상단 프로필 정보
-              Container(
-                color: const Color(0xFFF4F4F4),
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        // 프로필 이미지 (터치하여 수정 가능)
-                        ProfileImageWidget(
-                          userId: user.userId,
-                          currentPhotoUrl: user.photoUrl,
-                          displayName: user.displayName,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          user.displayName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          user.email,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFFA2A2A2),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 28,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFA7A7A7),
-                          backgroundColor: const Color(0xFFFFFFFF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => UserProfileEditPage(user: user),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          '수정',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 24),
 
-              const SizedBox(height: 24),
-
-              // 계정 전환 + 로그아웃 포함한 본문 영역
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                // 프로필 이미지 (읽기 전용)
+                Center(
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      const Text(
-                        '계정 전환',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      ProfileImageWidget(
+                        userId: user.userId,
+                        currentPhotoUrl: user.photoUrl,
+                        displayName: user.displayName,
+                        isEditable: false, // 수정 불가
                       ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        leading: const Icon(
-                          Icons.account_circle,
-                          size: 28,
-                          color: Color(0xFFF2F2F2),
-                        ),
-                        title: Text(
-                          user.email,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        onTap: () {},
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity:
-                            const VisualDensity(horizontal: -4, vertical: -2),
-                      ),
-                      ListTile(
-                        leading: const Icon(
-                          Icons.add,
-                          size: 28,
-                          color: Color(0xFFF2F2F2),
-                        ),
-                        title: const Text(
-                          '계정 추가하기',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        onTap: () {},
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity:
-                            const VisualDensity(horizontal: -4, vertical: -2),
-                      ),
-                      const Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: TextButton(
-                          onPressed: () async {
-                            await signOut();
-                            if (context.mounted) {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const LoginPage()),
-                                (route) => false,
-                              );
-                            }
-                          },
-                          child: const Text(
-                            '로그아웃',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                      Positioned(
+                        bottom: 0,
+                        right: -4,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border.all(color: Colors.grey[200]!),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                                'assets/icons/ProfileCamera.svg'),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 200),
                     ],
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 24),
+
+                // 닉네임, 이메일 (읽기 전용)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '닉네임',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontFamily: 'Pretendard',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          user.displayName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        '이메일',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontFamily: 'Pretendard',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          user.email,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+                Divider(color: Colors.grey[200], thickness: 6),
+
+                // 계정 전환
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 18),
+                      Text(
+                        '계정 전환',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Pretendard',
+                          color: Colors.grey[900],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                  ),
+                ),
+
+                ListTile(
+                  leading: const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Color(0xFFB0E7D8),
+                    child: Icon(Icons.person, color: Colors.white, size: 16),
+                  ),
+                  title: Text(
+                    user.email,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Pretendard',
+                      color: Colors.grey[900],
+                    ),
+                  ),
+                ),
+
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SvgPicture.asset('assets/icons/Plus.svg',
+                        width: 20, height: 20),
+                  ),
+                  title: Text(
+                    '계정 추가하기',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Pretendard',
+                      color: Colors.grey[900],
+                    ),
+                  ),
+                ),
+
+                Divider(color: Colors.grey[200], thickness: 6),
+
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          await signOut();
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginPage()),
+                              (route) => false,
+                            );
+                          }
+                        },
+                        child: Text(
+                          '로그아웃',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Pretendard',
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 100),
+                      const Center(
+                        child: Text(
+                          '계정 탈퇴하기',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Pretendard',
+                            color: Color(0xFFFF2F2F),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
           );
         },
       ),
