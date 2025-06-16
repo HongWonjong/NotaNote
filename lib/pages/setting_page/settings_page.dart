@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/services/auth_service.dart';
-import 'package:nota_note/pages/login_page/login_page.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -13,119 +12,125 @@ class SettingsPage extends ConsumerWidget {
     final userId = ref.watch(userIdProvider);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           '설정',
           style: TextStyle(
-            fontWeight: FontWeight.bold, // 일단 볼드체로 추후 조정
-            fontSize: 20,
+            fontSize: 18,
             color: Colors.black,
+            fontWeight: FontWeight.w200,
+            fontFamily: 'Pretendard',
           ),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        iconTheme: const IconThemeData(
-          //앱바 뒤로가기 버튼
-          size: 24,
-          color: Color(0xFFB5B5B5),
-        ),
+        iconTheme: IconThemeData(color: Colors.grey[700]), // 뒤로가기 아이콘
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      body: Column(
         children: [
-          ListTile(
-            title: const Text(
-              '내 프로필',
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                _SettingsTile(
+                  label: '프로필',
+                  iconPath: 'assets/icons/User.svg',
+                  onTap: () {
+                    if (userId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => UserProfilePage(userId: userId),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                _SettingsTile(
+                  label: '알림',
+                  iconPath: 'assets/icons/MagnifyingGlass.svg',
+                  onTap: () {
+                    // 알림 설정 페이지 이동
+                  },
+                ),
+                _SettingsTile(
+                  label: '테마 설정',
+                  iconPath: 'assets/icons/Monitor.svg',
+                  onTap: () {
+                    // 테마 설정 페이지 이동
+                  },
+                ),
+                _SettingsTile(
+                  label: '암호',
+                  iconPath: 'assets/icons/LockSimple.svg',
+                  onTap: () {
+                    // 암호 설정 이동
+                  },
+                ),
+                _SettingsTile(
+                  label: '이용약관 및 개인정보 정책',
+                  iconPath: 'assets/icons/Info.svg',
+                  onTap: () {
+                    // 약관 페이지 이동
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Text(
+              '버전 0.0.0', //현재 버전 표시로 바꾸기
               style: TextStyle(
-                color: Color(0xFF545454),
+                fontSize: 12,
+                color: Color(0xFF666666),
+                fontFamily: 'Pretendard',
               ),
             ),
-            onTap: () {
-              if (userId != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    //프로필 페이지로이동
-                    builder: (_) => UserProfilePage(userId: userId),
-                  ),
-                );
-              }
-            },
-          ),
-          ListTile(
-            title: const Text(
-              '알림',
-              style: TextStyle(color: Color(0xFF545454)),
-            ),
-            onTap: () {
-              // 알림 설정 페이지 이동
-            },
-          ),
-          ListTile(
-            title: const Text(
-              '테마 설정',
-              style: TextStyle(color: Color(0xFF545454)),
-            ),
-            onTap: () {
-              // 다크모드 등 테마 설정 페이지 이동
-            },
-          ),
-          ListTile(
-            title: const Text(
-              '암호',
-              style: TextStyle(color: Color(0xFF545454)),
-            ),
-            onTap: () {
-              //
-            },
-          ),
-          ListTile(
-            title: const Text(
-              '고객지원',
-              style: TextStyle(color: Color(0xFF545454)),
-            ),
-            onTap: () {
-              // 고객지원 페이지 이동
-            },
-          ),
-          const SizedBox(height: 30),
-          ListTile(
-            title: const Text(
-              '로그아웃',
-              style: TextStyle(color: Color(0xFF545454)),
-            ),
-            onTap: () async {
-              final authService = ref.read(authServiceProvider);
-              final success = await authService.logout(ref);
-
-              if (success) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                  (route) => false,
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('로그아웃 중 오류가 발생했습니다.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-          ),
-          ListTile(
-            title: const Text(
-              '탈퇴하기',
-              style: TextStyle(color: Color(0xFFFF2F2F)),
-            ),
-            onTap: () {
-              // 탈퇴 기능
-            },
           ),
         ],
       ),
+    );
+  }
+}
+
+// 공통 설정 항목 위젯
+class _SettingsTile extends StatelessWidget {
+  final String label;
+  final String iconPath;
+  final VoidCallback onTap;
+
+  const _SettingsTile({
+    required this.label,
+    required this.iconPath,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: SvgPicture.asset(
+        iconPath,
+        width: 24,
+        height: 24,
+        colorFilter: ColorFilter.mode(
+          Colors.grey[500]!, // 아이콘 색상: gray.500
+          BlendMode.srcIn,
+        ),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+            color: Colors.grey[900], // 텍스트 색상: gray.900
+            fontSize: 16,
+            fontFamily: 'Pretendard',
+            fontWeight: FontWeight.w100),
+      ),
+      onTap: onTap,
     );
   }
 }
