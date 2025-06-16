@@ -50,9 +50,9 @@ class UserProfilePage extends ConsumerWidget {
             child: Text(
               '수정',
               style: TextStyle(
-                color: Colors.grey[900],
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w200,
+                fontSize: 16,
               ),
             ),
           )
@@ -66,6 +66,7 @@ class UserProfilePage extends ConsumerWidget {
             return const Center(child: Text('사용자 정보를 찾을 수 없습니다.'));
           }
 
+          //가로스크롤뷰
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,9 +116,9 @@ class UserProfilePage extends ConsumerWidget {
                       Text(
                         '닉네임',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.grey[800],
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 16,
                           fontFamily: 'Pretendard',
                         ),
                       ),
@@ -134,7 +135,7 @@ class UserProfilePage extends ConsumerWidget {
                         child: Text(
                           user.displayName,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontFamily: 'Pretendard',
                             color: Colors.grey[900],
                           ),
@@ -144,9 +145,9 @@ class UserProfilePage extends ConsumerWidget {
                       Text(
                         '이메일',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.grey[800],
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 16,
                           fontFamily: 'Pretendard',
                         ),
                       ),
@@ -163,7 +164,7 @@ class UserProfilePage extends ConsumerWidget {
                         child: Text(
                           user.email,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontFamily: 'Pretendard',
                             color: Colors.grey[900],
                           ),
