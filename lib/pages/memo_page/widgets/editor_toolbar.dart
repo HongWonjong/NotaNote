@@ -128,7 +128,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry _createColorOverlayEntry(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 232.0,
+        width: 274.0,
         child: CompositedTransformFollower(
           link: _colorLayerLink,
           showWhenUnlinked: false,
@@ -145,7 +145,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry _createHighlightOverlayEntry(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 232.0,
+        width: 274.0,
         child: CompositedTransformFollower(
           link: _highlightLayerLink,
           showWhenUnlinked: false,
