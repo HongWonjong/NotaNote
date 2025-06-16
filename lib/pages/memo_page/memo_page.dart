@@ -276,9 +276,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 child: Stack(
                   children: [
                     Positioned(
-                      top: appBarHeight /8,
+                      top: appBarHeight / 8,
                       right: 10,
-                      child: PopupMenuWidget(),
+                      child: PopupMenuWidget(onClose: _togglePopupMenu),
                     ),
                   ],
                 ),
