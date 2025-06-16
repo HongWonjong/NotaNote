@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'camera_selection_dialog.dart';
 import 'color_picker_widget.dart';
 import 'highlight_picker_widget.dart';
+import 'package:nota_note/providers/toolbar_scroll_offset_provider.dart';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -37,6 +38,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   bool _isDropdownOpen = false;
   bool _isColorPickerOpen = false;
   bool _isHighlightPickerOpen = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -44,6 +46,26 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     widget.controller.addListener(() {
       if (mounted) {
         setState(() {});
+      }
+    });
+
+    // 스크롤 리스너 추가: 스크롤 중 오프셋 실시간 저장
+    _scrollController.addListener(() {
+      ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
+    });
+
+    // 저장된 오프셋으로 스크롤 위치 복원
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final savedOffset = ref.read(toolbarScrollOffsetProvider);
+      if (_scrollController.hasClients && savedOffset > 0) {
+        _scrollController.jumpTo(savedOffset);
+      } else {
+        // 컨트롤러가 준비되지 않은 경우 지연 복원 시도
+        Future.delayed(Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.jumpTo(savedOffset);
+          }
+        });
       }
     });
   }
@@ -128,7 +150,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry _createColorOverlayEntry(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 232.0,
+        width: 274,
         child: CompositedTransformFollower(
           link: _colorLayerLink,
           showWhenUnlinked: false,
@@ -145,7 +167,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   OverlayEntry _createHighlightOverlayEntry(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 232.0,
+        width: 274,
         child: CompositedTransformFollower(
           link: _highlightLayerLink,
           showWhenUnlinked: false,
@@ -324,6 +346,11 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
 
   @override
   void dispose() {
+    // 툴바가 닫힐 때 현재 스크롤 오프셋 저장
+    if (_scrollController.hasClients) {
+      ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
+    }
+    _scrollController.dispose();
     _overlayEntry?.remove();
     _colorOverlayEntry?.remove();
     _highlightOverlayEntry?.remove();
@@ -341,6 +368,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        controller: _scrollController,
         child: Row(
           children: [
             Row(

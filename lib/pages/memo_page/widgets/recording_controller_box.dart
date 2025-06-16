@@ -5,7 +5,7 @@ import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:nota_note/pages/record_page/record_page.dart';
 import 'package:nota_note/providers/language_provider.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
@@ -69,7 +69,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(190, -320.0),
+          offset: Offset(190, -270.0),
           child: Material(
             borderRadius: BorderRadius.circular(12.0),
             elevation: 2.0,
@@ -100,17 +100,27 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
           padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
           child: Row(
             children: [
-              Container(
+              SvgPicture.asset(
+                'assets/icons/Globe.svg',
                 width: 20,
                 height: 20,
-                child: Icon(Icons.language, size: 20.0, color: Color(0xFF4C4C4C)),
+              ),
+              SizedBox(width: 8.0),
+              Text(
+                '언어',
+                style: TextStyle(
+                  color: Color(0xFF191919),
+                  fontSize: 14,
+                  fontFamily: 'Pretendard',
+                  height: 0.11,
+                ),
               ),
               SizedBox(width: 8.0),
               Expanded(
                 child: GestureDetector(
                   key: _languageButtonKey,
                   onTap: () {
-                    _toggleMenu(context); // 메뉴 닫기
+                    _toggleMenu(context);
                     _showLanguageMenu(context);
                   },
                   child: Container(
@@ -144,7 +154,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
         if (recordingState.recordings.isNotEmpty) ...[
           _buildMenuItem(
             context,
-            icon: Icons.text_snippet,
+            svgPath: 'assets/icons/Edit.svg',
             label: '텍스트로 변환',
             onTap: () async {
               _toggleMenu(context);
@@ -158,9 +168,9 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
               }
             },
           ),
-          _buildMenuItem(
+/*          _buildMenuItem( // 텍스트로 변환 클릭 시 요약을 선택할 수 있도록 UI 추후 개선
             context,
-            icon: Icons.summarize,
+            svgPath: 'assets/icons/Edit.svg',
             label: 'AI 요약',
             onTap: () async {
               _toggleMenu(context);
@@ -172,7 +182,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                 );
               }
             },
-          ),
+          ),*/
           Container(
             width: 166,
             height: 1,
@@ -180,7 +190,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
           ),
           _buildMenuItem(
             context,
-            icon: Icons.download,
+            svgPath: 'assets/icons/DownloadSimple.svg',
             label: '다운로드',
             onTap: () {
               Future.microtask(() => recordingViewModel.downloadRecording(recordingState.recordings.last.path));
@@ -189,7 +199,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
           ),
           _buildMenuItem(
             context,
-            icon: Icons.history,
+            svgPath: 'assets/icons/WaveForm.svg',
             label: '녹음기록',
             onTap: () {
               _toggleMenu(context);
@@ -201,7 +211,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
           ),
           _buildMenuItem(
             context,
-            icon: Icons.delete,
+            svgPath: 'assets/icons/Delete.svg',
             label: '삭제',
             onTap: () {
               recordingViewModel.deleteRecording(recordingState.recordings.last.path);
@@ -228,16 +238,14 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 메뉴가 화면 상단을 벗어나지 않도록 Y 위치 조정
-    double topPosition = buttonPosition.dy - 120; // 메뉴 높이(약 100) + 여백
+    double topPosition = buttonPosition.dy - 120;
     if (topPosition < 0) {
-      topPosition = buttonPosition.dy + buttonSize.height + 8; // 버튼 아래로 이동
+      topPosition = buttonPosition.dy + buttonSize.height + 8;
     }
 
-    // 메뉴가 화면 오른쪽을 벗어나지 않도록 X 위치 조정
     double leftPosition = buttonPosition.dx;
     if (leftPosition + 200 > screenWidth) {
-      leftPosition = screenWidth - 200 - 8; // 오른쪽 여백 8
+      leftPosition = screenWidth - 200 - 8;
     }
 
     showGeneralDialog(
@@ -269,7 +277,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                             widget.focusNode!.requestFocus();
                           }
                           Navigator.pop(context);
-                          _toggleMenu(context); // 메뉴 다시 열기
+                          _toggleMenu(context);
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -294,7 +302,13 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap, Color textColor = const Color(0xFF4C4C4C)}) {
+  Widget _buildMenuItem(
+      BuildContext context, {
+        required String svgPath,
+        required String label,
+        required VoidCallback onTap,
+        Color textColor = const Color(0xFF4C4C4C),
+      }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -314,7 +328,12 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             Container(
               width: 20,
               height: 20,
-              child: Icon(icon, size: 20.0, color: textColor),
+              child: SvgPicture.asset(
+                svgPath,
+                width: 20,
+                height: 20,
+                color: textColor,
+              ),
             ),
             SizedBox(width: 8.0),
             Text(
@@ -381,9 +400,16 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                             return Row(
                               children: [
                                 IconButton(
-                                  icon: Icon(
-                                    isPlaying ? Icons.stop : Icons.play_arrow,
-                                    size: 20.0,
+                                  icon: isPlaying
+                                      ? SvgPicture.asset(
+                                    'assets/icons/Pause.svg',
+                                    width: 24,
+                                    height: 24,
+                                  )
+                                      : SvgPicture.asset(
+                                    'assets/icons/Play.svg',
+                                    width: 24,
+                                    height: 24,
                                   ),
                                   padding: EdgeInsets.zero,
                                   constraints: BoxConstraints(),
