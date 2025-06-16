@@ -6,7 +6,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:nota_note/pages/record_page/record_page.dart';
 import 'package:nota_note/providers/language_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
@@ -64,25 +63,43 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
 
   OverlayEntry _createMenuOverlayEntry(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final RenderBox? buttonBox = context.findRenderObject() as RenderBox?;
+    final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    final buttonSize = buttonBox?.size ?? Size.zero;
+
+    double menuWidth = 200.0;
+    double menuHeight = 270.0;
+    double left = buttonPosition.dx + buttonSize.width - menuWidth + 20;
+    double top = buttonPosition.dy - menuHeight - 10;
+
+    if (left + menuWidth > screenWidth) {
+      left = screenWidth - menuWidth - 8;
+    }
+    if (left < 8) {
+      left = 8;
+    }
+    if (top < 8) {
+      top = 8;
+    }
+
     return OverlayEntry(
       builder: (context) => Positioned(
-        width: 200.0,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(190, -270.0),
-          child: Material(
-            borderRadius: BorderRadius.circular(12.0),
-            elevation: 2.0,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 6.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(color: Colors.grey[400]!, width: 1.0),
-              ),
-              child: _buildMenuItems(context),
+        left: left,
+        top: top,
+        width: menuWidth,
+        height: menuHeight,
+        child: Material(
+          borderRadius: BorderRadius.circular(12.0),
+          elevation: 2.0,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 6.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: Colors.grey[400]!, width: 1.0),
             ),
+            child: _buildMenuItems(context),
           ),
         ),
       ),
@@ -247,7 +264,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
 
     double topPosition = buttonPosition.dy - 120;
     if (topPosition < 0) {
-      topPosition = buttonPosition.dy + buttonSize.height + 8;
+      topPosition = 8;
     }
 
     double leftPosition = buttonPosition.dx;
