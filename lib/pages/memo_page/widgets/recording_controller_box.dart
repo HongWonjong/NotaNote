@@ -400,9 +400,16 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                             return Row(
                               children: [
                                 IconButton(
-                                  icon: Icon(
-                                    isPlaying ? Icons.stop : Icons.play_arrow,
-                                    size: 20.0,
+                                  icon: isPlaying
+                                      ? SvgPicture.asset(
+                                    'assets/icons/Pause.svg',
+                                    width: 24,
+                                    height: 24,
+                                  )
+                                      : SvgPicture.asset(
+                                    'assets/icons/Play.svg',
+                                    width: 24,
+                                    height: 24,
                                   ),
                                   padding: EdgeInsets.zero,
                                   constraints: BoxConstraints(),
