@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HighlightPickerWidget extends StatelessWidget {
   final QuillController controller;
@@ -7,12 +8,15 @@ class HighlightPickerWidget extends StatelessWidget {
 
   HighlightPickerWidget({required this.controller, required this.onClose});
 
-  void _applyHighlight(Color color) {
+  void _applyHighlight(Color? color) {
     final selection = controller.selection;
     if (selection.isValid) {
-      controller.formatSelection(Attribute.fromKeyValue('background', '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}'));
+      if (color == null) {
+        controller.formatSelection(Attribute.clone(Attribute.background, null));
+      } else {
+        controller.formatSelection(Attribute.fromKeyValue('background', '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}'));
+      }
     }
-    // onClose() 호출 제거: 색상 선택 후 UI 유지
   }
 
   @override
@@ -21,7 +25,6 @@ class HighlightPickerWidget extends StatelessWidget {
       elevation: 4.0,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 232,
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: ShapeDecoration(
@@ -92,6 +95,15 @@ class HighlightPickerWidget extends StatelessWidget {
                   color: Color(0xFFD7DDF2),
                   shape: OvalBorder(),
                 ),
+              ),
+            ),
+            const SizedBox(width: 18),
+            GestureDetector(
+              onTap: () => _applyHighlight(null),
+              child: SvgPicture.asset(
+                'assets/icons/HighlightCancel.svg',
+                width: 24,
+                height: 24,
               ),
             ),
           ],

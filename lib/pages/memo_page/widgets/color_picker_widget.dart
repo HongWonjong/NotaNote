@@ -21,7 +21,6 @@ class ColorPickerWidget extends StatelessWidget {
       elevation: 4.0,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 232,
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: ShapeDecoration(
@@ -90,6 +89,18 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF1434EA),
+                  shape: OvalBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 18),
+            GestureDetector(
+              onTap: () => _applyColor(Color(0xFF000000)),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: ShapeDecoration(
+                  color: Color(0xFF000000),
                   shape: OvalBorder(),
                 ),
               ),
