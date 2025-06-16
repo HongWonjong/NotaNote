@@ -256,9 +256,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
           if (isBoxVisible)
             Positioned(
-              top: MediaQuery.of(context).viewInsets.bottom - 10,
+              top: 0,
               left: 0,
               right: 0,
+              bottom: -260,
               child: Container(
                 width: screenWidth,
                 alignment: Alignment.center,
