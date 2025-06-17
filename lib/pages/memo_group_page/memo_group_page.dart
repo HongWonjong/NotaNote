@@ -6,6 +6,8 @@ import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'popup_menu.dart';
 import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 class MemoGroupPage extends ConsumerStatefulWidget {
   final String groupId;
@@ -569,26 +571,38 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     ],
   ),
   floatingActionButton: isDeleteMode
-      ? null
-      : FloatingActionButton(
-          onPressed: () async {
-            final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
-            final newNoteId = await memoViewModel.addMemo();
-            if (newNoteId != null && mounted) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MemoPage(
-                    groupId: widget.groupId,
-                    noteId: newNoteId,
-                    pageId: '1',
-                  ),
+    ? null
+    : RawMaterialButton(
+        onPressed: () async {
+          final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+          final newNoteId = await memoViewModel.addMemo();
+          if (newNoteId != null && mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MemoPage(
+                  groupId: widget.groupId,
+                  noteId: newNoteId,
+                  pageId: '1',
                 ),
-              );
-            }
-          },
-          child: const Icon(Icons.add),
+              ),
+            );
+          }
+        },
+        constraints: BoxConstraints.tightFor(
+          width: 70,
+          height: 70,
         ),
+        shape: CircleBorder(),
+        fillColor: Color(0xFF61CFB2),
+        elevation: 6,
+        child: SvgPicture.asset(
+          'assets/icons/FilePlus.svg',
+          width: 28,
+          height: 28,
+          color: Colors.white,
+        ),
+      ),
 );
       },
     );
