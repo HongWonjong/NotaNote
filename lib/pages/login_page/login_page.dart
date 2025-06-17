@@ -9,6 +9,7 @@ import 'package:nota_note/viewmodels/auth/apple_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/kakao_auth_viewmodel.dart';
 import 'package:nota_note/pages/my_home_page/my_home_page.dart';
+import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -65,7 +66,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => MyHomePage()),
+                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
+                        //MaterialPageRoute(builder: (_) => MyHomePage()),
+
                       );
                     },
                   ),
@@ -83,7 +86,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       if (user == null || !mounted) return;
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => MyHomePage()),
+                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
+                        //MaterialPageRoute(builder: (_) => MyHomePage()),
+
                       );
                     },
                   ),
@@ -100,7 +105,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       if (user == null || !mounted) return;
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => MyHomePage()),
+                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
+                        //MaterialPageRoute(builder: (_) => MyHomePage()),
+
                       );
                     },
                   ),
