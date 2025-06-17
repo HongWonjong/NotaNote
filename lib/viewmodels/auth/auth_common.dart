@@ -1,5 +1,5 @@
-// auth_common.dart
 import 'dart:convert';
+import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,23 +17,76 @@ String generateHashedTag(String uid) {
 }
 
 /// 현재 로그인한 사용자 UID 조회 (SharedPreferences 기반)
-Future<String?> getCurrentUserId() async {
-  return await getLoginUserId();
+Future<String?> getCurrentUserId({bool appLaunch = false}) async {
+  final userId = await getLoginUserId();
+  final provider = await getLoginProvider();
+
+  log('[AuthCommon] SharedPreferences → userId: $userId, provider: $provider');
+
+  if (userId == null || provider == null) return null;
+
+  if (provider == 'google') return userId;
+
+  if (provider == 'kakao') {
+    final valid = await isKakaoSessionValid();
+    log('[AuthCommon] Kakao 세션 유효성: $valid');
+    return valid ? userId : null;
+  }
+
+  if (provider == 'apple') {
+    if (appLaunch) {
+      // 앱 처음 실행일 경우만 자동 로그인 방지
+      log('[Apple] 앱 최초 실행 → 자동 로그인 방지 → null 반환');
+      return null;
+    } else {
+      return userId; // 로그인 완료 후 내부에서는 유지
+    }
+  }
+
+  return null;
+}
+
+/// Kakao 세션 유효성 확인
+Future<bool> isKakaoSessionValid() async {
+  try {
+    final hasToken = await AuthApi.instance.hasToken();
+    log('[Kakao] hasToken: $hasToken');
+
+    if (!hasToken) return false;
+
+    // 액세스 토큰 유효성 확인 (세션이 만료되었는지 확인)
+    await UserApi.instance.accessTokenInfo();
+    log('[Kakao] accessToken 유효함');
+    return true;
+  } catch (e) {
+    log('[Kakao] 세션 유효하지 않음 → $e');
+    return false;
+  }
+}
+
+/// Apple은 재로그인 없이는 세션 확인이 불가능하므로 항상 false 반환
+Future<bool> isAppleSessionValid() async {
+  log('[Apple] 세션 자동 로그인 방지를 위해 항상 false 반환');
+  return false;
 }
 
 /// 공통 로그아웃 처리
 Future<void> signOut() async {
   final provider = await getLoginProvider();
+  log('[AuthCommon] 로그아웃 시작 → provider: $provider');
 
   if (provider == 'google') {
     await FirebaseAuth.instance.signOut();
+    log('[AuthCommon] Google 로그아웃 완료');
   } else if (provider == 'kakao') {
     try {
       await UserApi.instance.logout();
+      log('[AuthCommon] Kakao 로그아웃 완료');
     } catch (e) {
-      print('카카오 로그아웃 예외 무시: $e');
+      log('[AuthCommon] Kakao 로그아웃 예외 무시: $e');
     }
   }
 
   await clearLoginInfo(); // SharedPreferences에서 유저 정보 초기화
+  log('[AuthCommon] SharedPreferences 초기화 완료');
 }
