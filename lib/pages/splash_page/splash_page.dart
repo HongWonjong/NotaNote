@@ -5,6 +5,7 @@ import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/my_home_page/my_home_page.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
+import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 
 /// 스플래시 페이지 (로그인 여부에 따라 분기)
 class SplashPage extends ConsumerStatefulWidget {
