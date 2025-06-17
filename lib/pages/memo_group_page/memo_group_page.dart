@@ -266,8 +266,8 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     },
     child: isGrid
     ? Container(
-        width: null,
-        height: 130,
+        width: double.infinity,  // width:null 대신 double.infinity로 명시해도 좋아요
+  constraints: BoxConstraints(minHeight: 130),
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
@@ -303,7 +303,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
         overflow: TextOverflow.ellipsis,
       ),
     ),
-    const SizedBox(height: 12),
+    const SizedBox(height: 16),
                         Container(
                           width: double.infinity,
                           height: 55,
@@ -373,7 +373,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                       ),
                                   ],
                                 ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 16),
                               Container(
                                 width: double.infinity,
                                 child: Row(
@@ -417,6 +417,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
         ),
       )
     : Container(
+      constraints: BoxConstraints(minHeight: 130),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -440,7 +441,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   maxLines: 1,
   overflow: TextOverflow.ellipsis,
 ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       if (memo.tags.isNotEmpty)
                         Wrap(
                           spacing: 6,
@@ -472,7 +473,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                             );
                           }).toList(),
                         ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       Text(
                         formatTimeAgo(memo.updatedAt),
                         style: TextStyle(

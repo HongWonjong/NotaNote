@@ -84,7 +84,7 @@ Widget build(BuildContext context) {
           _showSharingSettings();
           break;
         case 4:
-          showRenameGroupDialog(
+          showRenameGroupBottomSheet(
             context: context,
             ref: ref,
             groupId: widget.groupId,
