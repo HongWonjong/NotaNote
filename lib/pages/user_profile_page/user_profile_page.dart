@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
-import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
+import 'package:nota_note/providers/user_profile_provider.dart';
 
 /// 사용자 프로필 페이지
 class UserProfilePage extends ConsumerWidget {
