@@ -1,10 +1,9 @@
-// lib/pages/user_profile_page/user_profile_edit_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
@@ -23,8 +22,8 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   late TextEditingController _emailController;
   late TextEditingController _nameController;
 
-  final FocusNode _nameFocusNode = FocusNode(); // 추가
-  final FocusNode _emailFocusNode = FocusNode(); // 추가
+  final FocusNode _nameFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -37,27 +36,23 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   void dispose() {
     _emailController.dispose();
     _nameController.dispose();
-    _nameFocusNode.dispose(); // 해제
-    _emailFocusNode.dispose(); // 해제
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      behavior: HitTestBehavior.opaque, // 키보드 문제 방지
+      behavior: HitTestBehavior.opaque,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
           leading: const BackButton(color: Colors.grey),
           title: Text(
             '프로필',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'Pretendard',
-              color: Colors.grey[900],
-            ),
+            style:
+                PretendardTextStyles.titleS.copyWith(color: Colors.grey[900]),
           ),
           centerTitle: true,
           backgroundColor: Colors.white,
@@ -75,16 +70,13 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                 );
 
                 if (mounted) {
-                  Navigator.pop(context, true); // true 전달
+                  Navigator.pop(context, true);
                 }
               },
               child: Text(
                 '완료',
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
+                style: PretendardTextStyles.bodyM
+                    .copyWith(color: Colors.grey[700]),
               ),
             ),
           ],
@@ -98,7 +90,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
               children: [
                 const SizedBox(height: 24),
 
-                // 프로필 이미지 수정 가능
+                // 프로필 이미지
                 Center(
                   child: Stack(
                     alignment: Alignment.center,
@@ -122,8 +114,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                           ),
                           child: Center(
                             child: SvgPicture.asset(
-                              'assets/icons/ProfileCamera.svg',
-                            ),
+                                'assets/icons/ProfileCamera.svg'),
                           ),
                         ),
                       ),
@@ -138,16 +129,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 닉네임
-                      Text(
-                        '닉네임',
-                        style: TextStyle(
-                          color: Colors.grey[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: 'Pretendard',
-                        ),
-                      ),
+                      Text('닉네임',
+                          style: PretendardTextStyles.bodyMEmphasis
+                              .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 8),
                       Stack(
                         alignment: Alignment.centerRight,
@@ -156,11 +140,8 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                             focusNode: _nameFocusNode,
                             controller: _nameController,
                             maxLength: 10,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[900],
-                              fontFamily: 'Pretendard',
-                            ),
+                            style: PretendardTextStyles.bodyM
+                                .copyWith(color: Colors.grey[900]),
                             decoration: InputDecoration(
                               counterText: '',
                               contentPadding: const EdgeInsets.symmetric(
@@ -186,37 +167,22 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                             right: 16,
                             child: Text(
                               '${_nameController.text.length}/10',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                                fontFamily: 'Pretendard',
-                              ),
+                              style: PretendardTextStyles.labelS
+                                  .copyWith(color: Colors.grey[400]),
                             ),
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 24),
-
-                      // 이메일
-                      Text(
-                        '이메일',
-                        style: TextStyle(
-                          color: Colors.grey[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: 'Pretendard',
-                        ),
-                      ),
+                      Text('이메일',
+                          style: PretendardTextStyles.bodyMEmphasis
+                              .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 8),
                       TextFormField(
                         focusNode: _emailFocusNode,
                         controller: _emailController,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[900],
-                          fontFamily: 'Pretendard',
-                        ),
+                        style: PretendardTextStyles.bodyM
+                            .copyWith(color: Colors.grey[900]),
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 14),
@@ -242,22 +208,15 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                 const SizedBox(height: 24),
                 Divider(color: Colors.grey[200], thickness: 6),
 
-                // 계정 전환
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 18),
-                      Text(
-                        '계정 전환',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'Pretendard',
-                          color: Colors.grey[900],
-                        ),
-                      ),
+                      Text('계정 전환',
+                          style: PretendardTextStyles.labelM
+                              .copyWith(color: Colors.grey[900])),
                       const SizedBox(height: 14),
                     ],
                   ),
@@ -271,14 +230,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                   ),
                   title: Text(
                     widget.user.email,
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[900],
-                    ),
+                    style: PretendardTextStyles.bodyM
+                        .copyWith(color: Colors.grey[900]),
                   ),
-                  onTap: () {},
                 ),
 
                 ListTile(
@@ -288,27 +242,18 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: SvgPicture.asset(
-                      'assets/icons/Plus.svg',
-                      width: 20,
-                      height: 20,
-                    ),
+                    child: SvgPicture.asset('assets/icons/Plus.svg',
+                        width: 20, height: 20),
                   ),
                   title: Text(
                     '계정 추가하기',
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[900],
-                    ),
+                    style: PretendardTextStyles.bodyM
+                        .copyWith(color: Colors.grey[900]),
                   ),
-                  onTap: () {},
                 ),
 
                 Divider(color: Colors.grey[200], thickness: 6),
 
-                // 로그아웃/탈퇴
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -329,24 +274,16 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                         },
                         child: Text(
                           '로그아웃',
-                          style: TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[900],
-                          ),
+                          style: PretendardTextStyles.bodyM
+                              .copyWith(color: Colors.grey[900]),
                         ),
                       ),
                       const SizedBox(height: 100),
-                      const Center(
+                      Center(
                         child: Text(
                           '계정 탈퇴하기',
-                          style: TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFFFF2F2F),
-                          ),
+                          style: PretendardTextStyles.bodyS
+                              .copyWith(color: Colors.red),
                         ),
                       ),
                     ],

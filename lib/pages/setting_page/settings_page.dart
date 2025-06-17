@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
@@ -17,14 +18,9 @@ class SettingsPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '설정',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.w200,
-            fontFamily: 'Pretendard',
-          ),
+          style: PretendardTextStyles.titleS.copyWith(color: Colors.grey[900]),
         ),
         centerTitle: true,
         elevation: 0,
@@ -142,12 +138,7 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(
         label,
-        style: TextStyle(
-          color: Colors.grey[900], // 텍스트 색상: gray.900
-          fontSize: 16,
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w100,
-        ),
+        style: PretendardTextStyles.bodyS.copyWith(color: Colors.grey[900]),
       ),
       onTap: onTap,
     );

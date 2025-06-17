@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/apple_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/kakao_auth_viewmodel.dart';
@@ -142,12 +143,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               alignment: Alignment.center,
               child: Text(
                 text,
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  fontFamily: 'Pretendard',
-                ),
+                style: PretendardTextStyles.bodyS.copyWith(color: textColor),
               ),
             ),
             // 좌측 아이콘
