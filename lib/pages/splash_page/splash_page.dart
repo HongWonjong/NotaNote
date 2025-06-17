@@ -74,8 +74,10 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               // 위쪽 아이콘
               SvgPicture.asset(
                 'assets/icons/SplashVector.svg',
-                width: 79,
-                height: 61,
+                width: 100,
+                height: 100,
+                placeholderBuilder: (context) =>
+                    const CircularProgressIndicator(),
               ),
               const SizedBox(height: 32),
               // 아래쪽 아이콘 (NotaNote 텍스트 형태의 SVG)
