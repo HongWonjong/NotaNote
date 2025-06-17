@@ -15,7 +15,7 @@ import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/local_storage_service.dart';
-import 'pages/my_home_page/my_home_page.dart';
+// import 'pages/my_home_page/my_home_page.dart';
 
 import 'package:timeago/timeago.dart' as timeago;
 
