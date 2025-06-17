@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
 final googleAuthViewModelProvider =
     Provider<GoogleAuthViewModel>((ref) => GoogleAuthViewModel(ref));

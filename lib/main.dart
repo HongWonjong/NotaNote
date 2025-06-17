@@ -8,49 +8,51 @@ import 'package:nota_note/pages/main_page/main_page.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nota_note/pages/splash_page/splash_page.dart';
-import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nota_note/firebase_options.dart';
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'services/local_storage_service.dart';
-
 
 import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Firebase 초기화
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // .env 파일 로드
   await dotenv.load(fileName: ".env");
   print('dotenv 로드 완료');
 
+  // Kakao SDK 초기화
   KakaoSdk.init(
     nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
     javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
   );
 
+  // 로컬 데이터베이스 초기화
   await LocalStorageService().database;
 
+  // timeago 한글 메시지 등록
   timeago.setLocaleMessages('ko', timeago.KoMessages());
 
+  // ProviderScope로 앱 실행
   runApp(const ProviderScope(child: MyApp()));
 }
-
-final userIdProvider = FutureProvider<String?>((ref) async {
-  return await getCurrentUserId();
-});
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncUserId = ref.watch(userIdProvider);
+    // 앱 실행 시 userId 초기화 (getCurrentUserId() → userIdProvider로 주입)
+    ref.watch(currentUserInitProvider);
 
     return MaterialApp(
       title: 'NotaNote',
@@ -69,7 +71,8 @@ class MyApp extends ConsumerWidget {
         Locale('en', 'US'),
         Locale('ko', 'KR'),
       ],
-      home: const SplashPage(), // 최초 진입 SplashPage로 변경
+      // 최초 진입 SplashPage로 설정
+      home: const SplashPage(),
     );
   }
 }
@@ -112,6 +115,7 @@ class MyHomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                // MemoPage로 직접 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -127,6 +131,7 @@ class MyHomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                // 온보딩 페이지로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -137,6 +142,7 @@ class MyHomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
+                // Firebase 로그아웃 + 로그인 페이지로 이동
                 await FirebaseAuth.instance.signOut();
                 if (!context.mounted) return;
                 Navigator.pushReplacement(

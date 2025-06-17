@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
-
-/// 현재 로그인된 사용자 ID를 저장하는 StateProvider
-final userIdProvider = StateProvider<String?>((ref) => null);
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// UID로부터 SHA256 해시를 생성하고, 앞 6자리만 잘라서 해시태그 생성
 String generateHashedTag(String uid) {
@@ -66,8 +64,22 @@ Future<bool> isKakaoSessionValid() async {
 
 /// Apple은 재로그인 없이는 세션 확인이 불가능하므로 항상 false 반환
 Future<bool> isAppleSessionValid() async {
-  log('[Apple] 세션 자동 로그인 방지를 위해 항상 false 반환');
-  return false;
+  final userIdentifier = await getAppleUserIdentifier();
+
+  if (userIdentifier == null) {
+    log('[Apple] userIdentifier 없음 → 자동 로그인 불가');
+    return false;
+  }
+
+  try {
+    final credentialState =
+        await SignInWithApple.getCredentialState(userIdentifier);
+    log('[Apple] credentialState: $credentialState');
+    return credentialState == CredentialState.authorized;
+  } catch (e) {
+    log('[Apple] getCredentialState 오류: $e');
+    return false;
+  }
 }
 
 /// 공통 로그아웃 처리

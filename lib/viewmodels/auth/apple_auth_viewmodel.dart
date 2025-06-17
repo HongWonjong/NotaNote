@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'package:nota_note/models/user_model.dart';
@@ -67,7 +68,7 @@ class AppleAuthViewModel {
 
       // 토큰 길이 확인 (디버깅용)
       log('[AppleLogin] 인증 토큰 길이: ${credential.identityToken?.length}');
-      log('[AppleLogin] 인증 코드 길이: ${credential.authorizationCode?.length}');
+      log('[AppleLogin] 인증 코드 길이: ${credential.authorizationCode.length}');
 
       // identityToken이 없으면 중단
       if (credential.identityToken == null) {
@@ -88,7 +89,7 @@ class AppleAuthViewModel {
       final UserCredential userCredential;
       try {
         userCredential = await _auth.signInWithCredential(oauthCredential);
-      } catch (e, stack) {
+      } catch (e) {
         log('[AppleLogin] Firebase 인증 예외 발생: $e');
         return null;
       }
@@ -135,6 +136,9 @@ class AppleAuthViewModel {
       // SharedPreferences에 로그인 정보 저장
       await saveLoginUserId(userId);
       await saveLoginProvider('apple');
+      if (credential.userIdentifier != null) {
+        await saveAppleUserIdentifier(credential.userIdentifier!);
+      }
 
       //로그인 성공 후 userIdProvider 상태 갱신
       ref.read(userIdProvider.notifier).state = userId;
