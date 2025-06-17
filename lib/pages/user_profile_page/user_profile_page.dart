@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
@@ -23,10 +24,7 @@ class UserProfilePage extends ConsumerWidget {
         leading: const BackButton(color: Colors.grey),
         title: Text(
           '프로필',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'Pretendard',
+          style: PretendardTextStyles.titleS.copyWith(
             color: Colors.grey[900],
           ),
         ),
@@ -57,10 +55,8 @@ class UserProfilePage extends ConsumerWidget {
             },
             child: Text(
               '수정',
-              style: TextStyle(
+              style: PretendardTextStyles.bodyM.copyWith(
                 color: Colors.grey[700],
-                fontWeight: FontWeight.w200,
-                fontSize: 16,
               ),
             ),
           )
@@ -123,11 +119,8 @@ class UserProfilePage extends ConsumerWidget {
                     children: [
                       Text(
                         '닉네임',
-                        style: TextStyle(
+                        style: PretendardTextStyles.bodyMEmphasis.copyWith(
                           color: Colors.grey[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: 'Pretendard',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -142,9 +135,7 @@ class UserProfilePage extends ConsumerWidget {
                         ),
                         child: Text(
                           user.displayName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Pretendard',
+                          style: PretendardTextStyles.bodyM.copyWith(
                             color: Colors.grey[900],
                           ),
                         ),
@@ -152,11 +143,8 @@ class UserProfilePage extends ConsumerWidget {
                       const SizedBox(height: 24),
                       Text(
                         '이메일',
-                        style: TextStyle(
+                        style: PretendardTextStyles.bodyMEmphasis.copyWith(
                           color: Colors.grey[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          fontFamily: 'Pretendard',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -171,9 +159,7 @@ class UserProfilePage extends ConsumerWidget {
                         ),
                         child: Text(
                           user.email,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Pretendard',
+                          style: PretendardTextStyles.bodyM.copyWith(
                             color: Colors.grey[900],
                           ),
                         ),
@@ -193,10 +179,7 @@ class UserProfilePage extends ConsumerWidget {
                       const SizedBox(height: 18),
                       Text(
                         '계정 전환',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'Pretendard',
+                        style: PretendardTextStyles.labelM.copyWith(
                           color: Colors.grey[900],
                         ),
                       ),
@@ -213,10 +196,7 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                   title: Text(
                     user.email,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Pretendard',
+                    style: PretendardTextStyles.bodyM.copyWith(
                       color: Colors.grey[900],
                     ),
                   ),
@@ -237,10 +217,7 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                   title: Text(
                     '계정 추가하기',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Pretendard',
+                    style: PretendardTextStyles.bodyM.copyWith(
                       color: Colors.grey[900],
                     ),
                   ),
@@ -268,23 +245,17 @@ class UserProfilePage extends ConsumerWidget {
                         },
                         child: Text(
                           '로그아웃',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: 'Pretendard',
+                          style: PretendardTextStyles.bodyM.copyWith(
                             color: Colors.grey[900],
                           ),
                         ),
                       ),
                       const SizedBox(height: 100),
-                      const Center(
+                      Center(
                         child: Text(
                           '계정 탈퇴하기',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: 'Pretendard',
-                            color: Color(0xFFFF2F2F),
+                          style: PretendardTextStyles.bodyS.copyWith(
+                            color: Colors.red,
                           ),
                         ),
                       ),
