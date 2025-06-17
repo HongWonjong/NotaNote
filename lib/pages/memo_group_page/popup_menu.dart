@@ -63,80 +63,105 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     '편집 전용': '에디터',
   };
 
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      icon: const Icon(Icons.more_vert),
-      tooltip: '설정 메뉴',
-      onSelected: (value) {
-        switch (value) {
-          case 1:
-            widget.onGridToggle(!widget.isGrid);
-            break;
-          case 2:
-            _showSortOptionsDialog();
-            break;
-          case 3:
-            _showSharingSettings();
-            break;
-          case 4:
-            showRenameGroupDialog(
-              context: context,
-              ref: ref,
-              groupId: widget.groupId,
-              currentTitle: widget.groupTitle,
-            );
-            break;
-          case 5:
-            widget.onDeleteModeStart();
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 1,
-          child: ListTile(
-            leading: Icon(widget.isGrid ? Icons.list : Icons.grid_view),
-            title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
+ @override
+Widget build(BuildContext context) {
+  return PopupMenuButton<int>(
+    icon: SvgPicture.asset(
+      'assets/icons/DotsThreeCircle.svg',
+      width: 24,
+      height: 24,
+    ),
+    tooltip: '설정 메뉴',
+    onSelected: (value) {
+      switch (value) {
+        case 1:
+          widget.onGridToggle(!widget.isGrid);
+          break;
+        case 2:
+          _showSortOptionsDialog();
+          break;
+        case 3:
+          _showSharingSettings();
+          break;
+        case 4:
+          showRenameGroupDialog(
+            context: context,
+            ref: ref,
+            groupId: widget.groupId,
+            currentTitle: widget.groupTitle,
+          );
+          break;
+        case 5:
+          widget.onDeleteModeStart();
+          break;
+      }
+    },
+    itemBuilder: (context) => [
+      PopupMenuItem(
+        value: 1,
+        child: ListTile(
+          leading: SvgPicture.asset(
+            widget.isGrid
+                ? 'assets/icons/ListDashes.svg'
+                : 'assets/icons/GridFour.svg',
+            width: 24,
+            height: 24,
+          ),
+          title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 2,
+        child: ListTile(
+          leading: SvgPicture.asset(
+            'assets/icons/ArrowsDownUp.svg',
+            width: 24,
+            height: 24,
+          ),
+          title: const Text('정렬'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 3,
+        child: ListTile(
+          leading: SvgPicture.asset(
+            'assets/icons/Share.svg',
+            width: 24,
+            height: 24,
+          ),
+          title: const Text('공유'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 4,
+        child: ListTile(
+          leading: SvgPicture.asset(
+            'assets/icons/PencilSimple.svg',
+            width: 24,
+            height: 24,
+          ),
+          title: const Text('이름변경'),
+        ),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: 5,
+        child: ListTile(
+          leading: SvgPicture.asset(
+            'assets/icons/Delete.svg',
+            width: 24,
+            height: 24,
+            color: Colors.red, // SVG가 색상 변경을 지원할 경우만 적용됨
+          ),
+          title: const Text(
+            '삭제',
+            style: TextStyle(color: Colors.red),
           ),
         ),
-        const PopupMenuItem(
-          value: 2,
-          child: ListTile(leading: Icon(Icons.sort), title: Text('정렬')),
-        ),
-        const PopupMenuItem(
-          value: 3,
-          child: ListTile(
-            leading: Icon(Icons.share),
-            title: Text('공유'),
-          ),
-        ),
-        PopupMenuItem(
-          value: 4,
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('이름변경'),
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 5,
-          child: ListTile(
-            leading: SvgPicture.asset(
-              'assets/icons/Delete.svg',
-              width: 24,
-              height: 24,
-              color: Colors.red,
-            ),
-            title: const Text(
-              '삭제',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
   void _showSortOptionsDialog() {
     SortOption tempSelectedOption = widget.sortOption;
 
@@ -352,29 +377,21 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
               const Text('링크 공유', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               GestureDetector(
-                onTap: () {
-                  Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('링크가 복사되었습니다.')),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    '링크 공유하기',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
+  onTap: () {
+    Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('링크가 복사되었습니다.')),
+    );
+  },
+  child: Center(   // Center로 감싸기
+    child: SvgPicture.asset(
+      'assets/icons/Button.svg',
+      width: 200,    // 적당한 고정 크기 지정
+      height: 48,
+      fit: BoxFit.contain,
+    ),
+  ),
+)
             ],
           ),
         ),

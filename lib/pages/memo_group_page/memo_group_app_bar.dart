@@ -155,7 +155,7 @@ class _SearchField extends StatelessWidget {
               cursorColor: Colors.black,
               style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
-                hintText: '태그로 검색',
+                hintText: '제목이나 해시태그를 검색해주세요',
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
