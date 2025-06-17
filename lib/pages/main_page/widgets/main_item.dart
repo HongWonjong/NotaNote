@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
+import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
+
 
 class MainItem extends ConsumerWidget {
   final String title;
@@ -18,67 +20,13 @@ class MainItem extends ConsumerWidget {
   });
 
   void _showRenameDialog(BuildContext context, WidgetRef ref) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    String newName = title;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('그룹 이름 변경'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return TextField(
-              onChanged: (value) {
-                newName = value;
-              },
-              decoration: InputDecoration(
-                hintText: '새 그룹 이름을 입력하세요',
-                border: OutlineInputBorder(),
-              ),
-              autofocus: true,
-              controller: TextEditingController(text: title),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('취소'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (newName.trim().isNotEmpty && newName.trim() != title) {
-                Navigator.pop(dialogContext);
-                final success = await ref
-                    .read(groupViewModelProvider)
-                    .renameGroup(groupId, newName.trim());
-
-                if (success) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text('그룹 이름이 변경되었습니다'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else {
-                  final error = ref.read(groupViewModelProvider).error;
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(error ?? '이름 변경 실패'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              } else {
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: Text('변경'),
-          ),
-        ],
-      ),
-    );
-  }
+  showRenameGroupBottomSheet(
+    context: context,
+    ref: ref,
+    groupId: groupId,
+    currentTitle: title,
+  );
+}
 
   void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);

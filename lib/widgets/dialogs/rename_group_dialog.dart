@@ -2,70 +2,111 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 
-Future<String?> showRenameGroupDialog({
+Future<String?> showRenameGroupBottomSheet({
   required BuildContext context,
   required WidgetRef ref,
   required String groupId,
   required String currentTitle,
 }) async {
   final scaffoldMessenger = ScaffoldMessenger.of(context);
-  String newName = currentTitle;
+  final TextEditingController controller = TextEditingController(text: currentTitle);
 
-  final result = await showDialog<String>(
+  final result = await showModalBottomSheet<String>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text('그룹 이름 변경'),
-      content: StatefulBuilder(
-        builder: (context, setState) {
-          return TextField(
-            onChanged: (value) => newName = value,
-            decoration: InputDecoration(
-              hintText: '새 그룹 이름을 입력하세요',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
-            controller: TextEditingController(text: currentTitle),
-          );
-        },
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, null),  // null 반환 = 취소
-          child: Text('취소'),
-        ),
-        TextButton(
-          onPressed: () async {
-            if (newName.trim().isNotEmpty && newName.trim() != currentTitle) {
-              final success = await ref
-                  .read(groupViewModelProvider)
-                  .renameGroup(groupId, newName.trim());
-
-              if (success) {
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text('그룹 이름이 변경되었습니다'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                Navigator.pop(dialogContext, newName.trim());  // 변경된 이름 반환
-              } else {
-                final error = ref.read(groupViewModelProvider).error;
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(error ?? '이름 변경 실패'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            } else {
-              Navigator.pop(dialogContext, null);  // 취소와 동일하게 처리
-            }
-          },
-          child: Text('변경'),
-        ),
-      ],
+    isScrollControlled: true,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
+    builder: (context) {
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 24,
+          left: 16,
+          right: 16,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '이름 변경하기',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        if (controller.text.trim().isNotEmpty &&
+                            controller.text.trim() != currentTitle) {
+                          final success = await ref
+                              .read(groupViewModelProvider)
+                              .renameGroup(groupId, controller.text.trim());
+
+                          if (success) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text('그룹 이름이 변경되었습니다'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pop(context, controller.text.trim());
+                          } else {
+                            final error = ref.read(groupViewModelProvider).error;
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(error ?? '이름 변경 실패'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } else {
+                          Navigator.pop(context, null);
+                        }
+                      },
+                      child: Text(
+                        '완료',
+                        style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  maxLength: 10,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: '그룹 이름',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        '${controller.text.length}/10',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                  buildCounter: (_, {required int currentLength, required bool isFocused, required int? maxLength}) => null,
+                ),
+                SizedBox(height: 16),
+              ],
+            );
+          },
+        ),
+      );
+    },
   );
 
-  return result;  // 성공 시 새 이름, 취소 시 null 반환
+  return result;
 }
