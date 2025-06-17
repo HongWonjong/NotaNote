@@ -8,6 +8,7 @@ import 'package:nota_note/main.dart';
 import 'package:nota_note/viewmodels/auth/apple_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/kakao_auth_viewmodel.dart';
+import 'package:nota_note/pages/my_home_page/my_home_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
