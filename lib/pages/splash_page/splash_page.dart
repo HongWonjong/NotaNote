@@ -48,7 +48,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const MyHomePage()),
+        MaterialPageRoute(builder: (_) => const OnBoardingPage()),
       );
     }
   }
