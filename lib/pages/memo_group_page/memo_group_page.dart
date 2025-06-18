@@ -3,11 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/memo.dart';
 import 'package:nota_note/models/sort_options.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
-import 'popup_menu.dart';
 import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+String trimTitleForDisplay(String title, int maxLength) {
+  if (title.length <= maxLength) {
+    return title;
+  } else {
+    return title.substring(0, maxLength) + '...';
+  }
+}
 
 class MemoGroupPage extends ConsumerStatefulWidget {
   final String groupId;
@@ -266,8 +272,8 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     },
     child: isGrid
     ? Container(
-        width: double.infinity,  // width:null 대신 double.infinity로 명시해도 좋아요
-  constraints: BoxConstraints(minHeight: 130),
+        width: double.infinity,
+  constraints: BoxConstraints(minHeight: 170),
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
@@ -289,21 +295,21 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               children: [
                 Expanded(
                   child: Container(
-                    height: 98,
-                    child: Column(
-  mainAxisSize: MainAxisSize.min,
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    SizedBox(
-      width: double.infinity,
-      child: Text.rich(
-        _highlightSearchText(memo.title, searchText),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Flexible(
+  child: Text.rich(
+    _highlightSearchText(
+      trimTitleForDisplay(memo.title, 10),
+      searchText,
     ),
-    const SizedBox(height: 16),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  ),
+),
+      const SizedBox(height: 16),
                         Container(
                           width: double.infinity,
                           height: 55,
@@ -438,7 +444,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                     children: [
                      Text.rich(
   _highlightSearchText(memo.title, searchText),
-  maxLines: 1,
+  maxLines: 2,
   overflow: TextOverflow.ellipsis,
 ),
                       const SizedBox(height: 16),
