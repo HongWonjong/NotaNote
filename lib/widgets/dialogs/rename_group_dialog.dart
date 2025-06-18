@@ -79,7 +79,7 @@ Future<String?> showRenameGroupBottomSheet({
                 SizedBox(height: 16),
                 TextField(
                   controller: controller,
-                  maxLength: 10,
+                  maxLength: 20,
                   autofocus: true,
                   decoration: InputDecoration(
                     hintText: '그룹 이름',
@@ -89,7 +89,7 @@ Future<String?> showRenameGroupBottomSheet({
                     suffix: Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Text(
-                        '${controller.text.length}/10',
+                        '${controller.text.length}/20',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ),

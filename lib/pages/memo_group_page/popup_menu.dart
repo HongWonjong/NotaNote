@@ -232,7 +232,7 @@ Widget build(BuildContext context) {
                         ),
                         trailing: isSelected
                             ? SvgPicture.asset(
-                                'assets/Check.svg',
+                                'assets/icons/Check.svg',
                                 width: 20,
                                 height: 20,
                                 colorFilter: const ColorFilter.mode(Color(0xFF61CFB2), BlendMode.srcIn),
