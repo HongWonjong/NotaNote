@@ -10,7 +10,6 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>kakao3994ba43bdfc5a2ac995b7743b33b320</string>
-          <!-- kakao + 네이티브 키 -->
           <string>com.googleusercontent.apps.3234048278-f994aq03pn890piit6qua8kv7vc77l7a</string>
         </array>
       </dict>
@@ -67,6 +66,26 @@
     <string>사진을 저장하거나 업로드하기 위해 사진 라이브러리 접근이 필요합니다.</string>
     <key>NSCameraUsageDescription</key>
     <string>카메라로 사진을 찍기 위해 접근이 필요합니다.</string>
+    <!-- 필수 추가 키 -->
+    <key>NSCalendarsUsageDescription</key>
+    <string>캘린더 이벤트를 동기화하거나 관리하기 위해 캘린더 접근이 필요합니다.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>연락처 정보를 공유하거나 가져오기 위해 연락처 접근이 필요합니다.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>Apple Music 콘텐츠를 재생하거나 관리하기 위해 접근이 필요합니다.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>운동 데이터를 추적하거나 분석하기 위해 모션 데이터 접근이 필요합니다.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>음성 명령을 처리하기 위해 음성 인식 기능이 필요합니다.</string>
+    <key>NSSiriUsageDescription</key>
+    <string>Siri를 통해 앱 기능을 실행하기 위해 Siri 접근이 필요합니다.</string>
+    <!-- 권장 추가 키 -->
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>위치 기반 서비스를 제공하기 위해 위치 정보 접근이 필요합니다.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>앱 사용 중 위치 기반 기능을 제공하기 위해 위치 정보 접근이 필요합니다.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>블루투스 장치와 연결하여 데이터를 전송하기 위해 블루투스 접근이 필요합니다.</string>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
     <key>UIMainStoryboardFile</key>
