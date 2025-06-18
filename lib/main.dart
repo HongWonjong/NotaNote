@@ -56,6 +56,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'NotaNote',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent),
         appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
