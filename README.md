@@ -4,6 +4,29 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 
 Master 브랜치에는 안정화된 출시 가능한 버전을 업로드 할 것입니다. 평소에는 main 브랜치에 PR 날려주세요.
 
+# NotaNote 실제 사용 스크린 샷
+![Image](https://github.com/user-attachments/assets/7451c4a9-d782-4ef9-9045-f0b20b6c1a1d)
+
+![Image](https://github.com/user-attachments/assets/47929dcf-1802-4568-ba72-c07ed3a053c5)
+
+![Image](https://github.com/user-attachments/assets/282a21a6-f960-4d86-9dfb-87b5013707da)
+
+![Image](https://github.com/user-attachments/assets/eae1fa37-abbe-47d3-801f-4b62b802bf79)
+
+![Image](https://github.com/user-attachments/assets/7b3857c7-61fb-46e7-a7b2-d672e80cfd16)
+
+![Image](https://github.com/user-attachments/assets/0c759499-4dd3-4f78-aa6e-018aaadd7a8f)
+
+![Image](https://github.com/user-attachments/assets/9e89c20d-3042-4953-bb4f-d99982adc7c5)
+
+![Image](https://github.com/user-attachments/assets/5ce2a18a-6260-4ac5-abeb-7b052478c4a9)
+
+![Image](https://github.com/user-attachments/assets/4c521a8c-8a75-4e0e-9ed5-74f0f19245df)
+
+![Image](https://github.com/user-attachments/assets/85045e4e-9d49-4cb1-922d-d73b1f970fc0)
+
+![Image](https://github.com/user-attachments/assets/e29448a9-b15f-4292-a686-c736c8af9ec7)
+
 # NotaNote Firestore Database Structure
 
 이 문서는 NotaNote 앱의 Firebase Firestore 데이터베이스 구조를 정의합니다. Firestore의 NoSQL 문서 기반 구조를 활용하여 유저, 메모장, 메모지 페이지, 위젯, 댓글, 태그, 공유 콘텐츠를 관리합니다. 메모장은 여러 메모지 페이지로 구성되며, 위젯은 각 페이지 내에서 상대적 위치(xFactor, yFactor)와 상대적 크기(widthFactor, heightFactor)를 비율(0.0~1.0)로 저장하여 스크롤 가능한 긴 메모장의 배치 문제를 해결합니다. 메모지 페이지에는 크기 필드가 없으며, 클라이언트에서 페이지의 실제 크기를 동적으로 결정합니다.
