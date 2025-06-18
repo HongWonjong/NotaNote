@@ -30,3 +30,13 @@ Future<void> clearLoginInfo() async {
   await prefs.remove('userId');
   await prefs.remove('loginProvider');
 }
+
+Future<void> saveAppleUserIdentifier(String userIdentifier) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('apple_user_identifier', userIdentifier);
+}
+
+Future<String?> getAppleUserIdentifier() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('apple_user_identifier');
+}

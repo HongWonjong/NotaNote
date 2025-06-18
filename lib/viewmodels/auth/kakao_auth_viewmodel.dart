@@ -1,4 +1,3 @@
-// viewmodels/auth/kakao_auth_viewmodel.dart
 import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -6,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
 final kakaoAuthViewModelProvider =
     Provider<KakaoAuthViewModel>((ref) => KakaoAuthViewModel(ref));

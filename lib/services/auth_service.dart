@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
-import '../pages/login_page/shared_prefs_helper.dart';
-
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
