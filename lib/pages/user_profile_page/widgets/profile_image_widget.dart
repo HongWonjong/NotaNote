@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:nota_note/services/firebase_storage_service.dart';
@@ -95,9 +96,10 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
             backgroundImage:
                 _photoUrl.isNotEmpty ? NetworkImage(_photoUrl) : null,
             child: _photoUrl.isEmpty
-                ? Text(
-                    widget.displayName.characters.first,
-                    style: TextStyle(fontSize: 24, color: Colors.grey[100]),
+                ? SvgPicture.asset(
+                    'assets/icons/ProfileImage2.svg',
+                    width: 86,
+                    height: 86,
                   )
                 : null,
           ),

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:logger/logger.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/pages/main_page/main_page.dart';
@@ -15,7 +17,6 @@ import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/services/local_storage_service.dart';
-
 
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
@@ -49,9 +50,9 @@ class MyHomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const MemoGroupPage(
-                        groupId: 'group1',
-                        groupName: '그룹1',
-                      )),
+                            groupId: 'group1',
+                            groupName: '그룹1',
+                          )),
                 );
               },
               child: const Text('메모 그룹 페이지로 이동 (테스트)'),
@@ -97,7 +98,8 @@ class MyHomePage extends StatelessWidget {
                   logger.i('로그인 페이지로 이동');
                 } catch (e, stack) {
                   logger.e('로그아웃 실패: $e', stackTrace: stack);
-                  FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+                  FirebaseCrashlytics.instance
+                      .recordError(e, stack, fatal: false);
                 }
               },
               child: const Text('로그아웃'),

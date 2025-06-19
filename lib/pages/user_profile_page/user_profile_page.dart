@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
@@ -87,29 +86,11 @@ class UserProfilePage extends ConsumerWidget {
                         displayName: user.displayName,
                         isEditable: false,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: -4,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            border: Border.all(color: Colors.grey[200]!),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/icons/ProfileCamera.svg',
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
 
                 // 닉네임, 이메일 정보
                 Padding(
@@ -123,8 +104,10 @@ class UserProfilePage extends ConsumerWidget {
                           color: Colors.grey[800],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Container(
+                        //52,332
+                        height: 52,
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
@@ -140,15 +123,16 @@ class UserProfilePage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Text(
                         '이메일',
                         style: PretendardTextStyles.bodyMEmphasis.copyWith(
                           color: Colors.grey[800],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Container(
+                        height: 52,
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
@@ -168,62 +152,9 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
                 Divider(color: Colors.grey[200], thickness: 6),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 18),
-                      Text(
-                        '계정 전환',
-                        style: PretendardTextStyles.labelM.copyWith(
-                          color: Colors.grey[900],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                  ),
-                ),
-
-                ListTile(
-                  leading: const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Color(0xFFB0E7D8),
-                    child: Icon(Icons.person, color: Colors.white, size: 16),
-                  ),
-                  title: Text(
-                    user.email,
-                    style: PretendardTextStyles.bodyM.copyWith(
-                      color: Colors.grey[900],
-                    ),
-                  ),
-                ),
-
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: SvgPicture.asset(
-                      'assets/icons/Plus.svg',
-                      width: 20,
-                      height: 20,
-                    ),
-                  ),
-                  title: Text(
-                    '계정 추가하기',
-                    style: PretendardTextStyles.bodyM.copyWith(
-                      color: Colors.grey[900],
-                    ),
-                  ),
-                ),
-
-                Divider(color: Colors.grey[200], thickness: 6),
+                const SizedBox(height: 10),
 
                 Padding(
                   padding:
@@ -250,11 +181,11 @@ class UserProfilePage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100),
-                      Center(
+                      TextButton(
+                        onPressed: () {},
                         child: Text(
                           '계정 탈퇴하기',
-                          style: PretendardTextStyles.bodyS.copyWith(
+                          style: PretendardTextStyles.bodyM.copyWith(
                             color: Colors.red,
                           ),
                         ),
