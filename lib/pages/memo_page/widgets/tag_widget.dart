@@ -217,7 +217,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   ),
                                 ),
                                 child: IconButton(
-                                  icon: Icon(Icons.add, size: 16.0, color: Color(0xFF184E40)),
+                                  icon: Icon(Icons.add, size: 16.0, color: Color(0xFF61CFB2)),
                                   onPressed: () {
                                     if (mounted) {
                                       setState(() {
