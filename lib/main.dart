@@ -16,6 +16,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:nota_note/services/local_storage_service.dart';
 import 'package:logger/logger.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'dart:async';
 
 void main() async {
@@ -30,24 +31,30 @@ void main() async {
       printTime: true,
     ),
   );
+  logger.i('main() 함수 시작');
 
   // 글로벌 에러 핸들링 설정
   runZonedGuarded(() async {
+    // Flutter 프레임워크 에러 핸들링
     FlutterError.onError = (FlutterErrorDetails details) {
       logger.e('Flutter 프레임워크 에러: ${details.exception}', stackTrace: details.stack);
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     };
 
     WidgetsFlutterBinding.ensureInitialized();
     logger.i('WidgetsFlutterBinding 초기화 완료');
 
-    // Firebase 초기화
+    // Firebase 및 Crashlytics 초기화
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      logger.i('Firebase 초기화 완료');
+      // Crashlytics 활성화
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+      logger.i('Firebase 및 Crashlytics 초기화 완료');
     } catch (e, stack) {
       logger.e('Firebase 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
     }
 
     // .env 파일 로드
@@ -56,6 +63,7 @@ void main() async {
       logger.i('dotenv 로드 완료');
     } catch (e, stack) {
       logger.e('dotenv 로드 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
     // Kakao SDK 초기화
@@ -67,6 +75,7 @@ void main() async {
       logger.i('Kakao SDK 초기화 완료');
     } catch (e, stack) {
       logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
     // 로컬 데이터베이스 초기화
@@ -75,6 +84,7 @@ void main() async {
       logger.i('로컬 데이터베이스 초기화 완료');
     } catch (e, stack) {
       logger.e('로컬 데이터베이스 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
     // ProviderScope로 앱 실행
@@ -83,6 +93,7 @@ void main() async {
   }, (error, stack) {
     // 비동기 및 기타 예외 처리
     logger.e('글로벌 에러: $error', stackTrace: stack);
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
   });
 }
 
@@ -200,6 +211,7 @@ class MyHomePage extends StatelessWidget {
                   logger.i('로그인 페이지로 이동');
                 } catch (e, stack) {
                   logger.e('로그아웃 실패: $e', stackTrace: stack);
+                  FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
                 }
               },
               child: const Text('로그아웃'),
