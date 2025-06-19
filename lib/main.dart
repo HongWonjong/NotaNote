@@ -16,7 +16,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'services/local_storage_service.dart';
 
-import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +38,6 @@ void main() async {
   // 로컬 데이터베이스 초기화
   await LocalStorageService().database;
 
-  // timeago 한글 메시지 등록
-  timeago.setLocaleMessages('ko', timeago.KoMessages());
 
   // ProviderScope로 앱 실행
   runApp(const ProviderScope(child: MyApp()));
