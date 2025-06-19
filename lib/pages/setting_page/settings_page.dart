@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/pages/terms_page/terms_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
@@ -35,32 +36,33 @@ class SettingsPage extends ConsumerWidget {
               children: [
                 // 프로필 설정
                 _SettingsTile(
-                  label: '프로필',
+                  label: '프로필(조치중 임시제한)',
                   iconPath: 'assets/icons/User.svg',
                   onTap: () async {
                     // userIdProvider 상태를 강제로 최신화 (시뮬레이터 재시작 시에도 대응)
                     final latestUserId = await getCurrentUserId();
                     ref.read(userIdProvider.notifier).state = latestUserId;
 
-                    // 최신 userId 기준으로 프로필 페이지 이동
-                    if (latestUserId != null && latestUserId.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => UserProfilePage(userId: latestUserId),
-                        ),
-                      );
-                    } else {
-                      // 로딩 중 또는 null일 경우 스낵바 표시
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('사용자 정보를 불러오는 중입니다.')),
-                      );
-                    }
+                    //최신 userId 기준으로 프로필 페이지 이동 << 현재 버그로 조건 무시
+
+                    // if (latestUserId != null && latestUserId.isNotEmpty) {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (_) => UserProfilePage(userId: latestUserId),
+                    //     ),
+                    //   );
+                    // } else {
+                    //   // 로딩 중 또는 null일 경우 스낵바 표시
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     const SnackBar(content: Text('사용자 정보를 불러오는 중입니다.')),
+                    //   );
+                    // }
                   },
                 ),
                 // 알림 설정
                 _SettingsTile(
-                  label: '알림',
+                  label: '알림(추후 추가 예정)',
                   iconPath: 'assets/icons/MagnifyingGlass.svg',
                   onTap: () {
                     // 알림 설정 페이지 이동 예정
@@ -68,7 +70,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 // 테마 설정
                 _SettingsTile(
-                  label: '테마 설정',
+                  label: '테마 설정(추후 추가 예정)',
                   iconPath: 'assets/icons/Monitor.svg',
                   onTap: () {
                     // 테마 설정 페이지 이동 예정
@@ -76,7 +78,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 // 암호 설정
                 _SettingsTile(
-                  label: '암호',
+                  label: '암호(추후 추가 예정)',
                   iconPath: 'assets/icons/LockSimple.svg',
                   onTap: () {
                     // 암호 설정 페이지 이동 예정
@@ -87,7 +89,10 @@ class SettingsPage extends ConsumerWidget {
                   label: '이용약관 및 개인정보 정책',
                   iconPath: 'assets/icons/Info.svg',
                   onTap: () {
-                    // 약관 페이지 이동 예정
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TermsPage()),
+                    );
                   },
                 ),
               ],
