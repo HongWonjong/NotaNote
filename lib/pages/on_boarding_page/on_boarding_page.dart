@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../main_page/main_page.dart';
+import 'package:logger/logger.dart';
+import 'package:nota_note/providers/onboarding_provider.dart';
 
-class OnBoardingPage extends StatefulWidget {
+class OnBoardingPage extends ConsumerStatefulWidget {
   const OnBoardingPage({super.key});
 
   @override
-  State<OnBoardingPage> createState() => _OnBoardingPageState();
+  ConsumerState<OnBoardingPage> createState() => _OnBoardingPageState();
 }
 
-class _OnBoardingPageState extends State<OnBoardingPage> {
+class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
   int _currentStep = 0;
   final PageController _pageController = PageController();
+  final logger = Logger();
 
   final List<Map<String, String>> _onBoardingContents = [
     {
@@ -55,7 +59,11 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 
-  void _goToMain() {
+  void _goToMain() async {
+    logger.i('온보딩 페이지 - 시작하기 버튼 눌림, 온보딩 완료 처리 시작');
+    await ref.read(onBoardingProvider.notifier).completeOnBoarding();
+    logger.i('온보딩 페이지 - 온보딩 완료 처리 후 메인 페이지로 이동');
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const MainPage()),
     );
@@ -91,7 +99,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     final content = _onBoardingContents[index];
                     return Column(
                       children: [
-                        const SizedBox(height: 60), // 타이틀을 더 아래로
+                        const SizedBox(height: 60),
                         Text(
                           content['title'] ?? '',
                           textAlign: TextAlign.center,

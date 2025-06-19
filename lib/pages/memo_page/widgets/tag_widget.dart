@@ -116,7 +116,6 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   style: TextStyle(
                                     color: Color(0xFFB3B3B3),
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 backgroundColor: Color(0xFFF1F1F1),
@@ -142,7 +141,6 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   tag,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
                                     color: Color(0xFF184E40),
                                   ),
                                 ),
@@ -219,7 +217,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   ),
                                 ),
                                 child: IconButton(
-                                  icon: Icon(Icons.add, size: 16.0, color: Color(0xFF184E40)),
+                                  icon: Icon(Icons.add, size: 16.0, color: Color(0xFF61CFB2)),
                                   onPressed: () {
                                     if (mounted) {
                                       setState(() {

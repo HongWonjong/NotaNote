@@ -51,48 +51,48 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFF2D2B9)),
+              onTap: () => _applyHighlight(Color(0xFFF3D3BA)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFF2D2B9),
+                  color: Color(0xFFF3D3BA),
                   shape: OvalBorder(),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFEEDC9A)),
+              onTap: () => _applyHighlight(Color(0xFFEEDC9B)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFEEDC9A),
+                  color: Color(0xFFEEDC9B),
                   shape: OvalBorder(),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFC6EBBB)),
+              onTap: () => _applyHighlight(Color(0xFFC7EBBC)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFC6EBBB),
+                  color: Color(0xFFC7EBBC),
                   shape: OvalBorder(),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFD7DDF2)),
+              onTap: () => _applyHighlight(Color(0xFFCFE4F5)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFD7DDF2),
+                  color: Color(0xFFCFE4F5),
                   shape: OvalBorder(),
                 ),
               ),
