@@ -47,6 +47,7 @@ dependencies:
   timeago: ^3.7.1
   intl: ^0.20.2
   shared_preferences: ^2.5.3
+  flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +61,7 @@ flutter:
     - assets/
     - assets/images/
     - assets/icons/
+    - assets/terms/terms_of_service.md
   uses-material-design: true
   
   fonts:

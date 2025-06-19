@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/pages/terms_page/terms_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
@@ -60,7 +61,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 // 알림 설정
                 _SettingsTile(
-                  label: '알림',
+                  label: '알림(추후 추가 예정)',
                   iconPath: 'assets/icons/MagnifyingGlass.svg',
                   onTap: () {
                     // 알림 설정 페이지 이동 예정
@@ -68,7 +69,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 // 테마 설정
                 _SettingsTile(
-                  label: '테마 설정',
+                  label: '테마 설정(추후 추가 예정)',
                   iconPath: 'assets/icons/Monitor.svg',
                   onTap: () {
                     // 테마 설정 페이지 이동 예정
@@ -76,7 +77,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 // 암호 설정
                 _SettingsTile(
-                  label: '암호',
+                  label: '암호(추후 추가 예정)',
                   iconPath: 'assets/icons/LockSimple.svg',
                   onTap: () {
                     // 암호 설정 페이지 이동 예정
@@ -87,7 +88,10 @@ class SettingsPage extends ConsumerWidget {
                   label: '이용약관 및 개인정보 정책',
                   iconPath: 'assets/icons/Info.svg',
                   onTap: () {
-                    // 약관 페이지 이동 예정
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TermsPage()),
+                    );
                   },
                 ),
               ],
