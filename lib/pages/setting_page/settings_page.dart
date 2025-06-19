@@ -36,28 +36,27 @@ class SettingsPage extends ConsumerWidget {
               children: [
                 // 프로필 설정
                 _SettingsTile(
-                  label: '프로필(조치중 임시제한)',
+                  label: '프로필',
                   iconPath: 'assets/icons/User.svg',
                   onTap: () async {
                     // userIdProvider 상태를 강제로 최신화 (시뮬레이터 재시작 시에도 대응)
                     final latestUserId = await getCurrentUserId();
                     ref.read(userIdProvider.notifier).state = latestUserId;
 
-                    //최신 userId 기준으로 프로필 페이지 이동 << 현재 버그로 조건 무시
-
-                    // if (latestUserId != null && latestUserId.isNotEmpty) {
-                    //   Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //       builder: (_) => UserProfilePage(userId: latestUserId),
-                    //     ),
-                    //   );
-                    // } else {
-                    //   // 로딩 중 또는 null일 경우 스낵바 표시
-                    //   ScaffoldMessenger.of(context).showSnackBar(
-                    //     const SnackBar(content: Text('사용자 정보를 불러오는 중입니다.')),
-                    //   );
-                    // }
+                    //최신 userId 기준으로 프로필 페이지 이동 << 현재 버그있음.
+                    if (latestUserId != null && latestUserId.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => UserProfilePage(userId: latestUserId),
+                        ),
+                      );
+                    } else {
+                      // 로딩 중 또는 null일 경우 스낵바 표시
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('사용자 정보를 불러오는 중입니다.')),
+                      );
+                    }
                   },
                 ),
                 // 알림 설정
