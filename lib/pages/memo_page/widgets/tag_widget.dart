@@ -141,7 +141,6 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   tag,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
                                     color: Color(0xFF184E40),
                                   ),
                                 ),
