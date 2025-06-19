@@ -35,8 +35,7 @@
     <key>CFBundleName</key>
     <string>nota_note</string>
     <key>UIBackgroundModes</key>
-    <array>
-    </array>
+    <array></array>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
