@@ -36,7 +36,6 @@
     <string>nota_note</string>
     <key>UIBackgroundModes</key>
     <array>
-      <string>audio</string>
     </array>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
