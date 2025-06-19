@@ -16,7 +16,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/services/local_storage_service.dart';
 
-import 'package:timeago/timeago.dart' as timeago;
 
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
