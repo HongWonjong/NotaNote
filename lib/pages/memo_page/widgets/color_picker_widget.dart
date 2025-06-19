@@ -35,36 +35,36 @@ class ColorPickerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDC2727)),
+              onTap: () => _applyColor(Color(0xFFDC2828)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFDC2727),
+                  color: Color(0xFFDC2828),
                   shape: OvalBorder(),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDC7627)),
+              onTap: () => _applyColor(Color(0xFFDC7628)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFDC7627),
+                  color: Color(0xFFDC7628),
                   shape: OvalBorder(),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDCB527)),
+              onTap: () => _applyColor(Color(0xFFDCB528)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFFDCB527),
+                  color: Color(0xFFDCB528),
                   shape: OvalBorder(),
                 ),
               ),
@@ -83,12 +83,12 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFF1434EA)),
+              onTap: () => _applyColor(Color(0xFF1535EA)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: Color(0xFF1434EA),
+                  color: Color(0xFF1535EA),
                   shape: OvalBorder(),
                 ),
               ),
