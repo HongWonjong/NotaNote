@@ -17,6 +17,7 @@ import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:nota_note/services/local_storage_service.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 void main() async {
@@ -84,6 +85,14 @@ void main() async {
       logger.i('로컬 데이터베이스 초기화 완료');
     } catch (e, stack) {
       logger.e('로컬 데이터베이스 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    try {
+      await SharedPreferences.getInstance();
+      logger.i('SharedPreferences 초기화 완료');
+    } catch (e, stack) {
+      logger.e('SharedPreferences 초기화 실패: $e', stackTrace: stack);
       FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
