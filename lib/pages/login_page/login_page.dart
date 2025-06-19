@@ -7,6 +7,9 @@ import 'package:nota_note/viewmodels/auth/apple_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/google_auth_viewmodel.dart';
 import 'package:nota_note/viewmodels/auth/kakao_auth_viewmodel.dart';
 import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
+import 'package:nota_note/providers/onboarding_provider.dart';
+import 'package:logger/logger.dart';
+import 'package:nota_note/pages/main_page/main_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +19,28 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+
+  final logger = Logger();
+
+  Future<void> _navigateAfterLogin() async {
+    final hasCompletedOnBoarding = await ref.read(onBoardingStatusFutureProvider.future);
+    logger.i('로그인 페이지 - 온보딩 완료 여부: $hasCompletedOnBoarding');
+    if (!mounted) return;
+
+    if (hasCompletedOnBoarding) {
+      logger.i('로그인 페이지 - 온보딩 완료, 메인 페이지로 이동');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
+      );
+    } else {
+      logger.i('로그인 페이지 - 온보딩 미완료, 온보딩 페이지로 이동');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OnBoardingPage()),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final kakaoViewModel = ref.read(kakaoAuthViewModelProvider);
@@ -61,11 +86,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         );
                         return;
                       }
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
-                        //MaterialPageRoute(builder: (_) => MyHomePage()),
-                      );
+                      await _navigateAfterLogin();
                     },
                   ),
 
@@ -80,11 +101,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       log('[로그인] 구글 로그인 시도');
                       final user = await googleViewModel.signInWithGoogle();
                       if (user == null || !mounted) return;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
-                        //MaterialPageRoute(builder: (_) => MyHomePage()),
-                      );
+                      await _navigateAfterLogin();
                     },
                   ),
 
@@ -98,11 +115,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       log('[로그인] 카카오 로그인 시도');
                       final user = await kakaoViewModel.signInWithKakao();
                       if (user == null || !mounted) return;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => OnBoardingPage()),
-                        //MaterialPageRoute(builder: (_) => MyHomePage()),
-                      );
+                      await _navigateAfterLogin();
                     },
                   ),
                 ],
