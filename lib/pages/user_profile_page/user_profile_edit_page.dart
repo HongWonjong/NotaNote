@@ -204,10 +204,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                     ],
                   ),
                 ),
+                //수정페이지에선 로그아웃, 탈퇴 없앰.
 
-                const SizedBox(height: 30),
-                Divider(color: Colors.grey[200], thickness: 6),
-                const SizedBox(height: 10),
+                // const SizedBox(height: 30),
+                // Divider(color: Colors.grey[200], thickness: 6),
+                // const SizedBox(height: 10),
 
                 // Padding(
                 //   padding:
