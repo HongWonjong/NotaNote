@@ -88,7 +88,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
 
     double menuWidth = 200.0;
     double menuHeight = 270.0;
-    double left = buttonPosition.dx + buttonSize.width - menuWidth + 20;
+    double left = buttonPosition.dx + buttonSize.width - menuWidth;
     double top = buttonPosition.dy - menuHeight - 10;
 
     if (left + menuWidth > screenWidth) {
