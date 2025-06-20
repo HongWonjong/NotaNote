@@ -76,6 +76,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       _overlayEntry = null;
       _isDropdownOpen = false;
     } else {
+      ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       _overlayEntry = _createOverlayEntry(context);
       Overlay.of(context).insert(_overlayEntry!);
       _isDropdownOpen = true;
@@ -91,6 +92,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       _colorOverlayEntry = null;
       _isColorPickerOpen = false;
     } else {
+      ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       _colorOverlayEntry = _createColorOverlayEntry(context);
       Overlay.of(context).insert(_colorOverlayEntry!);
       _isColorPickerOpen = true;
@@ -106,6 +108,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       _highlightOverlayEntry = null;
       _isHighlightPickerOpen = false;
     } else {
+      ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       _highlightOverlayEntry = _createHighlightOverlayEntry(context);
       Overlay.of(context).insert(_highlightOverlayEntry!);
       _isHighlightPickerOpen = true;
@@ -414,6 +417,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
               onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
                 showModalBottomSheet(
                   context: context,
                   builder: (context) => CameraSelectionDialog(
@@ -430,7 +434,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 'assets/icons/Link.svg',
                 colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
-              onPressed: () {},
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+
+              },
             ),
             CompositedTransformTarget(
               link: _layerLink,
@@ -450,7 +457,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleFormat(Attribute.bold),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleFormat(Attribute.bold);
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -460,7 +470,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleFormat(Attribute.italic),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleFormat(Attribute.italic);
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -470,7 +483,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleFormat(Attribute.underline),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleFormat(Attribute.underline);
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -480,7 +496,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleFormat(Attribute.strikeThrough),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleFormat(Attribute.strikeThrough);
+              },
             ),
             CompositedTransformTarget(
               link: _colorLayerLink,
@@ -516,7 +535,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleAlign('left'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleAlign('left');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -526,7 +548,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleAlign('center'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleAlign('center');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -536,7 +561,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleAlign('right'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleAlign('right');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -546,7 +574,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleAlign('justify'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleAlign('justify');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -556,7 +587,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleList('ordered'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleList('ordered');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -566,7 +600,10 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleList('bullet'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleList('bullet');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
@@ -576,21 +613,29 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   BlendMode.srcIn,
                 ),
               ),
-              onPressed: () => _toggleList('checked'),
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _toggleList('checked');
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
                 'assets/icons/Code.svg',
                 colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
-              onPressed: _insertCodeBlock,
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                _insertCodeBlock();
+              },
             ),
             IconButton(
               icon: SvgPicture.asset(
                 'assets/icons/Table.svg',
                 colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
-              onPressed: () {},
+              onPressed: () {
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+              },
             ),
           ],
         ),
