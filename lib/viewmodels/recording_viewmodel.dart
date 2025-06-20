@@ -11,6 +11,7 @@ import 'package:nota_note/services/whisper_service.dart';
 import 'package:nota_note/services/gpt_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nota_note/services/recording_local_storage_service.dart';
 
 class RecordingInfo {
   final String path;
@@ -71,12 +72,14 @@ class RecordingState {
 }
 
 class RecordingViewModel extends StateNotifier<RecordingState> {
-  RecordingViewModel(this.ref) : super(RecordingState()) {
+  RecordingViewModel(this.ref, this.storageService) : super(RecordingState()) {
     _initRecorder();
     _setupPlayerListener();
+    _loadRecordings();
   }
 
   final Ref ref;
+  final RecordingLocalStorageService storageService;
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   final ap.AudioPlayer _player = ap.AudioPlayer();
   Timer? _timer;
@@ -89,6 +92,15 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       await _requestPermissions();
     } catch (e) {
       print('Recorder initialization failed: $e');
+    }
+  }
+
+  Future<void> _loadRecordings() async {
+    try {
+      final recordings = await storageService.getAllRecordings();
+      state = state.copyWith(recordings: recordings);
+    } catch (e) {
+      print('Load recordings failed: $e');
     }
   }
 
@@ -183,12 +195,13 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         final file = File(path);
         final fileSize = await file.length();
         if (fileSize >= 5000) {
-          final updatedRecordings = List<RecordingInfo>.from(state.recordings)
-            ..add(RecordingInfo(
-              path: path,
-              duration: state.recordingDuration,
-              createdAt: DateTime.now(),
-            ));
+          final recording = RecordingInfo(
+            path: path,
+            duration: state.recordingDuration,
+            createdAt: DateTime.now(),
+          );
+          await storageService.insertRecording(recording);
+          final updatedRecordings = await storageService.getAllRecordings();
           state = state.copyWith(
             isRecording: false,
             recordingDuration: Duration.zero,
@@ -279,7 +292,8 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     try {
       final file = File(path);
       if (await file.exists()) await file.delete();
-      final updatedRecordings = state.recordings.where((r) => r.path != path).toList();
+      await storageService.deleteRecording(path);
+      final updatedRecordings = await storageService.getAllRecordings();
       final updatedTranscriptions = Map<String, String>.from(state.transcriptions)..remove(path);
       state = state.copyWith(
         recordings: updatedRecordings,
@@ -291,6 +305,37 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       );
     } catch (e) {
       print('Delete failed: $e');
+    }
+  }
+
+  Future<void> renameRecording(String path, String newName) async {
+    try {
+      final recording = state.recordings.firstWhere((r) => r.path == path);
+      final newPath = path.replaceFirst(RegExp(r'recording_\d+\.m4a$'), 'recording_$newName.m4a');
+      final file = File(path);
+      if (await file.exists()) {
+        await file.rename(newPath);
+      }
+      final updatedRecording = RecordingInfo(
+        path: newPath,
+        duration: recording.duration,
+        createdAt: recording.createdAt,
+      );
+      await storageService.deleteRecording(path);
+      await storageService.insertRecording(updatedRecording);
+      final updatedRecordings = await storageService.getAllRecordings();
+      final updatedTranscriptions = Map<String, String>.from(state.transcriptions);
+      if (updatedTranscriptions.containsKey(path)) {
+        final transcription = updatedTranscriptions.remove(path);
+        updatedTranscriptions[newPath] = transcription!;
+      }
+      state = state.copyWith(
+        recordings: updatedRecordings,
+        currentlyPlayingPath: state.currentlyPlayingPath == path ? newPath : state.currentlyPlayingPath,
+        transcriptions: updatedTranscriptions,
+      );
+    } catch (e) {
+      print('Rename failed: $e');
     }
   }
 
@@ -351,6 +396,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   }
 }
 
-final recordingViewModelProvider = StateNotifierProvider<RecordingViewModel, RecordingState>(
-      (ref) => RecordingViewModel(ref),
-);
+final recordingLocalStorageServiceProvider = Provider<RecordingLocalStorageService>((ref) {
+  return RecordingLocalStorageService();
+});
+
+final recordingViewModelProvider = StateNotifierProvider<RecordingViewModel, RecordingState>((ref) {
+  final storageService = ref.watch(recordingLocalStorageServiceProvider);
+  return RecordingViewModel(ref, storageService);
+});
