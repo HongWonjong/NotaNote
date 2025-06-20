@@ -117,7 +117,7 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                             color: Colors.grey,
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 20),
                         Expanded(
                           child: Container(
                             width: double.infinity,

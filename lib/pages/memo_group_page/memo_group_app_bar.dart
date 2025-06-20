@@ -139,7 +139,7 @@ class _SearchField extends StatelessWidget {
     return Container(
       height: 38,
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(20),
       ),
       alignment: Alignment.centerLeft,
@@ -155,7 +155,7 @@ class _SearchField extends StatelessWidget {
               cursorColor: Colors.black,
               style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
-                hintText: '제목이나 해시태그를 검색해주세요',
+                hintText: '제목, 해시태그를 검색해주세요',
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
