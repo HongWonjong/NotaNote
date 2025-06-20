@@ -31,6 +31,8 @@ target 'Runner' do
   use_frameworks!
 
   pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '11.13.0'
+   pod 'Firebase/Crashlytics'
+   pod 'Firebase/Analytics' # 선택 사항, 필요 시 유지
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do

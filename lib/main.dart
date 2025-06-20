@@ -14,36 +14,96 @@ import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
-import 'services/local_storage_service.dart';
-
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:nota_note/services/local_storage_service.dart';
+import 'package:logger/logger.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Firebase 초기화
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  // Logger 초기화
+  final logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 2,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
   );
+  logger.i('main() 함수 시작');
 
-  // .env 파일 로드
-  await dotenv.load(fileName: ".env");
-  print('dotenv 로드 완료');
+  // 글로벌 에러 핸들링 설정
+  runZonedGuarded(() async {
+    // Flutter 프레임워크 에러 핸들링
+    FlutterError.onError = (FlutterErrorDetails details) {
+      logger.e('Flutter 프레임워크 에러: ${details.exception}', stackTrace: details.stack);
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    };
 
-  // Kakao SDK 초기화
-  KakaoSdk.init(
-    nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
-    javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
-  );
+    WidgetsFlutterBinding.ensureInitialized();
+    logger.i('WidgetsFlutterBinding 초기화 완료');
 
-  // 로컬 데이터베이스 초기화
-  await LocalStorageService().database;
+    // Firebase 및 Crashlytics 초기화
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      // Crashlytics 활성화
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+      logger.i('Firebase 및 Crashlytics 초기화 완료');
+    } catch (e, stack) {
+      logger.e('Firebase 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
+    }
 
-  // timeago 한글 메시지 등록
-  timeago.setLocaleMessages('ko', timeago.KoMessages());
+    // .env 파일 로드
+    try {
+      await dotenv.load(fileName: ".env");
+      logger.i('dotenv 로드 완료');
+    } catch (e, stack) {
+      logger.e('dotenv 로드 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
 
-  // ProviderScope로 앱 실행
-  runApp(const ProviderScope(child: MyApp()));
+    // Kakao SDK 초기화
+    try {
+      KakaoSdk.init(
+        nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
+        javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
+      );
+      logger.i('Kakao SDK 초기화 완료');
+    } catch (e, stack) {
+      logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // 로컬 데이터베이스 초기화
+    try {
+      await LocalStorageService().database;
+      logger.i('로컬 데이터베이스 초기화 완료');
+    } catch (e, stack) {
+      logger.e('로컬 데이터베이스 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    try {
+      await SharedPreferences.getInstance();
+      logger.i('SharedPreferences 초기화 완료');
+    } catch (e, stack) {
+      logger.e('SharedPreferences 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // ProviderScope로 앱 실행
+    logger.i('앱 실행 시작');
+    runApp(const ProviderScope(child: MyApp()));
+  }, (error, stack) {
+    // 비동기 및 기타 예외 처리
+    logger.e('글로벌 에러: $error', stackTrace: stack);
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
 }
 
 class MyApp extends ConsumerWidget {
@@ -51,8 +111,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 앱 실행 시 userId 초기화 (getCurrentUserId() → userIdProvider로 주입)
+    final logger = Logger();
+    logger.i('MyApp 빌드 시작');
+
     ref.watch(currentUserInitProvider);
+    logger.i('userId 초기화 완료');
 
     return MaterialApp(
       title: 'NotaNote',
@@ -72,90 +135,7 @@ class MyApp extends ConsumerWidget {
         Locale('en', 'US'),
         Locale('ko', 'KR'),
       ],
-      // 최초 진입 SplashPage로 설정
       home: const SplashPage(),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('NotaNote 예시 페이지'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // MainPage로 이동
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainPage()),
-                );
-              },
-              child: const Text('메인 페이지로 이동'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 테스트 데이터로 MemoGroupPage 직접 이동 (이전 코드 용도)
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const MemoGroupPage(
-                            groupId: 'group1',
-                            groupName: '그룹1',
-                          )),
-                );
-              },
-              child: const Text('메모 그룹 페이지로 이동 (테스트)'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // MemoPage로 직접 이동
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MemoPage(
-                      groupId: 'group1',
-                      noteId: 'note1',
-                      pageId: 'page1',
-                    ),
-                  ),
-                );
-              },
-              child: const Text('메모 페이지로 이동'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 온보딩 페이지로 이동
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const OnBoardingPage()),
-                );
-              },
-              child: const Text('온보딩 페이지로 이동'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Firebase 로그아웃 + 로그인 페이지로 이동
-                await FirebaseAuth.instance.signOut();
-                if (!context.mounted) return;
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                );
-              },
-              child: const Text('로그아웃'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

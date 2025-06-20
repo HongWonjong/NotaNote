@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/user_model.dart';
-import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
-import 'package:nota_note/viewmodels/auth/auth_common.dart';
+import 'package:nota_note/theme/colors.dart';
+
 import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
 /// 사용자 프로필 수정 페이지
@@ -76,7 +76,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
               child: Text(
                 '완료',
                 style: PretendardTextStyles.bodyM
-                    .copyWith(color: Colors.grey[700]),
+                    .copyWith(color: AppColors.primary300Main),
               ),
             ),
           ],
@@ -132,7 +132,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                       Text('닉네임',
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Stack(
                         alignment: Alignment.centerRight,
                         children: [
@@ -173,11 +173,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Text('이메일',
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       TextFormField(
                         focusNode: _emailFocusNode,
                         controller: _emailController,
@@ -205,90 +205,47 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
                 Divider(color: Colors.grey[200], thickness: 6),
+                const SizedBox(height: 10),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 18),
-                      Text('계정 전환',
-                          style: PretendardTextStyles.labelM
-                              .copyWith(color: Colors.grey[900])),
-                      const SizedBox(height: 14),
-                    ],
-                  ),
-                ),
-
-                ListTile(
-                  leading: const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Color(0xFFB0E7D8),
-                    child: Icon(Icons.person, color: Colors.white, size: 16),
-                  ),
-                  title: Text(
-                    widget.user.email,
-                    style: PretendardTextStyles.bodyM
-                        .copyWith(color: Colors.grey[900]),
-                  ),
-                ),
-
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: SvgPicture.asset('assets/icons/Plus.svg',
-                        width: 20, height: 20),
-                  ),
-                  title: Text(
-                    '계정 추가하기',
-                    style: PretendardTextStyles.bodyM
-                        .copyWith(color: Colors.grey[900]),
-                  ),
-                ),
-
-                Divider(color: Colors.grey[200], thickness: 6),
-
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextButton(
-                        onPressed: () async {
-                          await signOut();
-                          if (context.mounted) {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const LoginPage()),
-                              (route) => false,
-                            );
-                          }
-                        },
-                        child: Text(
-                          '로그아웃',
-                          style: PretendardTextStyles.bodyM
-                              .copyWith(color: Colors.grey[900]),
-                        ),
-                      ),
-                      const SizedBox(height: 100),
-                      Center(
-                        child: Text(
-                          '계정 탈퇴하기',
-                          style: PretendardTextStyles.bodyS
-                              .copyWith(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Padding(
+                //   padding:
+                //       const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       TextButton(
+                //         onPressed: () async {
+                //           await signOut();
+                //           if (context.mounted) {
+                //             Navigator.pushAndRemoveUntil(
+                //               context,
+                //               MaterialPageRoute(
+                //                   builder: (_) => const LoginPage()),
+                //               (route) => false,
+                //             );
+                //           }
+                //         },
+                //         child: Text(
+                //           '로그아웃',
+                //           style: PretendardTextStyles.bodyM.copyWith(
+                //             color: Colors.grey[900],
+                //           ),
+                //         ),
+                //       ),
+                //       TextButton(
+                //         onPressed: () {},
+                //         child: Text(
+                //           '계정 탈퇴하기',
+                //           style: PretendardTextStyles.bodyM.copyWith(
+                //             color: Colors.red,
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // )
               ],
             ),
           ),

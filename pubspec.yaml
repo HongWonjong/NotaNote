@@ -42,11 +42,12 @@ dependencies:
   firebase_crashlytics: ^4.3.7
   google_sign_in: ^6.3.0
   crypto: ^3.0.6
+  logger: ^2.5.0
   image_picker: ^1.1.2
   sign_in_with_apple: ^7.0.1
-  timeago: ^3.7.1
   intl: ^0.20.2
   shared_preferences: ^2.5.3
+  flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +61,7 @@ flutter:
     - assets/
     - assets/images/
     - assets/icons/
+    - assets/terms/terms_of_service.md
   uses-material-design: true
   
   fonts:

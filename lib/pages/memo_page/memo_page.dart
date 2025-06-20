@@ -162,7 +162,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: SvgPicture.asset(
+            'assets/icons/Arrow.svg',
+            width: 24,
+            height: 24,
+          ),
           onPressed: () async {
             if (mounted) {
               await _saveContentAndTitle();
