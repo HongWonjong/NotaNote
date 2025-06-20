@@ -13,7 +13,7 @@ class RecordPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text('녹음 기록'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, size: 24,),
+          icon: Icon(Icons.arrow_back, size: 24),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -56,6 +56,11 @@ class RecordPage extends ConsumerWidget {
                 itemCount: state.recordings.length,
                 itemBuilder: (context, index) {
                   final recording = state.recordings[index];
+                  final duration = recording.duration;
+                  final timeString = duration.inMinutes < 60
+                      ? '${duration.inMinutes.toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}'
+                      : '${duration.inHours.toString().padLeft(2, '0')}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -72,10 +77,19 @@ class RecordPage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '새 녹음 ${index + 1}',
+                              recording.path.split('/').last.replaceAll('.m4a', ''),
                               style: TextStyle(
                                 color: Color(0xFF191919),
                                 fontSize: 16,
+                                fontFamily: 'Pretendard',
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              timeString,
+                              style: TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 14,
                                 fontFamily: 'Pretendard',
                               ),
                             ),
@@ -103,7 +117,7 @@ class RecordPage extends ConsumerWidget {
                                   topRight: Radius.circular(24),
                                 ),
                               ),
-                              builder: (context) => BottomSheetMenu(),
+                              builder: (context) => BottomSheetMenu(recording: recording),
                             );
                           },
                         ),
