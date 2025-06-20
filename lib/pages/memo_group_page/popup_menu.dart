@@ -185,7 +185,7 @@ Widget build(BuildContext context) {
                         const Spacer(flex: 3),
                         const Text(
                           '정렬 기준',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: TextStyle(fontSize: 18),
                         ),
                         const Spacer(flex: 2),
                         TextButton(
@@ -194,14 +194,13 @@ Widget build(BuildContext context) {
                             Navigator.pop(context);
                           },
                           child: const Text(
-                            '확인',
+                            '완료',
                             style: TextStyle(color: Color(0xFF61CFB2)),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Divider(),
                     ...SortOption.values.map((option) {
                       String label;
                       switch (option) {
@@ -303,20 +302,19 @@ Widget build(BuildContext context) {
                   const Spacer(flex: 3),
                   const Text(
                     '공유',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(fontSize: 18),
                   ),
                   const Spacer(flex: 2),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text(
-                      '확인',
+                      '완료',
                       style: TextStyle(color: Color(0xFF61CFB2)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              const Divider(),
               const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               Expanded(

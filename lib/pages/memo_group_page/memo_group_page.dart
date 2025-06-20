@@ -327,23 +327,13 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                     Container(
   height: 26,
   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-  decoration: ShapeDecoration(
+  decoration: BoxDecoration(
     color: (searchText.isNotEmpty &&
             memo.tags.isNotEmpty &&
             memo.tags[0].contains(searchText))
         ? Color(0xFFB1E7D9)
         : Color(0xFFF0F0F0),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-      side: BorderSide(
-        color: (searchText.isNotEmpty &&
-                memo.tags.isNotEmpty &&
-                memo.tags[0].contains(searchText))
-            ? Color(0xFF61CFB2)
-            : Colors.transparent,
-        width: 1,
-      ),
-    ),
+    borderRadius: BorderRadius.circular(8),
   ),
   child: Row(
     mainAxisSize: MainAxisSize.min,
@@ -450,35 +440,32 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                       const SizedBox(height: 16),
                       if (memo.tags.isNotEmpty)
                         Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: memo.tags.take(3).map((tag) {
-                            final bool isHighlighted = searchText.isNotEmpty && tag.contains(searchText);
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: ShapeDecoration(
-                                color: isHighlighted ? Color(0xFFB1E7D9) : Color(0xFFF0F0F0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: isHighlighted ? Color(0xFF61CFB2) : Colors.transparent,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                tag,
-                                style: TextStyle(
-                                  color: Color(0xFF191919),
-                                  fontSize: 12,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.2,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                        ),
+  spacing: 6,
+  runSpacing: 6,
+  children: memo.tags.take(3).map((tag) {
+    final bool isHighlighted = searchText.isNotEmpty && tag.contains(searchText);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: ShapeDecoration(
+        color: isHighlighted ? Color(0xFFB1E7D9) : Color(0xFFF0F0F0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide.none, // 테두리 제거
+        ),
+      ),
+      child: Text(
+        tag,
+        style: TextStyle(
+          color: Color(0xFF191919),
+          fontSize: 12,
+          fontFamily: 'Pretendard',
+          height: 1.2,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }).toList(),
+),
                       const SizedBox(height: 16),
                       Text(
                         formatTimeAgo(memo.updatedAt),
