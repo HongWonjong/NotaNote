@@ -81,12 +81,14 @@ class RecordingLocalStorageService {
   Future<void> deleteAllRecordings() async {
     final db = await database;
     final recordings = await getAllRecordings();
+    // 실제 경로의 녹음 파일 먼저 삭제
     for (var recording in recordings) {
       final file = File(recording.path);
       if (await file.exists()) {
         await file.delete();
       }
     }
+    // 그 후 데이터베이스 전체 내용 삭제
     await db.delete('recordings');
   }
 }
