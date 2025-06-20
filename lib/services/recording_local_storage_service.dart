@@ -78,4 +78,15 @@ class RecordingLocalStorageService {
       whereArgs: [path],
     );
   }
+  Future<void> deleteAllRecordings() async {
+    final db = await database;
+    final recordings = await getAllRecordings();
+    for (var recording in recordings) {
+      final file = File(recording.path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+    await db.delete('recordings');
+  }
 }
