@@ -9,6 +9,7 @@ import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
+import 'package:nota_note/services/recording_local_storage_service.dart';
 
 /// 사용자 프로필 페이지
 class UserProfilePage extends ConsumerWidget {
@@ -378,6 +379,9 @@ class UserProfilePage extends ConsumerWidget {
       await firestore.collection('users').doc(userId).delete();
 
       // (필요시 기타 데이터도 삭제)
+      // 로컬 녹음 기록 모두 삭제
+      final storageService = RecordingLocalStorageService();
+      await storageService.deleteAllRecordings();
 
       // 로그아웃/정보 초기화
       await signOut();
