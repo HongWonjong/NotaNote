@@ -19,7 +19,9 @@ class RecordingControllerBox extends ConsumerStatefulWidget {
 
 class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox> {
   bool _isMenuVisible = false;
+  bool _isLanguageMenuVisible = false;
   OverlayEntry? _menuOverlayEntry;
+  OverlayEntry? _languageMenuOverlayEntry;
   final LayerLink _layerLink = LayerLink();
   final GlobalKey _languageButtonKey = GlobalKey();
 
@@ -47,6 +49,9 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
 
   void _toggleMenu(BuildContext context) {
     if (_isMenuVisible) {
+      _languageMenuOverlayEntry?.remove();
+      _languageMenuOverlayEntry = null;
+      _isLanguageMenuVisible = false;
       _menuOverlayEntry?.remove();
       _menuOverlayEntry = null;
       _isMenuVisible = false;
@@ -61,6 +66,19 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     }
   }
 
+  void _toggleLanguageMenu(BuildContext context) {
+    if (_isLanguageMenuVisible) {
+      _languageMenuOverlayEntry?.remove();
+      _languageMenuOverlayEntry = null;
+      _isLanguageMenuVisible = false;
+    } else {
+      _languageMenuOverlayEntry = _createLanguageMenuOverlayEntry(context);
+      Overlay.of(context).insert(_languageMenuOverlayEntry!);
+      _isLanguageMenuVisible = true;
+    }
+    setState(() {});
+  }
+
   OverlayEntry _createMenuOverlayEntry(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -70,7 +88,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
 
     double menuWidth = 200.0;
     double menuHeight = 270.0;
-    double left = buttonPosition.dx + buttonSize.width - menuWidth + 20;
+    double left = buttonPosition.dx + buttonSize.width - menuWidth;
     double top = buttonPosition.dy - menuHeight - 10;
 
     if (left + menuWidth > screenWidth) {
@@ -106,6 +124,89 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     );
   }
 
+  OverlayEntry _createLanguageMenuOverlayEntry(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final RenderBox? buttonBox = _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    final buttonSize = buttonBox?.size ?? Size.zero;
+
+    double menuWidth = buttonSize.width; // 버튼 너비에 맞춤
+    double maxMenuHeight = 120.0; // 높이 증가
+    double left = buttonPosition.dx;
+    double top = buttonPosition.dy + buttonSize.height + 4;
+
+    // 화면 하단 오버플로우 방지: 하단 공간 부족 시 위로 표시
+    if (top + maxMenuHeight > screenHeight - 8) {
+      top = buttonPosition.dy - maxMenuHeight - 4;
+      if (top < 8) {
+        top = 8; // 상단 경계 유지
+      }
+    }
+
+    if (left + menuWidth > screenWidth) {
+      left = screenWidth - menuWidth - 8;
+    }
+    if (left < 8) {
+      left = 8;
+    }
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        left: left,
+        top: top,
+        width: menuWidth,
+        child: Material(
+          borderRadius: BorderRadius.circular(8.0),
+          elevation: 2.0,
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: maxMenuHeight,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(color: Colors.grey[400]!, width: 1.0),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLanguageItem(context, '한국어', 'ko'),
+                  _buildLanguageItem(context, '영어', 'en'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageItem(BuildContext context, String display, String code) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(languageProvider.notifier).state = code;
+        _toggleLanguageMenu(context);
+        if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
+          widget.focusNode!.requestFocus();
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+        child: Text(
+          display,
+          style: TextStyle(
+            color: Color(0xFF191919),
+            fontSize: 14,
+            fontFamily: 'Pretendard',
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMenuItems(BuildContext context) {
     final recordingState = ref.watch(recordingViewModelProvider);
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
@@ -114,80 +215,62 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
-          child: Row(
-            children: [
-              SvgPicture.asset(
-                'assets/icons/Globe.svg',
-                width: 20,
-                height: 20,
-              ),
-              SizedBox(width: 8.0),
-              Text(
-                '언어',
-                style: TextStyle(
-                  color: Color(0xFF191919),
-                  fontSize: 14,
-                  fontFamily: 'Pretendard',
-                  height: 0.11,
+        GestureDetector(
+          key: _languageButtonKey,
+          onTap: () {
+            _toggleLanguageMenu(context);
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/Globe.svg',
+                  width: 20,
+                  height: 20,
                 ),
-              ),
-              SizedBox(width: 8.0),
-              Expanded(
-                child: Container(
-                  height: 32,
-                  padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
-                  decoration: ShapeDecoration(
-                    color: Color(0xFFF0F0F0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                SizedBox(width: 8.0),
+                Text(
+                  '언어',
+                  style: TextStyle(
+                    color: Color(0xFF191919),
+                    fontSize: 14,
+                    fontFamily: 'Pretendard',
+                    height: 0.11,
                   ),
-                  child: DropdownButton<String>(
-                    value: selectedLanguageCode,
-                    onChanged: (value) {
-                      ref.read(languageProvider.notifier).state = value!;
-                      if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
-                        widget.focusNode!.requestFocus();
-                      }
-                      _toggleMenu(context);
-                    },
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: 'ko',
-                        child: Text(
-                          '한국어',
-                          style: TextStyle(
-                            color: Color(0xFF191919),
-                            fontSize: 14,
-                            fontFamily: 'Pretendard',
-                            height: 0.11,
-                          ),
-                        ),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'en',
-                        child: Text(
-                          '영어',
-                          style: TextStyle(
-                            color: Color(0xFF191919),
-                            fontSize: 14,
-                            fontFamily: 'Pretendard',
-                            height: 0.11,
-                          ),
-                        ),
-                      ),
-                    ],
-                    underline: SizedBox(),
-                    icon: SvgPicture.asset(
-                      'assets/icons/DropDownArrow.svg',
-                      width: 20,
-                      height: 20,
+                ),
+                SizedBox(width: 8.0),
+                Expanded(
+                  child: Container(
+                    height: 32,
+                    padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
+                    decoration: ShapeDecoration(
+                      color: Color(0xFFF0F0F0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    isExpanded: true,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _mapCodeToLanguage(selectedLanguageCode),
+                          style: TextStyle(
+                            color: Color(0xFF191919),
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            height: 0.11,
+                          ),
+                        ),
+                        SvgPicture.asset(
+                          'assets/icons/DropDownArrow.svg',
+                          width: 20,
+                          height: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (recordingState.recordings.isNotEmpty) ...[
@@ -251,81 +334,6 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     );
   }
 
-  void _showLanguageMenu(BuildContext context) {
-    final languages = [
-      {'display': '한국어', 'code': 'ko'},
-      {'display': '영어', 'code': 'en'},
-    ];
-    final RenderBox? buttonBox = _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
-    final buttonSize = buttonBox?.size ?? Size.zero;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    double topPosition = buttonPosition.dy - 120;
-    if (topPosition < 0) {
-      topPosition = 8;
-    }
-
-    double leftPosition = buttonPosition.dx;
-    if (leftPosition + 200 > screenWidth) {
-      leftPosition = screenWidth - 200 - 8;
-    }
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: '',
-      pageBuilder: (context, _, __) {
-        return Stack(
-          children: [
-            Positioned(
-              left: leftPosition,
-              top: topPosition,
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  width: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[400]!),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: languages.map((language) {
-                      return GestureDetector(
-                        onTap: () {
-                          ref.read(languageProvider.notifier).state = language['code']!;
-                          if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
-                            widget.focusNode!.requestFocus();
-                          }
-                          Navigator.pop(context);
-                          _toggleMenu(context);
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                          child: Text(
-                            language['display']!,
-                            style: TextStyle(
-                              color: Color(0xFF191919),
-                              fontSize: 14,
-                              fontFamily: 'Pretendard',
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildMenuItem(
       BuildContext context, {
         required String svgPath,
@@ -378,6 +386,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
   @override
   void dispose() {
     _menuOverlayEntry?.remove();
+    _languageMenuOverlayEntry?.remove();
     super.dispose();
   }
 
