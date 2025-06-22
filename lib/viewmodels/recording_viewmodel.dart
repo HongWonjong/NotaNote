@@ -106,7 +106,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           await storageService.deleteRecording(recording.path);
         }
       }
-      print('Loaded recordings: ${validRecordings.map((r) => r.createdAt.toIso8601String()).toList()}');
       state = state.copyWith(recordings: validRecordings);
     } catch (e) {
       print('Load recordings failed: $e');
@@ -115,20 +114,17 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   void _setupPlayerListener() {
     _player.onPlayerComplete.listen((event) async {
+      print('Player completed: path=${state.currentlyPlayingPath}');
       await _resetPlayer();
     });
     _player.onPlayerStateChanged.listen((playerState) {
+      print('Player state changed: $playerState, currentPath=${state.currentlyPlayingPath}');
       if (playerState == ap.PlayerState.playing) {
         state = state.copyWith(isPaused: false, isCompleted: false);
       } else if (playerState == ap.PlayerState.paused) {
         state = state.copyWith(isPaused: true);
-      } else if (playerState == ap.PlayerState.stopped || playerState == ap.PlayerState.completed) {
-        state = state.copyWith(
-          currentlyPlayingPath: null,
-          currentPosition: Duration.zero,
-          isPaused: false,
-          isCompleted: true,
-        );
+      } else if (playerState == ap.PlayerState.completed) {
+        state = state.copyWith(isCompleted: true, isPaused: false);
       }
     });
     _player.onPositionChanged.listen((position) {
@@ -138,17 +134,21 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> _resetPlayer() async {
     try {
-      await _player.stop();
-      await _player.seek(Duration.zero);
+      if (_player.state != ap.PlayerState.stopped) {
+        await _player.stop();
+      }
+      await _player.release();
+      print('Player reset: clearing source and state, currentPath=${state.currentlyPlayingPath}');
+      state = state.copyWith(
+        currentlyPlayingPath: null,
+        currentPosition: Duration.zero,
+        isPaused: false,
+        isCompleted: false,
+      );
+      print('Player state updated: isPlaying=${state.isPlaying}, currentPath=${state.currentlyPlayingPath}');
     } catch (e) {
       print('Player reset failed: $e');
     }
-    state = state.copyWith(
-      currentlyPlayingPath: null,
-      currentPosition: Duration.zero,
-      isPaused: false,
-      isCompleted: true,
-    );
   }
 
   Future<void> _requestPermissions() async {
@@ -209,7 +209,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           );
           await storageService.insertRecording(recording);
           final updatedRecordings = await storageService.getAllRecordings();
-          print('Updated recordings after stop: ${updatedRecordings.map((r) => r.createdAt.toIso8601String()).toList()}');
           state = state.copyWith(
             isRecording: false,
             recordingDuration: Duration.zero,
@@ -245,13 +244,15 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         return;
       }
 
-      if (state.currentlyPlayingPath == path && state.isPaused) {
-        await _player.resume();
-        return;
-      }
-
       if (state.currentlyPlayingPath != null) {
         await _resetPlayer();
+      }
+
+      if (state.currentlyPlayingPath == path && state.isPaused) {
+        await _player.resume();
+        state = state.copyWith(isPaused: false, isCompleted: false);
+        print('Resuming recording: $path');
+        return;
       }
 
       state = state.copyWith(
@@ -260,7 +261,9 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         isPaused: false,
         isCompleted: false,
       );
+      await _player.setSource(ap.DeviceFileSource(path));
       await _player.play(ap.DeviceFileSource(path), volume: 1.0);
+      print('Playing recording: $path');
     } catch (e) {
       print('Playback failed: $e');
       await _resetPlayer();
@@ -271,6 +274,8 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     try {
       if (state.isPlaying) {
         await _player.pause();
+        state = state.copyWith(isPaused: true);
+        print('Playback paused');
       }
     } catch (e) {
       print('Pause failed: $e');
@@ -280,12 +285,14 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> stopPlayback() async {
     await _resetPlayer();
+    print('Playback stopped');
   }
 
   Future<void> seekTo(Duration position) async {
     try {
       await _player.seek(position);
       state = state.copyWith(currentPosition: position);
+      print('Seek to: $position');
     } catch (e) {
       print('Seek failed: $e');
     }

@@ -16,9 +16,11 @@ class PlaybackControls extends ConsumerWidget {
     final state = ref.watch(recordingViewModelProvider);
     final remaining = duration - position;
     final isPlaying = state.isPlaying && state.currentlyPlayingPath == recording.path;
+    final showPlayIcon = !isPlaying || state.isCompleted;
 
     print('PlaybackControls build: path=${recording.path}, isPlaying=$isPlaying, '
-        'position=$position, duration=$duration, remaining=$remaining');
+        'showPlayIcon=$showPlayIcon, position=$position, duration=$duration, '
+        'remaining=$remaining, isCompleted=${state.isCompleted}');
 
     return Container(
       height: 90,
@@ -103,22 +105,20 @@ class PlaybackControls extends ConsumerWidget {
                 onPressed: () {
                   final newPosition = position - const Duration(seconds: 10);
                   viewModel.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
-                  if (isPlaying) {
-                    viewModel.playRecording(recording.path);
-                  }
                 },
               ),
               const SizedBox(width: 48),
               IconButton(
                 padding: EdgeInsets.zero,
                 icon: SvgPicture.asset(
-                  isPlaying ? 'assets/icons/Pause.svg' : 'assets/icons/RecordPlay.svg',
+                  showPlayIcon ? 'assets/icons/RecordPlay.svg' : 'assets/icons/Pause.svg',
                   color: Color(0xFF4C4C4C),
                   width: 18,
                   height: 18,
                 ),
                 onPressed: () {
-                  print('Play/Pause button pressed: path=${recording.path}, isPlaying=$isPlaying');
+                  print('Play/Pause button pressed: path=${recording.path}, isPlaying=$isPlaying, '
+                      'showPlayIcon=$showPlayIcon, isCompleted=${state.isCompleted}');
                   if (isPlaying) {
                     viewModel.pausePlayback();
                   } else {
@@ -138,9 +138,6 @@ class PlaybackControls extends ConsumerWidget {
                 onPressed: () {
                   final newPosition = position + const Duration(seconds: 10);
                   viewModel.seekTo(newPosition < duration ? newPosition : duration);
-                  if (isPlaying) {
-                    viewModel.playRecording(recording.path);
-                  }
                 },
               ),
             ],
