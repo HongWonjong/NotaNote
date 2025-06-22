@@ -3,7 +3,6 @@
 NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양한 장점을 섞어 만든 메모장 앱입니다.
 
 
-두 번째 release용 브랜치입니다. 
 # NotaNote 실제 사용 스크린샷
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
