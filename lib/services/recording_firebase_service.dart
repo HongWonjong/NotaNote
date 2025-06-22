@@ -78,6 +78,30 @@ class RecordingFirebaseService {
     }
   }
 
+  Future<List<RecordingInfo>> getRecordingsSince(String userId, DateTime? lastSyncedAt) async {
+    try {
+      final query = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('recordings')
+          .orderBy('createdAt', descending: true);
+      final snapshot = lastSyncedAt != null
+          ? await query.where('createdAt', isGreaterThan: lastSyncedAt.toIso8601String()).get()
+          : await query.get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return RecordingInfo(
+          path: data['path'] as String,
+          duration: Duration(seconds: data['duration'] as int),
+          createdAt: DateTime.parse(data['createdAt'] as String),
+        );
+      }).toList();
+    } catch (e) {
+      print('Get recordings since failed: $e');
+      return [];
+    }
+  }
+
   Future<RecordingInfo?> getRecordingByPath(String userId, String filePath) async {
     try {
       final doc = await _firestore

@@ -28,6 +28,12 @@ class RecordingLocalStorageService {
             createdAt TEXT
           )
         ''');
+        await db.execute('''
+          CREATE TABLE sync_info (
+            userId TEXT PRIMARY KEY,
+            lastSyncedAt TEXT
+          )
+        ''');
       },
     );
   }
@@ -68,6 +74,28 @@ class RecordingLocalStorageService {
       }).toList();
     } catch (e) {
       print('Get all recordings failed: $e');
+      return [];
+    }
+  }
+
+  Future<List<RecordingInfo>> getRecordingsSince(String userId, DateTime? lastSyncedAt) async {
+    try {
+      final db = await database;
+      final maps = await db.query(
+        'recordings',
+        where: 'userId = ?' + (lastSyncedAt != null ? ' AND createdAt > ?' : ''),
+        whereArgs: lastSyncedAt != null ? [userId, lastSyncedAt.toIso8601String()] : [userId],
+        orderBy: 'createdAt DESC',
+      );
+      return maps.map((map) {
+        return RecordingInfo(
+          path: map['path'] as String,
+          duration: Duration(seconds: map['duration'] as int),
+          createdAt: DateTime.parse(map['createdAt'] as String),
+        );
+      }).toList();
+    } catch (e) {
+      print('Get recordings since failed: $e');
       return [];
     }
   }
@@ -141,6 +169,38 @@ class RecordingLocalStorageService {
       );
     } catch (e) {
       print('Delete all recordings failed: $e');
+    }
+  }
+
+  Future<DateTime?> getLastSyncedAt(String userId) async {
+    try {
+      final db = await database;
+      final maps = await db.query(
+        'sync_info',
+        where: 'userId = ?',
+        whereArgs: [userId],
+      );
+      if (maps.isEmpty) return null;
+      return DateTime.parse(maps[0]['lastSyncedAt'] as String);
+    } catch (e) {
+      print('Get last synced at failed: $e');
+      return null;
+    }
+  }
+
+  Future<void> setLastSyncedAt(String userId, DateTime time) async {
+    try {
+      final db = await database;
+      await db.insert(
+        'sync_info',
+        {
+          'userId': userId,
+          'lastSyncedAt': time.toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      print('Set last synced at failed: $e');
     }
   }
 }
