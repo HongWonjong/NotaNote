@@ -23,6 +23,7 @@ class RecordingLocalStorageService {
         await db.execute('''
           CREATE TABLE recordings (
             path TEXT PRIMARY KEY,
+            userId TEXT,
             duration INTEGER,
             createdAt TEXT
           )
@@ -31,13 +32,14 @@ class RecordingLocalStorageService {
     );
   }
 
-  Future<void> insertRecording(RecordingInfo recording) async {
+  Future<void> insertRecording(String userId, RecordingInfo recording) async {
     try {
       final db = await database;
       await db.insert(
         'recordings',
         {
           'path': recording.path,
+          'userId': userId,
           'duration': recording.duration.inSeconds,
           'createdAt': recording.createdAt.toIso8601String(),
         },
@@ -48,10 +50,15 @@ class RecordingLocalStorageService {
     }
   }
 
-  Future<List<RecordingInfo>> getAllRecordings() async {
+  Future<List<RecordingInfo>> getAllRecordings(String userId) async {
     try {
       final db = await database;
-      final maps = await db.query('recordings', orderBy: 'createdAt DESC');
+      final maps = await db.query(
+        'recordings',
+        where: 'userId = ?',
+        whereArgs: [userId],
+        orderBy: 'createdAt DESC',
+      );
       return maps.map((map) {
         return RecordingInfo(
           path: map['path'] as String,
@@ -65,13 +72,13 @@ class RecordingLocalStorageService {
     }
   }
 
-  Future<RecordingInfo?> getRecordingByPath(String path) async {
+  Future<RecordingInfo?> getRecordingByPath(String userId, String path) async {
     try {
       final db = await database;
       final maps = await db.query(
         'recordings',
-        where: 'path = ?',
-        whereArgs: [path],
+        where: 'userId = ? AND path = ?',
+        whereArgs: [userId, path],
       );
       if (maps.isEmpty) return null;
       return RecordingInfo(
@@ -85,48 +92,53 @@ class RecordingLocalStorageService {
     }
   }
 
-  Future<void> updateRecording(RecordingInfo recording) async {
+  Future<void> updateRecording(String userId, RecordingInfo recording) async {
     try {
       final db = await database;
       await db.update(
         'recordings',
         {
           'path': recording.path,
+          'userId': userId,
           'duration': recording.duration.inSeconds,
           'createdAt': recording.createdAt.toIso8601String(),
         },
-        where: 'path = ?',
-        whereArgs: [recording.path],
+        where: 'userId = ? AND path = ?',
+        whereArgs: [userId, recording.path],
       );
     } catch (e) {
       print('Update recording failed: $e');
     }
   }
 
-  Future<void> deleteRecording(String path) async {
+  Future<void> deleteRecording(String userId, String path) async {
     try {
       final db = await database;
       await db.delete(
         'recordings',
-        where: 'path = ?',
-        whereArgs: [path],
+        where: 'userId = ? AND path = ?',
+        whereArgs: [userId, path],
       );
     } catch (e) {
       print('Delete recording failed: $e');
     }
   }
 
-  Future<void> deleteAllRecordings() async {
+  Future<void> deleteAllRecordings(String userId) async {
     try {
       final db = await database;
-      final recordings = await getAllRecordings();
+      final recordings = await getAllRecordings(userId);
       for (var recording in recordings) {
         final file = File(recording.path);
         if (await file.exists()) {
           await file.delete();
         }
       }
-      await db.delete('recordings');
+      await db.delete(
+        'recordings',
+        where: 'userId = ?',
+        whereArgs: [userId],
+      );
     } catch (e) {
       print('Delete all recordings failed: $e');
     }

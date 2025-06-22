@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audioplayers/audioplayers.dart' as ap;
 import 'package:flutter_sound/flutter_sound.dart';
@@ -7,11 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:nota_note/services/whisper_service.dart';
+import 'package:flutter/services.dart';
 import 'package:nota_note/services/gpt_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter/services.dart';
 import 'package:nota_note/services/recording_local_storage_service.dart';
+import 'package:nota_note/services/recording_firebase_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RecordingInfo {
   final String path;
@@ -34,6 +37,8 @@ class RecordingState {
   final Duration currentPosition;
   final bool isPaused;
   final bool isCompleted;
+  final bool isSyncing;
+  final String syncMessage;
 
   RecordingState({
     this.isRecording = false,
@@ -44,6 +49,8 @@ class RecordingState {
     this.currentPosition = Duration.zero,
     this.isPaused = false,
     this.isCompleted = false,
+    this.isSyncing = false,
+    this.syncMessage = '',
   });
 
   bool get isPlaying => currentlyPlayingPath != null && !isPaused && !isCompleted;
@@ -57,6 +64,8 @@ class RecordingState {
     Duration? currentPosition,
     bool? isPaused,
     bool? isCompleted,
+    bool? isSyncing,
+    String? syncMessage,
   }) {
     return RecordingState(
       isRecording: isRecording ?? this.isRecording,
@@ -67,23 +76,35 @@ class RecordingState {
       currentPosition: currentPosition ?? this.currentPosition,
       isPaused: isPaused ?? this.isPaused,
       isCompleted: isCompleted ?? this.isCompleted,
+      isSyncing: isSyncing ?? this.isSyncing,
+      syncMessage: syncMessage ?? this.syncMessage,
     );
   }
 }
 
 class RecordingViewModel extends StateNotifier<RecordingState> {
-  RecordingViewModel(this.ref, this.storageService) : super(RecordingState()) {
+  RecordingViewModel(this.ref, this.localStorageService, this.firebaseService) : super(RecordingState()) {
     _initRecorder();
     _setupPlayerListener();
     _loadRecordings();
   }
 
   final Ref ref;
-  final RecordingLocalStorageService storageService;
+  final RecordingLocalStorageService localStorageService;
+  final RecordingFirebaseService firebaseService;
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   final ap.AudioPlayer _player = ap.AudioPlayer();
   Timer? _timer;
   String? _currentRecordingPath;
+
+  Future<String?> get _userId async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
+  }
+
+  String _getFileName(String filePath) {
+    return filePath.split('/').last;
+  }
 
   Future<void> _initRecorder() async {
     try {
@@ -95,25 +116,120 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     }
   }
 
-  Future<void> _loadRecordings() async {
+  Future<void> syncRecordingsWithLoading() async {
+    state = state.copyWith(isSyncing: true, syncMessage: '데이터 정합성 확인 중...');
+    await Future.delayed(Duration(milliseconds: 500));
+    await _syncRecordings();
+    state = state.copyWith(isSyncing: false, syncMessage: '');
+  }
+
+  Future<void> _syncRecordings() async {
     try {
-      final recordings = await storageService.getAllRecordings();
-      final validRecordings = <RecordingInfo>[];
-      for (var recording in recordings) {
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in, skipping sync');
+        return;
+      }
+
+      state = state.copyWith(syncMessage: '로컬 데이터 정리 중...');
+      final localRecordings = await localStorageService.getAllRecordings(userId);
+      final validLocalRecordings = <RecordingInfo>[];
+      for (var recording in localRecordings) {
         if (await File(recording.path).exists()) {
-          validRecordings.add(recording);
+          validLocalRecordings.add(recording);
         } else {
-          await storageService.deleteRecording(recording.path);
+          await localStorageService.deleteRecording(userId, recording.path);
+          print('Deleted invalid local recording: ${recording.path}');
         }
       }
-      state = state.copyWith(recordings: validRecordings);
+
+      state = state.copyWith(syncMessage: '클라우드 데이터 가져오는 중...');
+      final firebaseRecordings = await firebaseService.getAllRecordings(userId);
+
+      state = state.copyWith(syncMessage: '로컬 녹음 파일 클라우드에 동기화 중...');
+      for (var localRecording in validLocalRecordings) {
+        final existsInFirebase = firebaseRecordings.any(
+              (fr) => _getFileName(fr.path) == _getFileName(localRecording.path),
+        );
+        if (!existsInFirebase) {
+          await firebaseService.insertRecording(userId, localRecording);
+          print('Uploaded local recording to Firebase: ${localRecording.path}');
+        }
+      }
+
+      state = state.copyWith(syncMessage: '클라우드 녹음 파일 로컬에 동기화 중...');
+      for (var firebaseRecording in firebaseRecordings) {
+        final existsInLocal = validLocalRecordings.any(
+              (lr) => _getFileName(lr.path) == _getFileName(firebaseRecording.path),
+        );
+        if (!existsInLocal) {
+          final downloadUrl = await firebaseService.getDownloadUrl(userId, firebaseRecording.path);
+          if (downloadUrl != null) {
+            final localPath = await firebaseService.downloadRecording(userId, firebaseRecording.path);
+            if (localPath != null) {
+              final recording = RecordingInfo(
+                path: localPath,
+                duration: firebaseRecording.duration,
+                createdAt: firebaseRecording.createdAt,
+              );
+              await localStorageService.insertRecording(userId, recording);
+              print('Downloaded Firebase recording to local: ${firebaseRecording.path}');
+            } else {
+              await firebaseService.deleteRecording(userId, firebaseRecording.path);
+              print('Deleted invalid Firebase recording: ${firebaseRecording.path}');
+            }
+          } else {
+            await firebaseService.deleteRecording(userId, firebaseRecording.path);
+            print('Deleted invalid Firebase recording (no download URL): ${firebaseRecording.path}');
+          }
+        }
+      }
+
+      state = state.copyWith(syncMessage: '녹음 목록 최신화 중...');
+      final updatedRecordings = await _loadRecordings();
+      state = state.copyWith(recordings: updatedRecordings);
+    } catch (e) {
+      print('Sync recordings failed: $e');
+      state = state.copyWith(isSyncing: false, syncMessage: '');
+    }
+  }
+
+  Future<List<RecordingInfo>> _loadRecordings() async {
+    try {
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in, loading local recordings only');
+        return [];
+      }
+
+      final localRecordings = await localStorageService.getAllRecordings(userId);
+      final validLocalRecordings = <RecordingInfo>[];
+      for (var recording in localRecordings) {
+        if (await File(recording.path).exists()) {
+          validLocalRecordings.add(recording);
+        } else {
+          await localStorageService.deleteRecording(userId, recording.path);
+        }
+      }
+
+      final firebaseRecordings = await firebaseService.getAllRecordings(userId);
+
+      final allRecordings = [...validLocalRecordings, ...firebaseRecordings];
+      final uniqueRecordings = <String, RecordingInfo>{};
+      for (var recording in allRecordings) {
+        uniqueRecordings[_getFileName(recording.path)] = recording;
+      }
+
+      return uniqueRecordings.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } catch (e) {
       print('Load recordings failed: $e');
+      return [];
     }
   }
 
   void _setupPlayerListener() {
-    _player.onPlayerComplete.listen((event) async {
+    _player.onPlayerComplete.listen((event) {
       print('Player completed: path=${state.currentlyPlayingPath}');
       state = state.copyWith(
         isCompleted: true,
@@ -212,13 +328,13 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
             duration: state.recordingDuration,
             createdAt: DateTime.now(),
           );
-          await storageService.insertRecording(recording);
-          final updatedRecordings = await storageService.getAllRecordings();
-          state = state.copyWith(
-            isRecording: false,
-            recordingDuration: Duration.zero,
-            recordings: updatedRecordings,
-          );
+          final userId = await _userId;
+          if (userId != null) {
+            await localStorageService.insertRecording(userId, recording);
+            await firebaseService.insertRecording(userId, recording);
+          }
+          final updatedRecordings = await _loadRecordings();
+          state = state.copyWith(recordings: updatedRecordings);
         } else {
           print('Recording file does not exist: $path');
         }
@@ -235,16 +351,45 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> playRecording(String path, {bool resumeIfPaused = false}) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
+      String? playbackPath = path;
+      if (localRecording == null && firebaseRecording != null) {
+        playbackPath = await firebaseService.downloadRecording(userId, path);
+        if (playbackPath == null) {
+          final downloadUrl = await firebaseService.getDownloadUrl(userId, path);
+          if (downloadUrl != null) {
+            playbackPath = downloadUrl;
+          }
+        }
+      }
+
+      if (playbackPath == null) {
+        print('No valid playback path for: $path');
+        await localStorageService.deleteRecording(userId, path);
+        await firebaseService.deleteRecording(userId, path);
+        final updatedRecordings = await _loadRecordings();
+        state = state.copyWith(recordings: updatedRecordings);
+        return;
+      }
+
       final file = File(path);
-      if (!await file.exists()) {
+      if (!await file.exists() && playbackPath == path) {
         print('File does not exist: $path');
-        await storageService.deleteRecording(path);
-        final updatedRecordings = await storageService.getAllRecordings();
+        await localStorageService.deleteRecording(userId, path);
+        await firebaseService.deleteRecording(userId, path);
+        final updatedRecordings = await _loadRecordings();
         state = state.copyWith(recordings: updatedRecordings);
         return;
       }
@@ -266,8 +411,8 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         isPaused: false,
         isCompleted: false,
       );
-      await _player.setSource(ap.DeviceFileSource(path));
-      await _player.play(ap.DeviceFileSource(path), volume: 1.0);
+      await _player.setSource(ap.DeviceFileSource(playbackPath));
+      await _player.play(ap.DeviceFileSource(playbackPath), volume: 1.0);
       print('Playing recording: $path');
     } catch (e) {
       print('Playback failed: $e');
@@ -312,20 +457,49 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> downloadRecording(String path) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
-      final file = File(path);
-      if (!await file.exists()) {
-        print('File does not exist: $path');
-        await storageService.deleteRecording(path);
-        final updatedRecordings = await storageService.getAllRecordings();
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
+      String? sharePath = path;
+      if (localRecording == null && firebaseRecording != null) {
+        sharePath = await firebaseService.downloadRecording(userId, path);
+        if (sharePath == null) {
+          final downloadUrl = await firebaseService.getDownloadUrl(userId, path);
+          if (downloadUrl != null) {
+            sharePath = downloadUrl;
+          }
+        }
+      }
+
+      if (sharePath == null) {
+        print('No valid share path for: $path');
+        await localStorageService.deleteRecording(userId, path);
+        await firebaseService.deleteRecording(userId, path);
+        final updatedRecordings = await _loadRecordings();
         state = state.copyWith(recordings: updatedRecordings);
         return;
       }
-      await Share.shareXFiles([XFile(path)], text: '녹음 파일 다운로드');
+
+      final file = File(path);
+      if (!await file.exists() && sharePath == path) {
+        print('File does not exist: $path');
+        await localStorageService.deleteRecording(userId, path);
+        await firebaseService.deleteRecording(userId, path);
+        final updatedRecordings = await _loadRecordings();
+        state = state.copyWith(recordings: updatedRecordings);
+        return;
+      }
+      await Share.shareXFiles([XFile(sharePath)], text: '녹음 파일 다운로드');
     } catch (e) {
       print('Download failed: $e');
     }
@@ -333,18 +507,31 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> deleteRecording(String path) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
-      final file = File(path);
-      if (await file.exists()) await file.delete();
-      await storageService.deleteRecording(path);
-      final updatedRecordings = await storageService.getAllRecordings();
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
+      if (localRecording != null) {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+        await localStorageService.deleteRecording(userId, path);
+      }
+      if (firebaseRecording != null) {
+        await firebaseService.deleteRecording(userId, path);
+      }
+
       final updatedTranscriptions = Map<String, String>.from(state.transcriptions)..remove(path);
       state = state.copyWith(
-        recordings: updatedRecordings,
+        recordings: state.recordings.where((r) => r.path != path).toList(),
         currentlyPlayingPath: state.currentlyPlayingPath == path ? null : state.currentlyPlayingPath,
         transcriptions: updatedTranscriptions,
         currentPosition: Duration.zero,
@@ -358,32 +545,54 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> renameRecording(String path, String newName) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
       final directory = await getApplicationDocumentsDirectory();
       final newPath = '${directory.path}/recording_$newName.m4a';
-      final file = File(path);
-      if (await file.exists()) {
-        await file.rename(newPath);
+      RecordingInfo? updatedRecording;
+
+      if (localRecording != null) {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.rename(newPath);
+        }
+        updatedRecording = RecordingInfo(
+          path: newPath,
+          duration: localRecording.duration,
+          createdAt: localRecording.createdAt,
+        );
+        await localStorageService.deleteRecording(userId, path);
+        await localStorageService.insertRecording(userId, updatedRecording);
       }
-      final updatedRecording = RecordingInfo(
-        path: newPath,
-        duration: recording.duration,
-        createdAt: recording.createdAt,
-      );
-      await storageService.deleteRecording(path);
-      await storageService.insertRecording(updatedRecording);
-      final updatedRecordings = await storageService.getAllRecordings();
+
+      if (firebaseRecording != null) {
+        updatedRecording = RecordingInfo(
+          path: newPath,
+          duration: firebaseRecording.duration,
+          createdAt: firebaseRecording.createdAt,
+        );
+        await firebaseService.deleteRecording(userId, path);
+        await firebaseService.insertRecording(userId, updatedRecording);
+      }
+
       final updatedTranscriptions = Map<String, String>.from(state.transcriptions);
       if (updatedTranscriptions.containsKey(path)) {
         final transcription = updatedTranscriptions.remove(path);
         updatedTranscriptions[newPath] = transcription!;
       }
       state = state.copyWith(
-        recordings: updatedRecordings,
+        recordings: state.recordings.map((r) => r.path == path ? updatedRecording! : r).toList(),
         currentlyPlayingPath: state.currentlyPlayingPath == path ? newPath : state.currentlyPlayingPath,
         transcriptions: updatedTranscriptions,
       );
@@ -394,12 +603,36 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> transcribeRecording(String path, String language, QuillController controller) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
-      final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, language);
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
+      String? transcriptionPath = path;
+      if (localRecording == null && firebaseRecording != null) {
+        transcriptionPath = await firebaseService.downloadRecording(userId, path);
+        if (transcriptionPath == null) {
+          final downloadUrl = await firebaseService.getDownloadUrl(userId, path);
+          if (downloadUrl != null) {
+            transcriptionPath = downloadUrl;
+          }
+        }
+      }
+
+      if (transcriptionPath == null) {
+        print('No valid transcription path for: $path');
+        return;
+      }
+
+      final response = await ref.read(whisperServiceProvider).sendToWhisperAI(transcriptionPath, language);
       if (response != null) {
         final markdownText = await ref.read(gptServiceProvider).convertToMarkdown(response.transcription);
         final textToInsert = markdownText ?? response.transcription;
@@ -420,14 +653,38 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> summarizeRecording(String path, QuillController controller) async {
     try {
-      final recording = await storageService.getRecordingByPath(path);
-      if (recording == null) {
-        print('Recording not found in database: $path');
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
         return;
       }
+
+      final localRecording = await localStorageService.getRecordingByPath(userId, path);
+      final firebaseRecording = await firebaseService.getRecordingByPath(userId, path);
+      if (localRecording == null && firebaseRecording == null) {
+        print('Recording not found: $path');
+        return;
+      }
+
       final transcription = state.transcriptions[path];
       if (transcription == null) {
-        final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, 'ko');
+        String? transcriptionPath = path;
+        if (localRecording == null && firebaseRecording != null) {
+          transcriptionPath = await firebaseService.downloadRecording(userId, path);
+          if (transcriptionPath == null) {
+            final downloadUrl = await firebaseService.getDownloadUrl(userId, path);
+            if (downloadUrl != null) {
+              transcriptionPath = downloadUrl;
+            }
+          }
+        }
+
+        if (transcriptionPath == null) {
+          print('No valid transcription path for: $path');
+          return;
+        }
+
+        final response = await ref.read(whisperServiceProvider).sendToWhisperAI(transcriptionPath, 'ko');
         if (response == null) {
           print('Transcription for summary failed');
           return;
@@ -450,6 +707,29 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     }
   }
 
+  Future<void> deleteAllRecordings() async {
+    try {
+      final userId = await _userId;
+      if (userId == null) {
+        print('No user logged in');
+        return;
+      }
+
+      await localStorageService.deleteAllRecordings(userId);
+      await firebaseService.deleteAllRecordings(userId);
+      state = state.copyWith(
+        recordings: [],
+        currentlyPlayingPath: null,
+        transcriptions: {},
+        currentPosition: Duration.zero,
+        isPaused: false,
+        isCompleted: false,
+      );
+    } catch (e) {
+      print('Delete all recordings failed: $e');
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -463,7 +743,12 @@ final recordingLocalStorageServiceProvider = Provider<RecordingLocalStorageServi
   return RecordingLocalStorageService();
 });
 
+final recordingFirebaseServiceProvider = Provider<RecordingFirebaseService>((ref) {
+  return RecordingFirebaseService();
+});
+
 final recordingViewModelProvider = StateNotifierProvider<RecordingViewModel, RecordingState>((ref) {
-  final storageService = ref.watch(recordingLocalStorageServiceProvider);
-  return RecordingViewModel(ref, storageService);
+  final localStorageService = ref.watch(recordingLocalStorageServiceProvider);
+  final firebaseService = ref.watch(recordingFirebaseServiceProvider);
+  return RecordingViewModel(ref, localStorageService, firebaseService);
 });

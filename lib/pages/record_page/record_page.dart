@@ -17,7 +17,18 @@ class _RecordPageState extends ConsumerState<RecordPage> {
   GlobalKey _settingsIconKey = GlobalKey();
 
   @override
+  void initState() {
+    super.initState();
+    print('RecordPage initState: Starting sync');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('RecordPage: Triggering syncRecordingsWithLoading');
+      ref.read(recordingViewModelProvider.notifier).syncRecordingsWithLoading();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('RecordPage: Building UI');
     final state = ref.watch(recordingViewModelProvider);
 
     return Scaffold(
@@ -108,6 +119,30 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                 });
               },
               iconKey: _settingsIconKey,
+            ),
+          if (state.isSyncing)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      state.syncMessage,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'Pretendard',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
