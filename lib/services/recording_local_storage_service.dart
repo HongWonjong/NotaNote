@@ -32,63 +32,103 @@ class RecordingLocalStorageService {
   }
 
   Future<void> insertRecording(RecordingInfo recording) async {
-    final db = await database;
-    await db.insert(
-      'recordings',
-      {
-        'path': recording.path,
-        'duration': recording.duration.inSeconds,
-        'createdAt': recording.createdAt.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    try {
+      final db = await database;
+      await db.insert(
+        'recordings',
+        {
+          'path': recording.path,
+          'duration': recording.duration.inSeconds,
+          'createdAt': recording.createdAt.toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      print('Insert recording failed: $e');
+    }
   }
 
   Future<List<RecordingInfo>> getAllRecordings() async {
-    final db = await database;
-    final maps = await db.query('recordings', orderBy: 'createdAt DESC');
-    return maps.map((map) {
-      return RecordingInfo(
-        path: map['path'] as String,
-        duration: Duration(seconds: map['duration'] as int),
-        createdAt: DateTime.parse(map['createdAt'] as String),
+    try {
+      final db = await database;
+      final maps = await db.query('recordings', orderBy: 'createdAt DESC');
+      return maps.map((map) {
+        return RecordingInfo(
+          path: map['path'] as String,
+          duration: Duration(seconds: map['duration'] as int),
+          createdAt: DateTime.parse(map['createdAt'] as String),
+        );
+      }).toList();
+    } catch (e) {
+      print('Get all recordings failed: $e');
+      return [];
+    }
+  }
+
+  Future<RecordingInfo?> getRecordingByPath(String path) async {
+    try {
+      final db = await database;
+      final maps = await db.query(
+        'recordings',
+        where: 'path = ?',
+        whereArgs: [path],
       );
-    }).toList();
+      if (maps.isEmpty) return null;
+      return RecordingInfo(
+        path: maps[0]['path'] as String,
+        duration: Duration(seconds: maps[0]['duration'] as int),
+        createdAt: DateTime.parse(maps[0]['createdAt'] as String),
+      );
+    } catch (e) {
+      print('Get recording by path failed: $e');
+      return null;
+    }
   }
 
   Future<void> updateRecording(RecordingInfo recording) async {
-    final db = await database;
-    await db.update(
-      'recordings',
-      {
-        'path': recording.path,
-        'duration': recording.duration.inSeconds,
-        'createdAt': recording.createdAt.toIso8601String(),
-      },
-      where: 'path = ?',
-      whereArgs: [recording.path],
-    );
+    try {
+      final db = await database;
+      await db.update(
+        'recordings',
+        {
+          'path': recording.path,
+          'duration': recording.duration.inSeconds,
+          'createdAt': recording.createdAt.toIso8601String(),
+        },
+        where: 'path = ?',
+        whereArgs: [recording.path],
+      );
+    } catch (e) {
+      print('Update recording failed: $e');
+    }
   }
 
   Future<void> deleteRecording(String path) async {
-    final db = await database;
-    await db.delete(
-      'recordings',
-      where: 'path = ?',
-      whereArgs: [path],
-    );
-  }
-  Future<void> deleteAllRecordings() async {
-    final db = await database;
-    final recordings = await getAllRecordings();
-    // 실제 경로의 녹음 파일 먼저 삭제
-    for (var recording in recordings) {
-      final file = File(recording.path);
-      if (await file.exists()) {
-        await file.delete();
-      }
+    try {
+      final db = await database;
+      await db.delete(
+        'recordings',
+        where: 'path = ?',
+        whereArgs: [path],
+      );
+    } catch (e) {
+      print('Delete recording failed: $e');
     }
-    // 그 후 데이터베이스 전체 내용 삭제
-    await db.delete('recordings');
+  }
+
+  Future<void> deleteAllRecordings() async {
+    try {
+      final db = await database;
+      final recordings = await getAllRecordings();
+      for (var recording in recordings) {
+        final file = File(recording.path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      await db.delete('recordings');
+    } catch (e) {
+      print('Delete all recordings failed: $e');
+    }
   }
 }

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audioplayers/audioplayers.dart' as ap;
 import 'package:flutter_sound/flutter_sound.dart';
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:nota_note/services/whisper_service.dart';
 import 'package:nota_note/services/gpt_service.dart';
 import 'package:intl/intl.dart';
@@ -98,7 +98,16 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   Future<void> _loadRecordings() async {
     try {
       final recordings = await storageService.getAllRecordings();
-      state = state.copyWith(recordings: recordings);
+      // 파일 존재 여부 확인 및 정리
+      final validRecordings = <RecordingInfo>[];
+      for (var recording in recordings) {
+        if (await File(recording.path).exists()) {
+          validRecordings.add(recording);
+        } else {
+          await storageService.deleteRecording(recording.path);
+        }
+      }
+      state = state.copyWith(recordings: validRecordings);
     } catch (e) {
       print('Load recordings failed: $e');
     }
@@ -145,10 +154,9 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   Future<void> _requestPermissions() async {
     try {
       final status = await Permission.microphone.request();
-      if (status != PermissionStatus.granted) return;
-      if (Platform.isIOS) {
-        final storageStatus = await Permission.storage.request();
-        if (storageStatus != PermissionStatus.granted) return;
+      if (status != PermissionStatus.granted) {
+        print('Microphone permission denied');
+        return;
       }
     } catch (e) {
       print('Permission request failed: $e');
@@ -157,10 +165,10 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> startRecording() async {
     if (_recorder.isRecording) return;
-    final directory = await getTemporaryDirectory();
+    final directory = await getApplicationDocumentsDirectory();
     if (!await directory.exists()) await directory.create(recursive: true);
     final now = DateTime.now();
-    final timestamp = DateFormat('HHmmss').format(now);
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(now);
     final path = '${directory.path}/recording_$timestamp.m4a';
 
     try {
@@ -193,8 +201,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       _timer?.cancel();
       if (path != null) {
         final file = File(path);
-        final fileSize = await file.length();
-        if (fileSize >= 5000) {
+        if (await file.exists()) {
           final recording = RecordingInfo(
             path: path,
             duration: state.recordingDuration,
@@ -208,8 +215,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
             recordings: updatedRecordings,
           );
         } else {
-          print('Recording file too small: $fileSize bytes');
-          if (await file.exists()) await file.delete();
+          print('Recording file does not exist: $path');
         }
       }
       _currentRecordingPath = null;
@@ -224,13 +230,17 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> playRecording(String path) async {
     try {
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
       final file = File(path);
       if (!await file.exists()) {
         print('File does not exist: $path');
-        return;
-      }
-      if (await file.length() < 1000) {
-        print('File too small: ${await file.length()} bytes');
+        await storageService.deleteRecording(path);
+        final updatedRecordings = await storageService.getAllRecordings();
+        state = state.copyWith(recordings: updatedRecordings);
         return;
       }
 
@@ -277,9 +287,17 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> downloadRecording(String path) async {
     try {
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
       final file = File(path);
       if (!await file.exists()) {
         print('File does not exist: $path');
+        await storageService.deleteRecording(path);
+        final updatedRecordings = await storageService.getAllRecordings();
+        state = state.copyWith(recordings: updatedRecordings);
         return;
       }
       await Share.shareXFiles([XFile(path)], text: '녹음 파일 다운로드');
@@ -290,6 +308,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> deleteRecording(String path) async {
     try {
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
       final file = File(path);
       if (await file.exists()) await file.delete();
       await storageService.deleteRecording(path);
@@ -310,8 +333,13 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> renameRecording(String path, String newName) async {
     try {
-      final recording = state.recordings.firstWhere((r) => r.path == path);
-      final newPath = path.replaceFirst(RegExp(r'recording_\d+\.m4a$'), 'recording_$newName.m4a');
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
+      final directory = await getApplicationDocumentsDirectory();
+      final newPath = '${directory.path}/recording_$newName.m4a';
       final file = File(path);
       if (await file.exists()) {
         await file.rename(newPath);
@@ -341,6 +369,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> transcribeRecording(String path, String language, QuillController controller) async {
     try {
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
       final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, language);
       if (response != null) {
         final markdownText = await ref.read(gptServiceProvider).convertToMarkdown(response.transcription);
@@ -362,6 +395,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> summarizeRecording(String path, QuillController controller) async {
     try {
+      final recording = await storageService.getRecordingByPath(path);
+      if (recording == null) {
+        print('Recording not found in database: $path');
+        return;
+      }
       final transcription = state.transcriptions[path];
       if (transcription == null) {
         final response = await ref.read(whisperServiceProvider).sendToWhisperAI(path, 'ko');

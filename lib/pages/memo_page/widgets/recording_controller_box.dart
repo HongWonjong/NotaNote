@@ -131,16 +131,15 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
     final buttonSize = buttonBox?.size ?? Size.zero;
 
-    double menuWidth = buttonSize.width; // 버튼 너비에 맞춤
-    double maxMenuHeight = 120.0; // 높이 증가
+    double menuWidth = buttonSize.width;
+    double maxMenuHeight = 120.0;
     double left = buttonPosition.dx;
     double top = buttonPosition.dy + buttonSize.height + 4;
 
-    // 화면 하단 오버플로우 방지: 하단 공간 부족 시 위로 표시
     if (top + maxMenuHeight > screenHeight - 8) {
       top = buttonPosition.dy - maxMenuHeight - 4;
       if (top < 8) {
-        top = 8; // 상단 경계 유지
+        top = 8;
       }
     }
 
@@ -280,14 +279,15 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '텍스트로 변환',
             onTap: () async {
               _toggleMenu(context);
-              if (widget.controller != null) {
-                final recording = recordingState.recordings.last;
+              if (widget.controller != null && recordingState.recordings.isNotEmpty) {
+                final recording = recordingState.recordings.first;
                 await recordingViewModel.transcribeRecording(
                   recording.path,
                   selectedLanguageCode,
                   widget.controller!,
                 );
               }
+              setState(() {});
             },
           ),
           Container(
@@ -300,8 +300,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             svgPath: 'assets/icons/DownloadSimple.svg',
             label: '다운로드',
             onTap: () {
-              Future.microtask(() => recordingViewModel.downloadRecording(recordingState.recordings.last.path));
+              if (recordingState.recordings.isNotEmpty) {
+                Future.microtask(() => recordingViewModel.downloadRecording(recordingState.recordings.first.path));
+              }
               _toggleMenu(context);
+              setState(() {});
             },
           ),
           _buildMenuItem(
@@ -321,11 +324,14 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             svgPath: 'assets/icons/Delete.svg',
             label: '삭제',
             onTap: () {
-              recordingViewModel.deleteRecording(recordingState.recordings.last.path);
-              if (ref.read(recordingViewModelProvider).recordings.isEmpty) {
-                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+              if (recordingState.recordings.isNotEmpty) {
+                recordingViewModel.deleteRecording(recordingState.recordings.first.path);
+                if (ref.read(recordingViewModelProvider).recordings.isEmpty) {
+                  ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                }
               }
               _toggleMenu(context);
+              setState(() {});
             },
             textColor: Color(0xFFFF2F2F),
           ),
@@ -396,6 +402,12 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // 디버깅: recordings 리스트의 순서와 선택된 녹음 확인
+    print('Rendering recordings: ${recordingState.recordings.map((r) => "${r.path}: ${r.createdAt.toIso8601String()}").toList()}');
+    if (recordingState.recordings.isNotEmpty) {
+      print('Selected recording: ${recordingState.recordings.first.path}, CreatedAt: ${recordingState.recordings.first.createdAt.toIso8601String()}');
+    }
+
     return Material(
       borderRadius: BorderRadius.circular(8.0),
       child: CompositedTransformTarget(
@@ -419,7 +431,8 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                   child: recordingState.recordings.isNotEmpty
                       ? LayoutBuilder(
                     builder: (context, constraints) {
-                      final recording = recordingState.recordings.last;
+                      final recording = recordingState.recordings.first; // 최신 녹음
+                      print('Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
                       return Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         decoration: BoxDecoration(
@@ -436,6 +449,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                 : (state.isCompleted && state.currentlyPlayingPath == recording.path)
                                 ? Duration.zero
                                 : recording.duration;
+                            print('isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
                             return Row(
                               children: [
                                 IconButton(
@@ -461,6 +475,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                                     if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
                                       widget.focusNode!.requestFocus();
                                     }
+                                    setState(() {});
                                   },
                                 ),
                                 Text(
@@ -478,9 +493,22 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                     },
                   )
                       : Center(
-                    child: Text(
-                      '녹음된 파일이 없습니다.',
-                      style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '녹음된 파일이 없습니다.',
+                          style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                        ),
+                        SizedBox(width: 8.0),
+                        TextButton(
+                          onPressed: () {
+                            recordingViewModel.startRecording();
+                            setState(() {});
+                          },
+                          child: Text('녹음 시작'),
+                        ),
+                      ],
                     ),
                   ),
                 ),
