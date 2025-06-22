@@ -31,7 +31,7 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
     final state = ref.watch(recordingViewModelProvider);
     final remaining = widget.duration - widget.position;
     final isPlaying = state.isPlaying && state.currentlyPlayingPath == widget.recording.path;
-    final showPlayIcon = !isPlaying || state.isCompleted;
+    final showPlayIcon = !isPlaying || state.isCompleted || state.currentlyPlayingPath == null;
 
     print('PlaybackControls build: path=${widget.recording.path}, isPlaying=$isPlaying, '
         'showPlayIcon=$showPlayIcon, position=${widget.position}, duration=${widget.duration}, '

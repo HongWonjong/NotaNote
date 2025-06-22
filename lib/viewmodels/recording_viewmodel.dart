@@ -115,7 +115,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   void _setupPlayerListener() {
     _player.onPlayerComplete.listen((event) async {
       print('Player completed: path=${state.currentlyPlayingPath}');
-      await _resetPlayer();
+      state = state.copyWith(
+        isCompleted: true,
+        isPaused: false,
+        currentPosition: Duration.zero,
+      );
     });
     _player.onPlayerStateChanged.listen((playerState) {
       print('Player state changed: $playerState, currentPath=${state.currentlyPlayingPath}');
@@ -124,11 +128,13 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       } else if (playerState == ap.PlayerState.paused) {
         state = state.copyWith(isPaused: true);
       } else if (playerState == ap.PlayerState.completed) {
-        state = state.copyWith(isCompleted: true, isPaused: false);
+        state = state.copyWith(isCompleted: true, isPaused: false, currentPosition: Duration.zero);
       }
     });
     _player.onPositionChanged.listen((position) {
-      state = state.copyWith(currentPosition: position);
+      if (!state.isCompleted) {
+        state = state.copyWith(currentPosition: position);
+      }
     });
   }
 
@@ -137,7 +143,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       if (_player.state != ap.PlayerState.stopped) {
         await _player.stop();
       }
-      await _player.release();
       print('Player reset: clearing source and state, currentPath=${state.currentlyPlayingPath}');
       state = state.copyWith(
         currentlyPlayingPath: null,
@@ -244,7 +249,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         return;
       }
 
-      if (state.currentlyPlayingPath != path) {
+      if (state.currentlyPlayingPath != path || state.isCompleted) {
         await _resetPlayer();
       }
 
@@ -257,12 +262,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
       state = state.copyWith(
         currentlyPlayingPath: path,
-        currentPosition: state.currentlyPlayingPath == path ? state.currentPosition : Duration.zero,
+        currentPosition: Duration.zero,
         isPaused: false,
         isCompleted: false,
       );
       await _player.setSource(ap.DeviceFileSource(path));
-      await _player.seek(state.currentPosition);
       await _player.play(ap.DeviceFileSource(path), volume: 1.0);
       print('Playing recording: $path');
     } catch (e) {
@@ -277,6 +281,9 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         await _player.pause();
         state = state.copyWith(isPaused: true);
         print('Playback paused');
+      } else if (state.isCompleted) {
+        state = state.copyWith(isPaused: false, isCompleted: false);
+        print('Resetting completed state for replay');
       }
     } catch (e) {
       print('Pause failed: $e');
@@ -447,6 +454,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   void dispose() {
     _timer?.cancel();
     _recorder.closeRecorder();
+    _player.dispose();
     super.dispose();
   }
 }
