@@ -4,6 +4,7 @@ import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'widgets/bottom_sheet_menu.dart';
 import 'widgets/playback_controls.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RecordPage extends ConsumerStatefulWidget {
   @override
@@ -21,7 +22,11 @@ class _RecordPageState extends ConsumerState<RecordPage> {
       appBar: AppBar(
         title: Text('녹음 기록'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, size: 24),
+          icon: SvgPicture.asset(
+          'assets/icons/Arrow.svg',
+          width: 24,
+          height: 24,
+        ),
           onPressed: () {
             Navigator.pop(context);
           },
