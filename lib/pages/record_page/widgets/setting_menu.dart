@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SettingsMenu extends StatelessWidget {
   final VoidCallback onClose;
@@ -40,7 +41,12 @@ class SettingsMenu extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _MenuItem(
-                      icon: Container(width: 20, height: 20),
+                      icon: SvgPicture.asset(
+                        'assets/icons/ArrowsDownUp.svg',
+                        color: Colors.black,
+                        width: 20,
+                        height: 20,
+                      ),
                       text: '정렬 기준',
                       textColor: Color(0xFF4C4C4C),
                       onTap: () {
@@ -48,7 +54,12 @@ class SettingsMenu extends StatelessWidget {
                       },
                     ),
                     _MenuItem(
-                      icon: Container(width: 20, height: 20),
+                      icon: SvgPicture.asset(
+                        'assets/icons/Delete.svg',
+                        color: Colors.red,
+                        width: 20,
+                        height: 20,
+                      ),
                       text: '삭제하기',
                       textColor: Color(0xFFFF2F2F),
                       onTap: () {
