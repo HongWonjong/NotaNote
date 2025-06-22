@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'widgets/bottom_sheet_menu.dart';
 import 'widgets/playback_controls.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'widgets/bottom_sheet_menu.dart';
+import 'widgets/setting_menu.dart';
 
 class RecordPage extends ConsumerStatefulWidget {
   @override
@@ -13,6 +13,8 @@ class RecordPage extends ConsumerStatefulWidget {
 
 class _RecordPageState extends ConsumerState<RecordPage> {
   int? selectedIndex;
+  bool _showSettings = false;
+  GlobalKey _settingsIconKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +25,17 @@ class _RecordPageState extends ConsumerState<RecordPage> {
         title: Text('녹음 기록'),
         leading: IconButton(
           icon: SvgPicture.asset(
-          'assets/icons/Arrow.svg',
-          width: 24,
-          height: 24,
-        ),
+            'assets/icons/Arrow.svg',
+            width: 24,
+            height: 24,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         actions: [
           IconButton(
+            key: _settingsIconKey,
             icon: SvgPicture.asset(
               'assets/icons/DotCircle.svg',
               color: Colors.black,
@@ -40,58 +43,73 @@ class _RecordPageState extends ConsumerState<RecordPage> {
               height: 24,
             ),
             onPressed: () {
-              print('설정 버튼 클릭');
+              setState(() {
+                _showSettings = !_showSettings;
+              });
             },
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text(
-                '총 ${state.recordings.length}개',
-                style: TextStyle(
-                  color: Color(0xFF191919),
-                  fontSize: 14,
-                  fontFamily: 'Pretendard',
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(color: Colors.white),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Text(
+                    '총 ${state.recordings.length}개',
+                    style: TextStyle(
+                      color: Color(0xFF191919),
+                      fontSize: 14,
+                      fontFamily: 'Pretendard',
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: state.recordings.length,
-                itemBuilder: (context, index) {
-                  final recording = state.recordings[index];
-                  return _RecordingItem(
-                    recording: recording,
-                    index: index,
-                    isSelected: selectedIndex == index,
-                    onTap: () => _togglePlaybackControls(index, recording),
-                    onMenuTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(24),
-                            topRight: Radius.circular(24),
-                          ),
-                        ),
-                        builder: (context) => BottomSheetMenu(recording: recording),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: state.recordings.length,
+                    itemBuilder: (context, index) {
+                      final recording = state.recordings[index];
+                      return _RecordingItem(
+                        recording: recording,
+                        index: index,
+                        isSelected: selectedIndex == index,
+                        onTap: () => _togglePlaybackControls(index, recording),
+                        onMenuTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
+                              ),
+                            ),
+                            builder: (context) => BottomSheetMenu(recording: recording),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (_showSettings)
+            SettingsMenu(
+              onClose: () {
+                setState(() {
+                  _showSettings = false;
+                });
+              },
+              iconKey: _settingsIconKey,
+            ),
+        ],
       ),
     );
   }
