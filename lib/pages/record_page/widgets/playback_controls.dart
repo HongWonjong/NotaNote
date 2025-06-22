@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class PlaybackControls extends ConsumerWidget {
+class PlaybackControls extends ConsumerStatefulWidget {
   final RecordingInfo recording;
   final Duration position;
   final Duration duration;
@@ -11,15 +11,30 @@ class PlaybackControls extends ConsumerWidget {
   PlaybackControls({required this.recording, required this.position, required this.duration});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _PlaybackControlsState createState() => _PlaybackControlsState();
+}
+
+class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
+  @override
+  void initState() {
+    super.initState();
+    final viewModel = ref.read(recordingViewModelProvider.notifier);
+    final state = ref.read(recordingViewModelProvider);
+    if (state.currentlyPlayingPath == widget.recording.path && !state.isPaused && !state.isCompleted) {
+      viewModel.playRecording(widget.recording.path, resumeIfPaused: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final viewModel = ref.watch(recordingViewModelProvider.notifier);
     final state = ref.watch(recordingViewModelProvider);
-    final remaining = duration - position;
-    final isPlaying = state.isPlaying && state.currentlyPlayingPath == recording.path;
+    final remaining = widget.duration - widget.position;
+    final isPlaying = state.isPlaying && state.currentlyPlayingPath == widget.recording.path;
     final showPlayIcon = !isPlaying || state.isCompleted;
 
-    print('PlaybackControls build: path=${recording.path}, isPlaying=$isPlaying, '
-        'showPlayIcon=$showPlayIcon, position=$position, duration=$duration, '
+    print('PlaybackControls build: path=${widget.recording.path}, isPlaying=$isPlaying, '
+        'showPlayIcon=$showPlayIcon, position=${widget.position}, duration=${widget.duration}, '
         'remaining=$remaining, isCompleted=${state.isCompleted}');
 
     return Container(
@@ -35,7 +50,7 @@ class PlaybackControls extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${position.inMinutes.toString().padLeft(2, '0')}:${(position.inSeconds % 60).toString().padLeft(2, '0')}',
+                '${widget.position.inMinutes.toString().padLeft(2, '0')}:${(widget.position.inSeconds % 60).toString().padLeft(2, '0')}',
                 style: TextStyle(
                   color: Color(0xFF4C4C4C),
                   fontSize: 12,
@@ -58,8 +73,8 @@ class PlaybackControls extends ConsumerWidget {
                         left: 0,
                         top: 0,
                         child: Container(
-                          width: duration.inSeconds > 0
-                              ? MediaQuery.of(context).size.width * (position.inSeconds / duration.inSeconds)
+                          width: widget.duration.inSeconds > 0
+                              ? MediaQuery.of(context).size.width * (widget.position.inSeconds / widget.duration.inSeconds)
                               : 0,
                           height: 4,
                           decoration: ShapeDecoration(
@@ -103,7 +118,7 @@ class PlaybackControls extends ConsumerWidget {
                   height: 18,
                 ),
                 onPressed: () {
-                  final newPosition = position - const Duration(seconds: 10);
+                  final newPosition = widget.position - const Duration(seconds: 10);
                   viewModel.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
                 },
               ),
@@ -117,12 +132,12 @@ class PlaybackControls extends ConsumerWidget {
                   height: 18,
                 ),
                 onPressed: () {
-                  print('Play/Pause button pressed: path=${recording.path}, isPlaying=$isPlaying, '
+                  print('Play/Pause button pressed: path=${widget.recording.path}, isPlaying=$isPlaying, '
                       'showPlayIcon=$showPlayIcon, isCompleted=${state.isCompleted}');
                   if (isPlaying) {
                     viewModel.pausePlayback();
                   } else {
-                    viewModel.playRecording(recording.path);
+                    viewModel.playRecording(widget.recording.path, resumeIfPaused: true);
                   }
                 },
               ),
@@ -136,8 +151,8 @@ class PlaybackControls extends ConsumerWidget {
                   height: 18,
                 ),
                 onPressed: () {
-                  final newPosition = position + const Duration(seconds: 10);
-                  viewModel.seekTo(newPosition < duration ? newPosition : duration);
+                  final newPosition = widget.position + const Duration(seconds: 10);
+                  viewModel.seekTo(newPosition < widget.duration ? newPosition : widget.duration);
                 },
               ),
             ],

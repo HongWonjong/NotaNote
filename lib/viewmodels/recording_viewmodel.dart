@@ -228,7 +228,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     }
   }
 
-  Future<void> playRecording(String path) async {
+  Future<void> playRecording(String path, {bool resumeIfPaused = false}) async {
     try {
       final recording = await storageService.getRecordingByPath(path);
       if (recording == null) {
@@ -244,11 +244,11 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         return;
       }
 
-      if (state.currentlyPlayingPath != null) {
+      if (state.currentlyPlayingPath != path) {
         await _resetPlayer();
       }
 
-      if (state.currentlyPlayingPath == path && state.isPaused) {
+      if (state.currentlyPlayingPath == path && state.isPaused && resumeIfPaused) {
         await _player.resume();
         state = state.copyWith(isPaused: false, isCompleted: false);
         print('Resuming recording: $path');
@@ -257,11 +257,12 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
       state = state.copyWith(
         currentlyPlayingPath: path,
-        currentPosition: Duration.zero,
+        currentPosition: state.currentlyPlayingPath == path ? state.currentPosition : Duration.zero,
         isPaused: false,
         isCompleted: false,
       );
       await _player.setSource(ap.DeviceFileSource(path));
+      await _player.seek(state.currentPosition);
       await _player.play(ap.DeviceFileSource(path), volume: 1.0);
       print('Playing recording: $path');
     } catch (e) {
@@ -446,7 +447,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   void dispose() {
     _timer?.cancel();
     _recorder.closeRecorder();
-    _player.dispose();
     super.dispose();
   }
 }
