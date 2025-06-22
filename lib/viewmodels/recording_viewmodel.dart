@@ -6,11 +6,11 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:nota_note/services/whisper_service.dart';
 import 'package:nota_note/services/gpt_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter/services.dart';
 import 'package:nota_note/services/recording_local_storage_service.dart';
 
 class RecordingInfo {
@@ -98,7 +98,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   Future<void> _loadRecordings() async {
     try {
       final recordings = await storageService.getAllRecordings();
-      // 파일 존재 여부 확인 및 정리
       final validRecordings = <RecordingInfo>[];
       for (var recording in recordings) {
         if (await File(recording.path).exists()) {
@@ -107,6 +106,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           await storageService.deleteRecording(recording.path);
         }
       }
+      print('Loaded recordings: ${validRecordings.map((r) => r.createdAt.toIso8601String()).toList()}');
       state = state.copyWith(recordings: validRecordings);
     } catch (e) {
       print('Load recordings failed: $e');
@@ -209,6 +209,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           );
           await storageService.insertRecording(recording);
           final updatedRecordings = await storageService.getAllRecordings();
+          print('Updated recordings after stop: ${updatedRecordings.map((r) => r.createdAt.toIso8601String()).toList()}');
           state = state.copyWith(
             isRecording: false,
             recordingDuration: Duration.zero,
@@ -279,6 +280,15 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> stopPlayback() async {
     await _resetPlayer();
+  }
+
+  Future<void> seekTo(Duration position) async {
+    try {
+      await _player.seek(position);
+      state = state.copyWith(currentPosition: position);
+    } catch (e) {
+      print('Seek failed: $e');
+    }
   }
 
   bool isPlaying(String path) {

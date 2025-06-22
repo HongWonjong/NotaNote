@@ -1,0 +1,152 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class PlaybackControls extends ConsumerWidget {
+  final RecordingInfo recording;
+  final Duration position;
+  final Duration duration;
+
+  PlaybackControls({required this.recording, required this.position, required this.duration});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.watch(recordingViewModelProvider.notifier);
+    final state = ref.watch(recordingViewModelProvider);
+    final remaining = duration - position;
+    final isPlaying = state.isPlaying && state.currentlyPlayingPath == recording.path;
+
+    print('PlaybackControls build: path=${recording.path}, isPlaying=$isPlaying, '
+        'position=$position, duration=$duration, remaining=$remaining');
+
+    return Container(
+      height: 90,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: Colors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${position.inMinutes.toString().padLeft(2, '0')}:${(position.inSeconds % 60).toString().padLeft(2, '0')}',
+                style: TextStyle(
+                  color: Color(0xFF4C4C4C),
+                  fontSize: 12,
+                  fontFamily: 'Pretendard',
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  height: 4,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: ShapeDecoration(
+                    color: Color(0xFF4C4C4C),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        child: Container(
+                          width: duration.inSeconds > 0
+                              ? MediaQuery.of(context).size.width * (position.inSeconds / duration.inSeconds)
+                              : 0,
+                          height: 4,
+                          decoration: ShapeDecoration(
+                            color: Color(0xFF60CFB1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(2),
+                                bottomLeft: Radius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '-${remaining.inMinutes.toString().padLeft(2, '0')}:${(remaining.inSeconds % 60).toString().padLeft(2, '0')}',
+                style: TextStyle(
+                  color: Color(0xFF4C4C4C),
+                  fontSize: 12,
+                  fontFamily: 'Pretendard',
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                icon: SvgPicture.asset(
+                  'assets/icons/Rewind.svg',
+                  color: Color(0xFF4C4C4C),
+                  width: 18,
+                  height: 18,
+                ),
+                onPressed: () {
+                  final newPosition = position - const Duration(seconds: 10);
+                  viewModel.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
+                  if (isPlaying) {
+                    viewModel.playRecording(recording.path);
+                  }
+                },
+              ),
+              const SizedBox(width: 48),
+              IconButton(
+                padding: EdgeInsets.zero,
+                icon: SvgPicture.asset(
+                  isPlaying ? 'assets/icons/Pause.svg' : 'assets/icons/RecordPlay.svg',
+                  color: Color(0xFF4C4C4C),
+                  width: 18,
+                  height: 18,
+                ),
+                onPressed: () {
+                  print('Play/Pause button pressed: path=${recording.path}, isPlaying=$isPlaying');
+                  if (isPlaying) {
+                    viewModel.pausePlayback();
+                  } else {
+                    viewModel.playRecording(recording.path);
+                  }
+                },
+              ),
+              const SizedBox(width: 48),
+              IconButton(
+                padding: EdgeInsets.zero,
+                icon: SvgPicture.asset(
+                  'assets/icons/FastForward.svg',
+                  color: Color(0xFF4C4C4C),
+                  width: 18,
+                  height: 18,
+                ),
+                onPressed: () {
+                  final newPosition = position + const Duration(seconds: 10);
+                  viewModel.seekTo(newPosition < duration ? newPosition : duration);
+                  if (isPlaying) {
+                    viewModel.playRecording(recording.path);
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
