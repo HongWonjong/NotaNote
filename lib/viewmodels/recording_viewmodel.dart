@@ -123,7 +123,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> syncRecordingsWithLoading() async {
     state = state.copyWith(isSyncing: true, syncMessage: '데이터 정합성 확인 중...');
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(Duration(seconds: 2)); // 파일 안정화 대기
     await _syncRecordings();
     state = state.copyWith(isSyncing: false, syncMessage: '');
   }
@@ -139,22 +139,24 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       state = state.copyWith(syncMessage: '마지막 동기화 시간 확인 중...');
       final lastSyncedAt = await localStorageService.getLastSyncedAt(userId);
 
+      state = state.copyWith(syncMessage: 'Firebase 데이터 가져오는 중...');
+      final firebaseRecordings = await firebaseService.getRecordingsSince(userId, lastSyncedAt);
+
       state = state.copyWith(syncMessage: '로컬 데이터 정리 중...');
       final localRecordings = await localStorageService.getRecordingsSince(userId, lastSyncedAt);
       final validLocalRecordings = <RecordingInfo>[];
       for (var recording in localRecordings) {
-        if (await File(recording.path).exists()) {
+        final isPending = state.pendingUploads.containsKey(recording.path);
+        final isRecent = DateTime.now().difference(recording.createdAt).inSeconds < 10;
+        final fileExists = await File(recording.path).exists();
+        if (isPending || isRecent || fileExists) {
           validLocalRecordings.add(recording);
         } else {
-          await localStorageService.deleteRecording(userId, recording.path);
-          print('Deleted invalid local recording: ${recording.path}');
+          print('Local file missing, keeping in DB for recovery: ${recording.path}');
         }
       }
 
-      state = state.copyWith(syncMessage: '클라우드 데이터 가져오는 중...');
-      final firebaseRecordings = await firebaseService.getRecordingsSince(userId, lastSyncedAt);
-
-      state = state.copyWith(syncMessage: '로컬 녹음 파일 클라우드에 동기화 중...');
+      state = state.copyWith(syncMessage: '로컬 녹음 파일 Firebase에 동기화 중...');
       final uploadTasks = <Future>[];
       for (var localRecording in validLocalRecordings) {
         final existsInFirebase = firebaseRecordings.any(
@@ -171,7 +173,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       }
       await Future.wait(uploadTasks);
 
-      state = state.copyWith(syncMessage: '클라우드 녹음 파일 로컬에 동기화 중...');
+      state = state.copyWith(syncMessage: 'Firebase 녹음 파일 로컬에 동기화 중...');
       final downloadTasks = <Future>[];
       for (var firebaseRecording in firebaseRecordings) {
         final existsInLocal = validLocalRecordings.any(
@@ -188,8 +190,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
               await localStorageService.insertRecording(userId, recording);
               print('Downloaded Firebase recording to local: ${firebaseRecording.path}');
             } else {
-              await firebaseService.deleteRecording(userId, firebaseRecording.path);
-              print('Deleted invalid Firebase recording: ${firebaseRecording.path}');
+              print('Failed to download, keeping Firebase record: ${firebaseRecording.path}');
             }
           }));
         }
@@ -211,11 +212,17 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       state = state.copyWith(
         pendingUploads: {...state.pendingUploads, recording.path: true},
       );
-      await firebaseService.insertRecording(userId, recording);
+      await Future.delayed(Duration(seconds: 1)); // 파일 쓰기 안정화
+      final file = File(recording.path);
+      if (await file.exists()) {
+        await firebaseService.insertRecording(userId, recording);
+        print('Background upload completed: ${recording.path}');
+      } else {
+        print('File does not exist for upload: ${recording.path}');
+      }
       state = state.copyWith(
         pendingUploads: {...state.pendingUploads}..remove(recording.path),
       );
-      print('Background upload completed: ${recording.path}');
     } catch (e) {
       print('Background upload failed: $e');
       state = state.copyWith(
@@ -228,30 +235,27 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
     try {
       final userId = await _userId;
       if (userId == null) {
-        print('No user logged in, loading local recordings only');
+        print('No user logged in, returning empty list');
         return [];
       }
 
+      // Firebase 데이터를 우선 로드
+      final firebaseRecordings = await firebaseService.getAllRecordings(userId);
       final localRecordings = await localStorageService.getAllRecordings(userId);
       final validLocalRecordings = <RecordingInfo>[];
       for (var recording in localRecordings) {
-        if (await File(recording.path).exists()) {
+        if (await File(recording.path).exists() || state.pendingUploads.containsKey(recording.path)) {
           validLocalRecordings.add(recording);
-        } else {
-          await localStorageService.deleteRecording(userId, recording.path);
         }
       }
 
-      final firebaseRecordings = await firebaseService.getAllRecordings(userId);
-
-      final allRecordings = [...validLocalRecordings, ...firebaseRecordings];
+      final allRecordings = [...firebaseRecordings, ...validLocalRecordings];
       final uniqueRecordings = <String, RecordingInfo>{};
       for (var recording in allRecordings) {
         uniqueRecordings[_getFileName(recording.path)] = recording;
       }
 
-      return uniqueRecordings.values.toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return uniqueRecordings.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } catch (e) {
       print('Load recordings failed: $e');
       return [];
@@ -296,7 +300,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         isPaused: false,
         isCompleted: false,
       );
-      print('Player state updated: isPlaying=${state.isPlaying}, currentPath=${state.currentlyPlayingPath}');
     } catch (e) {
       print('Player reset failed: $e');
     }
@@ -360,15 +363,21 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
           );
           final userId = await _userId;
           if (userId != null) {
+            // 1. 로컬 DB 저장
             await localStorageService.insertRecording(userId, recording);
+            // 2. Firebase Firestore 저장
+            await firebaseService.insertRecordingMetadata(userId, recording);
+            // 3. Firebase Storage 업로드 (비동기)
             backgroundUpload(userId, recording);
+            // UI 즉시 갱신
+            state = state.copyWith(
+              recordings: [recording, ...state.recordings]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+              isRecording: false,
+              recordingDuration: Duration.zero,
+            );
+          } else {
+            print('No user logged in');
           }
-          final updatedRecordings = await _loadRecordings();
-          state = state.copyWith(
-            recordings: updatedRecordings,
-            isRecording: false,
-            recordingDuration: Duration.zero,
-          );
         } else {
           print('Recording file does not exist: $path');
         }
@@ -411,10 +420,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
       if (playbackPath == null) {
         print('No valid playback path for: $path');
-        await localStorageService.deleteRecording(userId, path);
-        await firebaseService.deleteRecording(userId, path);
-        final updatedRecordings = await _loadRecordings();
-        state = state.copyWith(recordings: updatedRecordings);
         return;
       }
 
@@ -504,20 +509,12 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
       if (sharePath == null) {
         print('No valid share path for: $path');
-        await localStorageService.deleteRecording(userId, path);
-        await firebaseService.deleteRecording(userId, path);
-        final updatedRecordings = await _loadRecordings();
-        state = state.copyWith(recordings: updatedRecordings);
         return;
       }
 
       final file = File(sharePath);
       if (!await file.exists()) {
         print('File does not exist: $sharePath');
-        await localStorageService.deleteRecording(userId, path);
-        await firebaseService.deleteRecording(userId, path);
-        final updatedRecordings = await _loadRecordings();
-        state = state.copyWith(recordings: updatedRecordings);
         return;
       }
       await Share.shareXFiles([XFile(sharePath)], text: '녹음 파일 다운로드');
@@ -743,6 +740,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
         isCompleted: false,
         pendingUploads: {},
       );
+      print('Deleted all recordings for user: $userId');
     } catch (e) {
       print('Delete all recordings failed: $e');
     }

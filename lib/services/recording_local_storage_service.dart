@@ -18,7 +18,7 @@ class RecordingLocalStorageService {
     final path = join(directory.path, 'recordings.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE recordings (
@@ -34,6 +34,30 @@ class RecordingLocalStorageService {
             lastSyncedAt TEXT
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS recordings (
+              path TEXT PRIMARY KEY,
+              userId TEXT,
+              duration INTEGER,
+              createdAt TEXT
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS sync_info (
+              userId TEXT PRIMARY KEY,
+              lastSyncedAt TEXT
+            )
+          ''');
+          // 기존 데이터 마이그레이션
+          try {
+            await db.execute('ALTER TABLE recordings ADD COLUMN userId TEXT');
+          } catch (e) {
+            print('Migration failed: $e');
+          }
+        }
       },
     );
   }
@@ -51,6 +75,7 @@ class RecordingLocalStorageService {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      print('Inserted recording to local DB: ${recording.path}');
     } catch (e) {
       print('Insert recording failed: $e');
     }
@@ -147,6 +172,7 @@ class RecordingLocalStorageService {
         where: 'userId = ? AND path = ?',
         whereArgs: [userId, path],
       );
+      print('Deleted recording from local DB: $path');
     } catch (e) {
       print('Delete recording failed: $e');
     }
@@ -160,6 +186,7 @@ class RecordingLocalStorageService {
         final file = File(recording.path);
         if (await file.exists()) {
           await file.delete();
+          print('Deleted local file: ${recording.path}');
         }
       }
       await db.delete(
@@ -167,6 +194,7 @@ class RecordingLocalStorageService {
         where: 'userId = ?',
         whereArgs: [userId],
       );
+      print('Deleted all recordings from local DB for user: $userId');
     } catch (e) {
       print('Delete all recordings failed: $e');
     }
@@ -199,6 +227,7 @@ class RecordingLocalStorageService {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      print('Set last synced at: $time for user: $userId');
     } catch (e) {
       print('Set last synced at failed: $e');
     }

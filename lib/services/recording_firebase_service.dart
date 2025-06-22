@@ -12,6 +12,26 @@ class RecordingFirebaseService {
     return filePath.split('/').last;
   }
 
+  Future<void> insertRecordingMetadata(String userId, RecordingInfo recording) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('recordings')
+          .doc(_getFileName(recording.path))
+          .set({
+        'path': recording.path,
+        'storagePath': 'recordings/$userId/${_getFileName(recording.path)}',
+        'duration': recording.duration.inSeconds,
+        'createdAt': recording.createdAt.toIso8601String(),
+        'isUploaded': false, // 업로드 상태 플래그
+      });
+      print('Inserted recording metadata to Firestore: ${recording.path}');
+    } catch (e) {
+      print('Insert recording metadata failed: $e');
+    }
+  }
+
   Future<void> insertRecording(String userId, RecordingInfo recording) async {
     try {
       final file = File(recording.path);
@@ -37,14 +57,11 @@ class RecordingFirebaseService {
           .doc(userId)
           .collection('recordings')
           .doc(_getFileName(recording.path))
-          .set({
-        'path': recording.path,
-        'storagePath': storagePath,
+          .update({
         'downloadUrl': downloadUrl,
-        'duration': recording.duration.inSeconds,
-        'createdAt': recording.createdAt.toIso8601String(),
+        'isUploaded': true,
       });
-      print('Recording inserted successfully: ${recording.path}');
+      print('Recording uploaded and metadata updated: ${recording.path}');
     } catch (e) {
       print('Insert recording failed: $e');
       try {
@@ -144,6 +161,7 @@ class RecordingFirebaseService {
         'downloadUrl': downloadUrl,
         'duration': recording.duration.inSeconds,
         'createdAt': recording.createdAt.toIso8601String(),
+        'isUploaded': true,
       });
     } catch (e) {
       print('Update recording failed: $e');
@@ -159,6 +177,7 @@ class RecordingFirebaseService {
           .doc(_getFileName(filePath))
           .delete();
       await _storage.ref('recordings/$userId/${_getFileName(filePath)}').delete();
+      print('Deleted recording from Firebase: $filePath');
     } catch (e) {
       print('Delete recording failed: $e');
     }
@@ -177,6 +196,7 @@ class RecordingFirebaseService {
         await _storage.ref('recordings/$userId/${_getFileName(doc['path'])}').delete();
       }
       await batch.commit();
+      print('Deleted all recordings from Firebase for user: $userId');
     } catch (e) {
       print('Delete all recordings failed: $e');
     }
