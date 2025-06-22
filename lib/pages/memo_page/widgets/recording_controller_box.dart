@@ -402,7 +402,6 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 디버깅: recordings 리스트의 순서와 선택된 녹음 확인
     print('Rendering recordings: ${recordingState.recordings.map((r) => "${r.path}: ${r.createdAt.toIso8601String()}").toList()}');
     if (recordingState.recordings.isNotEmpty) {
       print('Selected recording: ${recordingState.recordings.first.path}, CreatedAt: ${recordingState.recordings.first.createdAt.toIso8601String()}');
@@ -431,7 +430,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                   child: recordingState.recordings.isNotEmpty
                       ? LayoutBuilder(
                     builder: (context, constraints) {
-                      final recording = recordingState.recordings.first; // 최신 녹음
+                      final recording = recordingState.recordings.first;
                       print('Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
                       return Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
@@ -447,7 +446,7 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                             final displayDuration = isPlaying
                                 ? currentPosition
                                 : (state.isCompleted && state.currentlyPlayingPath == recording.path)
-                                ? Duration.zero
+                                ? recording.duration
                                 : recording.duration;
                             print('isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
                             return Row(
