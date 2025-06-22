@@ -8,6 +8,7 @@ import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
+import 'package:nota_note/pages/record_page/record_page.dart';
 
 import 'package:nota_note/services/auth_service.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
@@ -387,6 +388,33 @@ class _MainPageState extends ConsumerState<MainPage> {
                   ),
                 ),
               ],
+            ),
+            SizedBox(height: 31),
+
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RecordPage()),
+                );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/WaveForm.svg',
+                    colorFilter: ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '녹음 기록',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 25),
             Row(
