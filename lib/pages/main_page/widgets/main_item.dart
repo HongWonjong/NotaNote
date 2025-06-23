@@ -123,19 +123,19 @@ class MainItem extends ConsumerWidget {
                       ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
                 ),
                 SizedBox(width: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: (searchQuery != null &&
-                            searchQuery!.isNotEmpty &&
-                            title
-                                .toLowerCase()
-                                .contains(searchQuery!.toLowerCase()))
-                        ? AppColors.primary300Main
-                        : Color(0xFF191919),
-                  ),
-                ),
+                (searchQuery != null &&
+                        searchQuery!.isNotEmpty &&
+                        title
+                            .toLowerCase()
+                            .contains(searchQuery!.toLowerCase()))
+                    ? _highlightText(title, searchQuery!)
+                    : Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF191919),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Text(
                   '($noteCount)',
@@ -269,5 +269,37 @@ class MainItem extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _highlightText(String text, String query) {
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final spans = <TextSpan>[];
+    int start = 0;
+    while (true) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index < 0) {
+        spans.add(TextSpan(
+          text: text.substring(start),
+          style: TextStyle(color: Color(0xFF191919), fontSize: 16),
+        ));
+        break;
+      }
+      if (index > start) {
+        spans.add(TextSpan(
+          text: text.substring(start, index),
+          style: TextStyle(color: Color(0xFF191919), fontSize: 16),
+        ));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + query.length),
+        style: TextStyle(
+            color: AppColors.primary300Main,
+            fontSize: 16,
+            fontWeight: FontWeight.bold),
+      ));
+      start = index + query.length;
+    }
+    return Text.rich(TextSpan(children: spans));
   }
 }
