@@ -1,14 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
+import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/pages/user_profile_page/account_delete_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
+import 'package:nota_note/services/oauth_revoke_service.dart';
 import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
+import 'package:nota_note/pages/user_profile_page/widgets/profile_action_buttons.dart';
 
 /// 사용자 프로필 페이지
 class UserProfilePage extends ConsumerWidget {
@@ -31,6 +36,7 @@ class UserProfilePage extends ConsumerWidget {
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.grey[700]),
         actions: [
+          // 프로필 수정 버튼
           TextButton(
             onPressed: () async {
               userAsync.whenOrNull(
@@ -66,6 +72,7 @@ class UserProfilePage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 24),
+                // 프로필 이미지
                 Center(
                   child: ProfileImageWidget(
                     userId: user.userId,
@@ -75,6 +82,7 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
+                // 닉네임/이메일 영역
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -123,30 +131,12 @@ class UserProfilePage extends ConsumerWidget {
                 const SizedBox(height: 30),
                 Divider(color: Colors.grey[200], thickness: 6),
                 const SizedBox(height: 10),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 로그아웃
-                      TextButton(
-                        onPressed: () => _showLogoutDialog(context, ref),
-                        child: Text('로그아웃',
-                            style: PretendardTextStyles.bodyM
-                                .copyWith(color: Colors.grey[900])),
-                      ),
-                      // 계정 탈퇴
-                      TextButton(
-                        onPressed: () =>
-                            _showAccountDeleteDialog(context, ref, userId),
-                        child: Text('계정 탈퇴하기',
-                            style: PretendardTextStyles.bodyM
-                                .copyWith(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                )
+                // 로그아웃/탈퇴 버튼은 별도 위젯으로 분리
+                ProfileActionButtons(
+                  onLogout: () => _showLogoutDialog(context),
+                  onDeleteAccount: () =>
+                      _showAccountDeleteDialog(context, userId),
+                ),
               ],
             ),
           );
@@ -155,7 +145,8 @@ class UserProfilePage extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  /// 로그아웃 다이얼로그
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -170,7 +161,6 @@ class UserProfilePage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 텍스트(중앙정렬, 상단 마진 24)
               SizedBox(height: 46),
               Center(
                 child: SizedBox(
@@ -188,9 +178,7 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 텍스트~버튼 영역 간격 24
               const SizedBox(height: 24),
-              // 버튼 Row
               Center(
                 child: SizedBox(
                   width: 236,
@@ -246,7 +234,6 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 하단 마진 16
               const SizedBox(height: 20),
             ],
           ),
@@ -255,8 +242,8 @@ class UserProfilePage extends ConsumerWidget {
     );
   }
 
-  void _showAccountDeleteDialog(
-      BuildContext context, WidgetRef ref, String userId) {
+  /// 탈퇴 다이얼로그
+  void _showAccountDeleteDialog(BuildContext context, String userId) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -266,12 +253,10 @@ class UserProfilePage extends ConsumerWidget {
         ),
         backgroundColor: Colors.white,
         child: Padding(
-          padding:
-              const EdgeInsets.fromLTRB(24, 36, 24, 20), // 좌24, 위36, 우24, 아래20
+          padding: const EdgeInsets.fromLTRB(24, 36, 24, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 텍스트 영역 (228x89)
               Center(
                 child: SizedBox(
                   width: 228,
@@ -298,9 +283,7 @@ class UserProfilePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 텍스트~버튼 간격 24
               const SizedBox(height: 24),
-              // 버튼 영역 (236x50)
               Center(
                 child: SizedBox(
                   width: 236,
@@ -328,7 +311,8 @@ class UserProfilePage extends ConsumerWidget {
                         child: TextButton(
                           onPressed: () async {
                             Navigator.of(context).pop();
-                            final deleted = await deleteUserAndData(userId);
+                            final deleted =
+                                await deleteUserAndAllData(userId, context);
                             if (deleted && context.mounted) {
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -361,12 +345,11 @@ class UserProfilePage extends ConsumerWidget {
     );
   }
 
-  Future<bool> deleteUserAndData(String userId) async {
+  /// Firestore 데이터, Firebase Auth/Kakao/Apple/Google 계정까지 완전 삭제 (SNS별 분기, 최근 인증 필요시 안내)
+  Future<bool> deleteUserAndAllData(String userId, BuildContext context) async {
     try {
-      // 1. 사용자 관련 데이터(메모, 그룹 등) 모두 삭제 (예시: notegroups, users)
+      // 1. Firestore 내 유저 관련 데이터 모두 삭제 (노트 그룹, 유저 문서 등)
       final firestore = FirebaseFirestore.instance;
-
-      // 사용자 그룹 모두 삭제
       final groups = await firestore
           .collection('notegroups')
           .where('creatorId', isEqualTo: userId)
@@ -374,16 +357,108 @@ class UserProfilePage extends ConsumerWidget {
       for (var group in groups.docs) {
         await firestore.collection('notegroups').doc(group.id).delete();
       }
-      // 사용자 document 삭제
       await firestore.collection('users').doc(userId).delete();
 
-      // (필요시 기타 데이터도 삭제)
+      // 2. 로그인 provider 정보 (google, apple, kakao) 읽기
+      final provider = await getLoginProvider();
 
-      // 로그아웃/정보 초기화
+      // 3. SNS별 회원탈퇴/연동해제 로직
+      if (provider == 'google') {
+        final googleAccessToken = await getGoogleAccessToken();
+        if (googleAccessToken != null) {
+          await revokeGoogleToken(googleAccessToken);
+        }
+        final auth = FirebaseAuth.instance;
+        final user = auth.currentUser;
+        if (user != null) {
+          try {
+            await user.delete();
+          } on FirebaseAuthException catch (e) {
+            if (e.code == 'requires-recent-login') {
+              if (context.mounted) {
+                await showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('재인증 필요'),
+                    content: const Text('계정 탈퇴를 위해 로그인 후 다시 시도해주세요.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('확인'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              await signOut();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
+              }
+              return false;
+            }
+          }
+        }
+      } else if (provider == 'apple') {
+        //탈퇴 로직
+        // final appleRefreshToken = await getAppleRefreshToken();
+        // if (appleRefreshToken != null) {
+        //   await revokeAppleToken(appleRefreshToken);
+        // }
+        final auth = FirebaseAuth.instance;
+        final user = auth.currentUser;
+        if (user != null) {
+          try {
+            await user.delete();
+          } on FirebaseAuthException catch (e) {
+            if (e.code == 'requires-recent-login') {
+              if (context.mounted) {
+                await showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('재인증 필요'),
+                    content: const Text('계정 탈퇴를 위해 로그인 후 다시 시도해주세요.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('확인'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              await signOut();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
+              }
+              return false;
+            }
+          }
+        }
+      } else if (provider == 'kakao') {
+        try {
+          print('카카오 연결 해제시도');
+          await UserApi.instance.unlink();
+          print('카카오 연결 해제');
+        } catch (e) {
+          // 이미 해제되어도 무시
+          print('카카오 연결 실패');
+        }
+      }
+
+      // 4. SharedPreferences/Provider/세션 등 모든 로그인 정보 초기화
       await signOut();
+
       return true;
     } catch (e) {
-      // 삭제 실패시 에러 처리
+      // 삭제 실패시 에러 처리 (필요하면 로그 등 추가)
       return false;
     }
   }

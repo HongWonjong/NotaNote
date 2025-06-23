@@ -40,3 +40,5 @@ Future<String?> getAppleUserIdentifier() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString('apple_user_identifier');
 }
+
+

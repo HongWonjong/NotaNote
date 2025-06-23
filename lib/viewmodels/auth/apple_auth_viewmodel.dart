@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:nota_note/services/oauth_revoke_service.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -45,9 +46,9 @@ class AppleAuthViewModel {
         return null;
       }
 
-      log('[AppleLogin] Apple 로그인 요청...');
-      log('[AppleLogin] .env clientId: $clientId');
-      log('[AppleLogin] .env redirectUri: $redirectUri');
+      // log('[AppleLogin] Apple 로그인 요청...');
+      // log('[AppleLogin] .env clientId: $clientId');
+      // log('[AppleLogin] .env redirectUri: $redirectUri');
 
       // Apple 인증 요청
       final credential = await SignInWithApple.getAppleIDCredential(
@@ -59,16 +60,21 @@ class AppleAuthViewModel {
       );
 
       // Apple에서 받은 정보 출력
-      log('[AppleLogin] identityToken: ${credential.identityToken}');
-      log('[AppleLogin] authorizationCode: ${credential.authorizationCode}');
-      log('[AppleLogin] userIdentifier: ${credential.userIdentifier}');
-      log('[AppleLogin] email: ${credential.email}');
-      log('[AppleLogin] givenName: ${credential.givenName}');
-      log('[AppleLogin] familyName: ${credential.familyName}');
+      // log('[AppleLogin] identityToken: ${credential.identityToken}');
+      // log('[AppleLogin] authorizationCode: ${credential.authorizationCode}');
+      // log('[AppleLogin] userIdentifier: ${credential.userIdentifier}');
+      // log('[AppleLogin] email: ${credential.email}');
+      // log('[AppleLogin] givenName: ${credential.givenName}');
+      // log('[AppleLogin] familyName: ${credential.familyName}');
 
-      // 토큰 길이 확인 (디버깅용)
-      log('[AppleLogin] 인증 토큰 길이: ${credential.identityToken?.length}');
-      log('[AppleLogin] 인증 코드 길이: ${credential.authorizationCode.length}');
+      // // 토큰 길이 확인 (디버깅용)
+      // log('[AppleLogin] 인증 토큰 길이: ${credential.identityToken?.length}');
+      // log('[AppleLogin] 인증 코드 길이: ${credential.authorizationCode.length}');
+
+      //refreshToken 저장 (탈퇴시 revoke용)
+      if (credential.authorizationCode.isNotEmpty) {
+        await saveAppleRefreshToken(credential.authorizationCode);
+      }
 
       // identityToken이 없으면 중단
       if (credential.identityToken == null) {
@@ -81,7 +87,6 @@ class AppleAuthViewModel {
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: credential.identityToken,
         accessToken: credential.authorizationCode,
-        // rawNonce: rawNonce, // 보안을 강화하고 싶다면 주석 해제
       );
 
       // Firebase 인증 시도
