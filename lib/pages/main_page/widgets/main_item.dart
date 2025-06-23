@@ -3,20 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
+import 'package:nota_note/theme/colors.dart';
 
 class MainItem extends ConsumerWidget {
   final String title;
   final String groupId;
   final int noteCount;
   final VoidCallback? onTap;
+  final String? searchQuery;
 
   const MainItem({
+    Key? key,
     required this.title,
     required this.groupId,
     required this.noteCount,
     this.onTap,
-    super.key,
-  });
+    this.searchQuery,
+  }) : super(key: key);
 
   void _showRenameDialog(BuildContext context, WidgetRef ref) {
     showRenameGroupBottomSheet(
@@ -47,7 +50,7 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext);
               final success =
-              await ref.read(groupViewModelProvider).deleteGroup(groupId);
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
               if (success) {
                 scaffoldMessenger.showSnackBar(
@@ -117,14 +120,20 @@ class MainItem extends ConsumerWidget {
                   width: 16,
                   height: 16,
                   colorFilter:
-                  ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
+                      ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
                 ),
                 SizedBox(width: 8),
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF191919),
+                    color: (searchQuery != null &&
+                            searchQuery!.isNotEmpty &&
+                            title
+                                .toLowerCase()
+                                .contains(searchQuery!.toLowerCase()))
+                        ? AppColors.primary300Main
+                        : Color(0xFF191919),
                   ),
                 ),
                 SizedBox(width: 8),
@@ -248,7 +257,7 @@ class MainItem extends ConsumerWidget {
                         SvgPicture.asset(
                           'assets/icons/trash_red_icon.svg',
                           colorFilter:
-                          ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                              ColorFilter.mode(Colors.red, BlendMode.srcIn),
                         ),
                       ],
                     ),
