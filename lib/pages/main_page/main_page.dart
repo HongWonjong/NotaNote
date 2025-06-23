@@ -630,6 +630,9 @@ class _MainPageState extends ConsumerState<MainPage> {
                                       ),
                                     );
                                   },
+                                  searchQuery: _isSearching
+                                      ? _searchController.text
+                                      : null,
                                 );
                               },
                             ),
