@@ -5,12 +5,8 @@ import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.d
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/theme/colors.dart';
 
-import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
-
-/// 사용자 프로필 수정 페이지
 class UserProfileEditPage extends StatefulWidget {
   final UserModel user;
-
   const UserProfileEditPage({super.key, required this.user});
 
   @override
@@ -21,7 +17,6 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
   late TextEditingController _nameController;
-
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
 
@@ -62,13 +57,8 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
             TextButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
-
-                await updateUserProfile(
-                  userId: widget.user.userId,
-                  email: _emailController.text,
-                  displayName: _nameController.text,
-                );
-
+                // 프로필 업데이트 함수 호출
+                // await updateUserProfile( ... );
                 if (mounted) {
                   Navigator.pop(context, true);
                 }
@@ -88,42 +78,48 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 24),
-
-                // 프로필 이미지
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ProfileImageWidget(
-                        userId: widget.user.userId,
-                        currentPhotoUrl: widget.user.photoUrl,
-                        displayName: widget.user.displayName,
-                        isEditable: true,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: -4,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            border: Border.all(color: Colors.grey[200]!),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                                'assets/icons/ProfileCamera.svg'),
+                const SizedBox(height: 30),
+                // 프로필 이미지+카메라 아이콘 (가로 무제한, 세로91)
+                SizedBox(
+                  width: double.infinity,
+                  height: 91,
+                  child: Center(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        ProfileImageWidget(
+                          userId: widget.user.userId,
+                          currentPhotoUrl: widget.user.photoUrl,
+                          displayName: widget.user.displayName,
+                          isEditable: true,
+                        ),
+                        // 카메라 아이콘 (86x86 프로필 기준 오른쪽 하단)
+                        Positioned(
+                          bottom: 0,
+                          right: -6,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey[200]!),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Center(
+                              child: SvgPicture.asset(
+                                'assets/icons/ProfileCamera.svg',
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
+                const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -133,120 +129,83 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 12),
-                      Stack(
-                        alignment: Alignment.centerRight,
-                        children: [
-                          TextFormField(
-                            focusNode: _nameFocusNode,
-                            controller: _nameController,
-                            maxLength: 10,
-                            style: PretendardTextStyles.bodyM
-                                .copyWith(color: Colors.grey[900]),
-                            decoration: InputDecoration(
-                              counterText: '',
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 14),
-                              filled: true,
-                              fillColor: Colors.white,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey[300]!),
+                      SizedBox(
+                        height: 52,
+                        child: Stack(
+                          alignment: Alignment.centerRight,
+                          children: [
+                            TextFormField(
+                              focusNode: _nameFocusNode,
+                              controller: _nameController,
+                              maxLength: 10,
+                              style: PretendardTextStyles.bodyM
+                                  .copyWith(color: Colors.grey[900]),
+                              decoration: InputDecoration(
+                                counterText: '',
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                filled: true,
+                                fillColor: Colors.white,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Colors.black, width: 1.5),
+                                ),
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 1.5),
+                              validator: (val) =>
+                                  (val ?? '').isEmpty ? '닉네임을 입력하세요' : null,
+                              onChanged: (_) => setState(() {}),
+                            ),
+                            Positioned(
+                              right: 16,
+                              child: Text(
+                                '${_nameController.text.length}/10',
+                                style: PretendardTextStyles.labelS
+                                    .copyWith(color: Colors.grey[400]),
                               ),
                             ),
-                            validator: (val) =>
-                                (val ?? '').isEmpty ? '닉네임을 입력하세요' : null,
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          Positioned(
-                            right: 16,
-                            child: Text(
-                              '${_nameController.text.length}/10',
-                              style: PretendardTextStyles.labelS
-                                  .copyWith(color: Colors.grey[400]),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text('이메일',
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 12),
-                      TextFormField(
-                        focusNode: _emailFocusNode,
-                        controller: _emailController,
-                        style: PretendardTextStyles.bodyM
-                            .copyWith(color: Colors.grey[900]),
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          filled: true,
-                          fillColor: Colors.white,
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                      SizedBox(
+                        height: 52,
+                        child: TextFormField(
+                          focusNode: _emailFocusNode,
+                          controller: _emailController,
+                          style: PretendardTextStyles.bodyM
+                              .copyWith(color: Colors.grey[900]),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
+                            ),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                                color: Colors.black, width: 1.5),
-                          ),
+                          validator: (val) =>
+                              (val ?? '').isEmpty ? '이메일을 입력하세요' : null,
                         ),
-                        validator: (val) =>
-                            (val ?? '').isEmpty ? '이메일을 입력하세요' : null,
                       ),
                     ],
                   ),
                 ),
-                //수정페이지에선 로그아웃, 탈퇴 없앰.
-
-                // const SizedBox(height: 30),
-                // Divider(color: Colors.grey[200], thickness: 6),
-                // const SizedBox(height: 10),
-
-                // Padding(
-                //   padding:
-                //       const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                //   child: Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       TextButton(
-                //         onPressed: () async {
-                //           await signOut();
-                //           if (context.mounted) {
-                //             Navigator.pushAndRemoveUntil(
-                //               context,
-                //               MaterialPageRoute(
-                //                   builder: (_) => const LoginPage()),
-                //               (route) => false,
-                //             );
-                //           }
-                //         },
-                //         child: Text(
-                //           '로그아웃',
-                //           style: PretendardTextStyles.bodyM.copyWith(
-                //             color: Colors.grey[900],
-                //           ),
-                //         ),
-                //       ),
-                //       TextButton(
-                //         onPressed: () {},
-                //         child: Text(
-                //           '계정 탈퇴하기',
-                //           style: PretendardTextStyles.bodyM.copyWith(
-                //             color: Colors.red,
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // )
               ],
             ),
           ),

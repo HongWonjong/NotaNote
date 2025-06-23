@@ -7,6 +7,7 @@ import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/pages/user_profile_page/account_delete_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_edit_page.dart';
+import 'package:nota_note/pages/user_profile_page/widgets/profile_action_buttons.dart';
 import 'package:nota_note/services/oauth_revoke_service.dart';
 import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
@@ -71,18 +72,21 @@ class UserProfilePage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 24),
-                // 프로필 이미지
-                Center(
-                  child: ProfileImageWidget(
-                    userId: user.userId,
-                    currentPhotoUrl: user.photoUrl,
-                    displayName: user.displayName,
-                    isEditable: false,
+                const SizedBox(height: 30),
+                // 프로필 이미지 (가로 무제한, 세로 91, 중앙정렬)
+                SizedBox(
+                  width: double.infinity,
+                  height: 91,
+                  child: Center(
+                    child: ProfileImageWidget(
+                      userId: user.userId,
+                      currentPhotoUrl: user.photoUrl,
+                      displayName: user.displayName,
+                      isEditable: false,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 30),
-                // 닉네임/이메일 영역
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -92,38 +96,42 @@ class UserProfilePage extends ConsumerWidget {
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 12),
-                      Container(
-                        height: 52,
+                      SizedBox(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(user.displayName,
+                              style: PretendardTextStyles.bodyM
+                                  .copyWith(color: Colors.grey[900])),
                         ),
-                        child: Text(user.displayName,
-                            style: PretendardTextStyles.bodyM
-                                .copyWith(color: Colors.grey[900])),
                       ),
                       const SizedBox(height: 16),
                       Text('이메일',
                           style: PretendardTextStyles.bodyMEmphasis
                               .copyWith(color: Colors.grey[800])),
                       const SizedBox(height: 12),
-                      Container(
-                        height: 52,
+                      SizedBox(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(user.email,
+                              style: PretendardTextStyles.bodyM
+                                  .copyWith(color: Colors.grey[900])),
                         ),
-                        child: Text(user.email,
-                            style: PretendardTextStyles.bodyM
-                                .copyWith(color: Colors.grey[900])),
                       ),
                     ],
                   ),
@@ -131,6 +139,7 @@ class UserProfilePage extends ConsumerWidget {
                 const SizedBox(height: 30),
                 Divider(color: Colors.grey[200], thickness: 6),
                 const SizedBox(height: 10),
+
                 // 로그아웃/탈퇴 버튼은 별도 위젯으로 분리
                 ProfileActionButtons(
                   onLogout: () => _showLogoutDialog(context),
