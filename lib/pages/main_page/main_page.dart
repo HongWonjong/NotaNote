@@ -344,13 +344,23 @@ class _MainPageState extends ConsumerState<MainPage> {
                                       ),
                                     ),
                                   );
-                                  //_menuController.closeMenu(); 필요하다면 복구하세요!
                                 },
-                                child: Text(
-                                  group.name,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      group.name,
+                                        style: PretendardTextStyles.bodyS
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '(${group.noteCount})',
+                                      style: PretendardTextStyles.bodyS.copyWith(
+                                        color: Colors.grey[500],
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -359,7 +369,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                               padding: const EdgeInsets.only(bottom: 14),
                               child: Text(
                                 '그룹이 없습니다',
-                                  style: PretendardTextStyles.bodyM,
+                                style: PretendardTextStyles.bodyM,
                               ),
                             ),
                         ],
