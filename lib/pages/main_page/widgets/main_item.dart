@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
 
-
 class MainItem extends ConsumerWidget {
   final String title;
   final String groupId;
@@ -20,13 +19,13 @@ class MainItem extends ConsumerWidget {
   });
 
   void _showRenameDialog(BuildContext context, WidgetRef ref) {
-  showRenameGroupBottomSheet(
-    context: context,
-    ref: ref,
-    groupId: groupId,
-    currentTitle: title,
-  );
-}
+    showRenameGroupBottomSheet(
+      context: context,
+      ref: ref,
+      groupId: groupId,
+      currentTitle: title,
+    );
+  }
 
   void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -48,7 +47,7 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext);
               final success =
-                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
+              await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
               if (success) {
                 scaffoldMessenger.showSnackBar(
@@ -96,55 +95,55 @@ class MainItem extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap ?? () => _showBottomSheet(context, ref),
       child: Container(
-        width: double.infinity,
-        height: 72,
-        decoration: BoxDecoration(
-          color: Color(0xffFAFAFA),
-          border: Border(
-            bottom: BorderSide(
-              color: Color(0xffEFEFEF),
-              width: 1,
-            ),
+        width: 335,
+        height: 64,
+        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: ShapeDecoration(
+          color: Color(0xFFF9F9F9),
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/group_folder_icon.svg',
-                    width: 16,
-                    height: 16,
-                    colorFilter:
-                        ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/group_folder_icon.svg',
+                  width: 16,
+                  height: 16,
+                  colorFilter:
+                  ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF191919),
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '($noteCount)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF999999),
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    '($noteCount)',
-                    style: TextStyle(fontSize: 14, color: Color(0xff999999)),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            IconButton(
-              onPressed: () => _showBottomSheet(context, ref),
-              icon: Icon(
-                Icons.more_horiz,
-                size: 24,
+            GestureDetector(
+              onTap: () => _showBottomSheet(context, ref),
+              child: SvgPicture.asset(
+                'assets/icons/DotsThree.svg',
+                width: 32,
+                height: 32,
               ),
-              splashRadius: 20,
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(),
             )
           ],
         ),
@@ -195,7 +194,7 @@ class MainItem extends ConsumerWidget {
                           'assets/icons/share_icon.svg',
                           colorFilter: ColorFilter.mode(
                               Color(0xFF4C4C4C), BlendMode.srcIn),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -222,7 +221,7 @@ class MainItem extends ConsumerWidget {
                           'assets/icons/edit_icon.svg',
                           colorFilter: ColorFilter.mode(
                               Color(0xFF4C4C4C), BlendMode.srcIn),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -249,8 +248,8 @@ class MainItem extends ConsumerWidget {
                         SvgPicture.asset(
                           'assets/icons/trash_red_icon.svg',
                           colorFilter:
-                              ColorFilter.mode(Colors.red, BlendMode.srcIn),
-                        )
+                          ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                        ),
                       ],
                     ),
                   ),
