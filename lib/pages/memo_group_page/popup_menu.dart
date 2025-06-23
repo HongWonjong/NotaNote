@@ -72,15 +72,15 @@ Widget build(BuildContext context) {
       height: 24,
     ),
     tooltip: '설정 메뉴',
-    color: const Color(0xFFF5F5F5), // 밝은 회색 배경
+    color: const Color(0xFFF5F5F5),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16), // 모서리 둥글기 증가
+      borderRadius: BorderRadius.circular(16),
     ),
-    offset: const Offset(0, 40), // 버튼 아래로 좀 더 내림 (위치조정)
+    offset: const Offset(0, 40),
     constraints: const BoxConstraints(
-      minWidth: 200, // 가로 길이 증가
+      minWidth: 200,
       maxWidth: 220,
-      maxHeight: 300, // 세로 길이 제한
+      maxHeight: 300,
     ),
     onSelected: (value) {
       switch (value) {
