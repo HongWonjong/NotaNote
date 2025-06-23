@@ -47,3 +47,4 @@ app.*.map.json
 /lib/firebase_options.dart
 /firebase.json
 /devtools_options.yaml
+google-services.json
