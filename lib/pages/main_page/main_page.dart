@@ -13,6 +13,7 @@ import 'package:nota_note/services/auth_service.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -305,10 +306,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       SizedBox(width: 8),
                       Text(
                         '그룹',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                        style: PretendardTextStyles.bodyM
                       ),
                       Spacer(),
                       IconButton(
@@ -359,36 +357,14 @@ class _MainPageState extends ConsumerState<MainPage> {
                               padding: const EdgeInsets.only(bottom: 14),
                               child: Text(
                                 '그룹이 없습니다',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
+                                  style: PretendardTextStyles.bodyM,
                               ),
                             ),
                         ],
                       ),
                     ),
                   ],
-                  SizedBox(height: 31),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/trash_icon.svg',
-                        colorFilter:
-                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '휴지통',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 31),
+                  SizedBox(height: 15),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -404,16 +380,31 @@ class _MainPageState extends ConsumerState<MainPage> {
                           colorFilter:
                           ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
                         ),
-                        SizedBox(width: 8),
+                        SizedBox(width: 5),
                         Text(
                           '녹음 기록',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                          style: PretendardTextStyles.bodyM,
+
                         ),
                       ],
                     ),
+                  ),
+                  SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/trash_icon.svg',
+                        colorFilter:
+                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '휴지통',
+                        style: PretendardTextStyles.bodyM,
+
+                      ),
+                    ],
                   ),
                   SizedBox(height: 25),
                   Row(
@@ -435,10 +426,8 @@ class _MainPageState extends ConsumerState<MainPage> {
                         },
                         child: Text(
                           '설정',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                          style: PretendardTextStyles.bodyM,
+
                         ),
                       ),
                     ],
