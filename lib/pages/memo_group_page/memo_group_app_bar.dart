@@ -75,11 +75,17 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(groupName),
       leading: isDeleteMode
-          ? IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: onCancelDelete,
-            )
-          : null,
+    ? TextButton(
+        onPressed: onCancelDelete,
+        child: const Text(
+          '완료',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+          ),
+        ),
+      )
+    : null,
       actions: isDeleteMode
           ? [
               TextButton(
