@@ -72,6 +72,16 @@ Widget build(BuildContext context) {
       height: 24,
     ),
     tooltip: '설정 메뉴',
+    color: const Color(0xFFF5F5F5),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    offset: const Offset(0, 40),
+    constraints: const BoxConstraints(
+      minWidth: 200,
+      maxWidth: 220,
+      maxHeight: 300,
+    ),
     onSelected: (value) {
       switch (value) {
         case 1:
@@ -99,69 +109,63 @@ Widget build(BuildContext context) {
     itemBuilder: (context) => [
       PopupMenuItem(
         value: 1,
-        child: ListTile(
-          leading: SvgPicture.asset(
-            widget.isGrid
-                ? 'assets/icons/ListDashes.svg'
-                : 'assets/icons/GridFour.svg',
-            width: 24,
-            height: 24,
-          ),
-          title: Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              widget.isGrid ? 'assets/icons/ListDashes.svg' : 'assets/icons/GridFour.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 12),
+            Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
+          ],
         ),
       ),
       PopupMenuItem(
         value: 2,
-        child: ListTile(
-          leading: SvgPicture.asset(
-            'assets/icons/ArrowsDownUp.svg',
-            width: 24,
-            height: 24,
-          ),
-          title: const Text('정렬'),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/icons/ArrowsDownUp.svg', width: 24, height: 24),
+            const SizedBox(width: 12),
+            const Text('정렬'),
+          ],
         ),
       ),
       PopupMenuItem(
         value: 3,
-        child: ListTile(
-          leading: SvgPicture.asset(
-            'assets/icons/Share.svg',
-            width: 24,
-            height: 24,
-          ),
-          title: const Text('공유'),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/icons/Share.svg', width: 24, height: 24),
+            const SizedBox(width: 12),
+            const Text('공유'),
+          ],
         ),
       ),
       PopupMenuItem(
         value: 4,
-        child: ListTile(
-          leading: SvgPicture.asset(
-            'assets/icons/PencilSimple.svg',
-            width: 24,
-            height: 24,
-          ),
-          title: const Text('이름변경'),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/icons/PencilSimple.svg', width: 24, height: 24),
+            const SizedBox(width: 12),
+            const Text('이름변경'),
+          ],
         ),
       ),
       const PopupMenuDivider(),
       PopupMenuItem(
         value: 5,
-        child: ListTile(
-          leading: SvgPicture.asset(
-            'assets/icons/Delete.svg',
-            width: 24,
-            height: 24,
-            color: Colors.red, // SVG가 색상 변경을 지원할 경우만 적용됨
-          ),
-          title: const Text(
-            '삭제',
-            style: TextStyle(color: Colors.red),
-          ),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/icons/Delete.svg', width: 24, height: 24, color: Colors.red),
+            const SizedBox(width: 12),
+            const Text('삭제', style: TextStyle(color: Colors.red)),
+          ],
         ),
       ),
     ],
   );
 }
+
   void _showSortOptionsDialog() {
     SortOption tempSelectedOption = widget.sortOption;
 
@@ -185,19 +189,23 @@ Widget build(BuildContext context) {
                         const Spacer(flex: 3),
                         const Text(
                           '정렬 기준',
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(fontSize: 24),
                         ),
                         const Spacer(flex: 2),
                         TextButton(
-                          onPressed: () {
-                            widget.onSortChanged(tempSelectedOption);
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            '완료',
-                            style: TextStyle(color: Color(0xFF61CFB2)),
-                          ),
-                        ),
+  onPressed: () {
+    widget.onSortChanged(tempSelectedOption);
+    Navigator.pop(context);
+  },
+  child: const Text(
+    '완료',
+    style: TextStyle(
+      color: Color(0xFF61CFB2),
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -302,21 +310,25 @@ Widget build(BuildContext context) {
                   const Spacer(flex: 3),
                   const Text(
                     '공유',
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 24),
                   ),
                   const Spacer(flex: 2),
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      '완료',
-                      style: TextStyle(color: Color(0xFF61CFB2)),
-                    ),
-                  ),
+  onPressed: () => Navigator.pop(context),
+  child: const Text(
+    '완료',
+    style: TextStyle(
+      color: Color(0xFF61CFB2),
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 22),
+              const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+              const SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
                   itemCount: members.length,
@@ -350,7 +362,7 @@ Widget build(BuildContext context) {
                   children: [
                     const Text(
                       '권한 설정',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                     ),
                     DropdownButton<String>(
                       value: roleDisplayMap[members[selectedMemberIndex].role] ?? '읽기 전용',
@@ -370,9 +382,7 @@ Widget build(BuildContext context) {
               ] else
                 const Text('권한 설정이 불가능한 멤버입니다.'),
               const SizedBox(height: 24),
-              const Divider(),
               const SizedBox(height: 12),
-              const Text('링크 공유', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               GestureDetector(
   onTap: () {
@@ -381,11 +391,11 @@ Widget build(BuildContext context) {
       const SnackBar(content: Text('링크가 복사되었습니다.')),
     );
   },
-  child: Center(   // Center로 감싸기
+  child: Center(
     child: SvgPicture.asset(
       'assets/icons/Button.svg',
-      width: 200,    // 적당한 고정 크기 지정
-      height: 48,
+      width: 250,
+      height: 72,
       fit: BoxFit.contain,
     ),
   ),
