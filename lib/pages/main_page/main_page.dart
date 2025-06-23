@@ -264,16 +264,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                         ],
                       ),
                     ),
-                    // 로그아웃 버튼 추가
-                    IconButton(
-                      onPressed: _handleLogout,
-                      icon: Icon(
-                        Icons.logout,
-                        color: Colors.red[300],
-                        size: 20,
-                      ),
-                      tooltip: '로그아웃',
-                    ),
                   ],
                 ),
               ),
