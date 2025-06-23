@@ -18,6 +18,7 @@ import 'package:nota_note/services/local_storage_service.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:async';
 
 void main() async {
@@ -76,6 +77,15 @@ void main() async {
       logger.i('Kakao SDK 초기화 완료');
     } catch (e, stack) {
       logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // AdMob 초기화
+    try {
+      await MobileAds.instance.initialize();
+      logger.i('AdMob 초기화 완료');
+    } catch (e, stack) {
+      logger.e('AdMob 초기화 실패: $e', stackTrace: stack);
       FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
