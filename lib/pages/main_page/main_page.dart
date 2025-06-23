@@ -250,16 +250,10 @@ class _MainPageState extends ConsumerState<MainPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
+                      SvgPicture.asset(
+                        'assets/icons/ProfileImage3.svg',
                         width: 32,
                         height: 32,
-                        decoration: ShapeDecoration(
-                          color: Color(0xFF60CFB1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                        ),
-                        child: Icon(Icons.person, color: Colors.white, size: 20),
                       ),
                       const SizedBox(height: 16),
                       Column(
