@@ -13,7 +13,7 @@ import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
-import 'package:nota_note/pages/user_profile_page/widgets/profile_action_buttons.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 
 /// 사용자 프로필 페이지
 class UserProfilePage extends ConsumerWidget {
@@ -359,6 +359,12 @@ class UserProfilePage extends ConsumerWidget {
       }
       await firestore.collection('users').doc(userId).delete();
 
+      // 유저 녹음기록을 로컬 데이터베이스와 파이어베이스에서 전부 삭제
+      final recordingViewModel =
+          ProviderContainer().read(recordingViewModelProvider.notifier);
+      await recordingViewModel.deleteAllRecordings();
+
+      // 로그아웃/정보 초기화
       // 2. 로그인 provider 정보 (google, apple, kakao) 읽기
       final provider = await getLoginProvider();
 

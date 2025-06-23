@@ -49,18 +49,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       }
     });
 
-    // 스크롤 리스너 추가: 스크롤 중 오프셋 실시간 저장
     _scrollController.addListener(() {
       ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
     });
 
-    // 저장된 오프셋으로 스크롤 위치 복원
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final savedOffset = ref.read(toolbarScrollOffsetProvider);
       if (_scrollController.hasClients && savedOffset > 0) {
         _scrollController.jumpTo(savedOffset);
       } else {
-        // 컨트롤러가 준비되지 않은 경우 지연 복원 시도
         Future.delayed(Duration(milliseconds: 100), () {
           if (_scrollController.hasClients && mounted) {
             _scrollController.jumpTo(savedOffset);
@@ -349,7 +346,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
 
   @override
   void dispose() {
-    // 툴바가 닫힐 때 현재 스크롤 오프셋 저장
     if (_scrollController.hasClients) {
       ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
     }
@@ -364,6 +360,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   @override
   Widget build(BuildContext context) {
     final recordingState = ref.watch(recordingViewModelProvider);
+    final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
 
     return Container(
       width: double.infinity,
@@ -381,20 +378,20 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   icon: recordingState.isRecording
                       ? SvgPicture.asset(
                     'assets/icons/Stop.svg',
-                    colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
                   )
                       : SvgPicture.asset(
                     'assets/icons/Mic.svg',
                     colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
                   ),
                   onPressed: () async {
-                    final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
                     if (recordingState.isRecording) {
                       await recordingViewModel.stopRecording();
                       ref.read(recordingBoxVisibilityProvider.notifier).state = true;
                     } else {
                       await recordingViewModel.startRecording();
                     }
+                    setState(() {});
                   },
                 ),
                 if (recordingState.isRecording)
@@ -436,7 +433,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               ),
               onPressed: () {
                 ref.read(recordingBoxVisibilityProvider.notifier).state = false;
-
               },
             ),
             CompositedTransformTarget(
