@@ -1,10 +1,11 @@
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+import 'package:nota_note/services/oauth_revoke_service.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
@@ -26,6 +27,11 @@ class GoogleAuthViewModel {
       if (googleUser == null) return null;
 
       final googleAuth = await googleUser.authentication;
+      // --- accessToken 저장 (탈퇴시 revoke용) ---
+      if (googleAuth.accessToken != null) {
+        await saveGoogleAccessToken(googleAuth.accessToken!);
+      }
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,

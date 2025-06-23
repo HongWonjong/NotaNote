@@ -91,7 +91,7 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
           onTap:
               _isUploading || !widget.isEditable ? null : _pickAndUploadImage,
           child: CircleAvatar(
-            radius: 40,
+            radius: 43,
             backgroundColor: Colors.grey[300],
             backgroundImage:
                 _photoUrl.isNotEmpty ? NetworkImage(_photoUrl) : null,
