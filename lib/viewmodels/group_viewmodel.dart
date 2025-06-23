@@ -8,7 +8,7 @@ import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 
 final groupViewModelProvider =
-ChangeNotifierProvider((ref) => GroupViewModel(ref));
+    ChangeNotifierProvider((ref) => GroupViewModel(ref));
 
 class GroupViewModel extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -20,6 +20,8 @@ class GroupViewModel extends ChangeNotifier {
   String? _error;
   StreamSubscription<QuerySnapshot>? _groupSubscription;
   Map<String, StreamSubscription<QuerySnapshot>> _notesSubscriptions = {};
+  List<GroupModel> _filteredGroups = [];
+  String _searchQuery = '';
 
   GroupViewModel(this._ref) {
     _init();
@@ -28,6 +30,9 @@ class GroupViewModel extends ChangeNotifier {
   List<GroupModel> get groups => _groups;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  List<GroupModel> get filteredGroups =>
+      _searchQuery.isEmpty ? _groups : _filteredGroups;
+  String get searchQuery => _searchQuery;
 
   void _init() {
     fetchGroupsWithNoteCounts();
@@ -125,7 +130,7 @@ class GroupViewModel extends ChangeNotifier {
       for (var doc in querySnapshot.docs) {
         final noteCount = _groups
             .firstWhere((group) => group.id == doc.id,
-            orElse: () => GroupModel.fromFirestore(doc, noteCount: 0))
+                orElse: () => GroupModel.fromFirestore(doc, noteCount: 0))
             .noteCount;
         fetchedGroups.add(GroupModel.fromFirestore(doc, noteCount: noteCount));
       }
@@ -143,10 +148,8 @@ class GroupViewModel extends ChangeNotifier {
   }
 
   void _listenToNotes(String groupId, DocumentSnapshot groupDoc) {
-    final notesRef = _firestore
-        .collection('notegroups')
-        .doc(groupId)
-        .collection('notes');
+    final notesRef =
+        _firestore.collection('notegroups').doc(groupId).collection('notes');
 
     _notesSubscriptions[groupId] = notesRef.snapshots().listen((notesSnapshot) {
       final noteCount = notesSnapshot.docs.length;
@@ -323,6 +326,19 @@ class GroupViewModel extends ChangeNotifier {
         }
       }
     } catch (e) {}
+  }
+
+  void searchGroups(String query) {
+    _searchQuery = query;
+    if (query.isEmpty) {
+      _filteredGroups = [];
+    } else {
+      _filteredGroups = _groups
+          .where(
+              (group) => group.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+    notifyListeners();
   }
 
   @override
