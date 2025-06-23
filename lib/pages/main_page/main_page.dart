@@ -8,11 +8,12 @@ import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
-
+import 'package:nota_note/pages/record_page/record_page.dart';
 import 'package:nota_note/services/auth_service.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
-
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
+import 'package:nota_note/providers/user_profile_provider.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -27,7 +28,6 @@ class _MainPageState extends ConsumerState<MainPage> {
   String? _newGroupName;
   final TextEditingController _textController = TextEditingController();
   String? _currentUserId;
-  String? _currentUserName;
 
   @override
   void initState() {
@@ -150,7 +150,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                   decoration: InputDecoration(
                     hintText: '그룹 이름',
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey[300]!),
@@ -199,7 +199,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     if (success && mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LoginPage()),
-        (route) => false,
+            (route) => false,
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,189 +232,230 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget _buildMenu(List<GroupModel> groups, String? userId) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 22),
+        padding: const EdgeInsets.only(left: 5, right: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 47.5),
             if (userId != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 25),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.grey[200],
-                      child: Icon(Icons.person, color: Colors.grey[700]),
+              ref.watch(userProfileProvider(userId)).when(
+                data: (user) => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFF0F0F0)),
                     ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/ProfileImage3.svg',
+                        width: 32,
+                        height: 32,
+                      ),
+                      const SizedBox(height: 16),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '사용자 ID: $userId',
+                            user?.displayName ?? '닉네임',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF191919),
                               fontSize: 14,
-                              overflow: TextOverflow.ellipsis,
+                              fontFamily: 'Pretendard',
+                              height: 1.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? '이메일',
+                            style: TextStyle(
+                              color: Color(0xFF666666),
+                              fontSize: 12,
+                              fontFamily: 'Pretendard',
+                              height: 1.5,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    // 로그아웃 버튼 추가
-                    IconButton(
-                      onPressed: _handleLogout,
-                      icon: Icon(
-                        Icons.logout,
-                        color: Colors.red[300],
-                        size: 20,
-                      ),
-                      tooltip: '로그아웃',
-                    ),
-                  ],
-                ),
-              ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/folder_icon.svg',
-                      colorFilter: ColorFilter.mode(
-                          _isGroupExpanded
-                              ? Color(0xFF60CFB1)
-                              : Color(0xffBFBFBF),
-                          BlendMode.srcIn),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      '그룹',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: _showAddGroupDialog,
-                      icon: Icon(
-                        Icons.add,
-                        size: 18,
-                        color: Color(0xffBFBFBF),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isGroupExpanded = !_isGroupExpanded;
-                        });
-                      },
-                      icon: Icon(
-                        _isGroupExpanded
-                            ? Icons.keyboard_arrow_down
-                            : Icons.keyboard_arrow_right,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            if (_isGroupExpanded) ...[
-              Padding(
-                padding: const EdgeInsets.only(left: 4, top: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var group in groups)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    '${group.name} 그룹 선택됨 (ID: ${group.id})'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                            _menuController.closeMenu();
-                          },
-                          child: Text(
-                            group.name,
-                            style: TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (groups.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: Text(
-                          '그룹이 없습니다',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-            SizedBox(height: 31),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/trash_icon.svg',
-                  colorFilter:
-                      ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  '휴지통',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    ],
                   ),
                 ),
-              ],
-            ),
+                loading: () => Center(child: CircularProgressIndicator()),
+                error: (e, _) => Text('Error: $e'),
+              ),
             SizedBox(height: 25),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/setting_icon.svg',
-                  colorFilter:
-                      ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
-                ),
-                SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()),
-                    );
-                  },
-                  child: Text(
-                    '설정',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/folder_icon.svg',
+                        colorFilter: ColorFilter.mode(
+                            _isGroupExpanded ? Color(0xFF60CFB1) : Color(0xFF616161),
+                            BlendMode.srcIn),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '그룹',
+                        style: PretendardTextStyles.bodyM.copyWith(
+                          color: _isGroupExpanded ? Color(0xFF60CFB1) : Colors.black,
+                        )
+                      ),
+                      Spacer(),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _isGroupExpanded = !_isGroupExpanded;
+                          });
+                        },
+                        icon: _isGroupExpanded
+                            ? SvgPicture.asset(
+                          'assets/icons/ArrowDown.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
+                        )
+                            : SvgPicture.asset(
+                          'assets/icons/ArrowRight.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_isGroupExpanded) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, top: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var group in groups)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MemoGroupPage(
+                                        groupId: group.id,
+                                        groupName: group.name,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      group.name,
+                                        style: PretendardTextStyles.bodyS.copyWith(
+                                        )
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '(${group.noteCount})',
+                                      style: PretendardTextStyles.bodyS.copyWith(
+                                        color: Colors.grey[500],
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          if (groups.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: Text(
+                                '그룹이 없습니다',
+                                style: PretendardTextStyles.bodyM,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 15),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RecordPage()),
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/WaveForm.svg',
+                          colorFilter:
+                          ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          '녹음 기록',
+                          style: PretendardTextStyles.bodyM,
+
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/trash_icon.svg',
+                        colorFilter:
+                        ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '휴지통',
+                        style: PretendardTextStyles.bodyM,
+
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/setting_icon.svg',
+                        colorFilter:
+                        ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
+                      ),
+                      SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SettingsPage()),
+                          );
+                        },
+                        child: Text(
+                          '설정',
+                          style: PretendardTextStyles.bodyM,
+
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -432,28 +473,26 @@ class _MainPageState extends ConsumerState<MainPage> {
             elevation: 0,
             leading: IconButton(
               onPressed: _menuController.toggleMenu,
-              icon: Icon(
-                Icons.menu,
-                color: Color(0xffB5B5B5),
-                size: 24,
-              ),
+              icon: SvgPicture.asset('assets/icons/List.svg')
             ),
             centerTitle: true,
             actions: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.search,
-                  color: Color(0xffB1B1B1),
-                  size: 24,
+                icon: SvgPicture.asset('assets/icons/MagnifyingGlass.svg',
+                width: 24,
+                height: 24,
+                  colorFilter:
+                  ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: Color(0xffB5B5B5),
-                  size: 24,
+                icon: SvgPicture.asset('assets/icons/Bell.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter:
+                  ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                 ),
               ),
             ],
@@ -489,57 +528,57 @@ class _MainPageState extends ConsumerState<MainPage> {
                   child: isLoading
                       ? Center(child: CircularProgressIndicator())
                       : groups.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.folder_open,
-                                    size: 48,
-                                    color: Colors.grey[400],
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    '생성된 그룹이 없습니다',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    '새 그룹을 추가해보세요',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
+                      ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.folder_open,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          '생성된 그룹이 없습니다',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '새 그룹을 추가해보세요',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      : ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: groups.length,
+                    separatorBuilder: (context, index) => Container(),
+                    itemBuilder: (context, index) {
+                      return MainItem(
+                        title: groups[index].name,
+                        groupId: groups[index].id,
+                        noteCount: groups[index].noteCount,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MemoGroupPage(
+                                groupId: groups[index].id,
+                                groupName: groups[index].name,
                               ),
-                            )
-                          : ListView.separated(
-                              padding: EdgeInsets.zero,
-                              itemCount: groups.length,
-                              separatorBuilder: (context, index) => Container(),
-                              itemBuilder: (context, index) {
-                                return MainItem(
-                                  title: groups[index].name,
-                                  groupId: groups[index].id,
-                                  noteCount: groups[index].noteCount,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => MemoGroupPage(
-                                          groupId: groups[index].id,
-                                          groupName: groups[index].name,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
                             ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
