@@ -335,14 +335,16 @@ class _MainPageState extends ConsumerState<MainPage> {
                               padding: const EdgeInsets.only(bottom: 14),
                               child: GestureDetector(
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          '${group.name} 그룹 선택됨 (ID: ${group.id})'),
-                                      duration: Duration(seconds: 2),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MemoGroupPage(
+                                        groupId: group.id,
+                                        groupName: group.name,
+                                      ),
                                     ),
                                   );
-                                  _menuController.closeMenu();
+                                  //_menuController.closeMenu(); 필요하다면 복구하세요!
                                 },
                                 child: Text(
                                   group.name,
