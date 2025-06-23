@@ -293,14 +293,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: _showAddGroupDialog,
-                      icon: Icon(
-                        Icons.add,
-                        size: 18,
-                        color: Color(0xffBFBFBF),
-                      ),
-                    ),
-                    IconButton(
                       onPressed: () {
                         setState(() {
                           _isGroupExpanded = !_isGroupExpanded;
