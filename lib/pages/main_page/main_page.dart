@@ -300,13 +300,15 @@ class _MainPageState extends ConsumerState<MainPage> {
                       SvgPicture.asset(
                         'assets/icons/folder_icon.svg',
                         colorFilter: ColorFilter.mode(
-                            _isGroupExpanded ? Color(0xFF60CFB1) : Color(0xffBFBFBF),
+                            _isGroupExpanded ? Color(0xFF60CFB1) : Color(0xFF616161),
                             BlendMode.srcIn),
                       ),
                       SizedBox(width: 8),
                       Text(
                         '그룹',
-                        style: PretendardTextStyles.bodyM
+                        style: PretendardTextStyles.bodyM.copyWith(
+                          color: _isGroupExpanded ? Color(0xFF60CFB1) : Colors.black,
+                        )
                       ),
                       Spacer(),
                       IconButton(
@@ -315,11 +317,18 @@ class _MainPageState extends ConsumerState<MainPage> {
                             _isGroupExpanded = !_isGroupExpanded;
                           });
                         },
-                        icon: Icon(
-                          _isGroupExpanded
-                              ? Icons.keyboard_arrow_down
-                              : Icons.keyboard_arrow_right,
-                          size: 24,
+                        icon: _isGroupExpanded
+                            ? SvgPicture.asset(
+                          'assets/icons/ArrowDown.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
+                        )
+                            : SvgPicture.asset(
+                          'assets/icons/ArrowRight.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
                         ),
                       ),
                     ],
@@ -335,20 +344,33 @@ class _MainPageState extends ConsumerState<MainPage> {
                               padding: const EdgeInsets.only(bottom: 14),
                               child: GestureDetector(
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          '${group.name} 그룹 선택됨 (ID: ${group.id})'),
-                                      duration: Duration(seconds: 2),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MemoGroupPage(
+                                        groupId: group.id,
+                                        groupName: group.name,
+                                      ),
                                     ),
                                   );
-                                  _menuController.closeMenu();
                                 },
-                                child: Text(
-                                  group.name,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      group.name,
+                                        style: PretendardTextStyles.bodyS.copyWith(
+                                        )
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '(${group.noteCount})',
+                                      style: PretendardTextStyles.bodyS.copyWith(
+                                        color: Colors.grey[500],
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -357,7 +379,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                               padding: const EdgeInsets.only(bottom: 14),
                               child: Text(
                                 '그룹이 없습니다',
-                                  style: PretendardTextStyles.bodyM,
+                                style: PretendardTextStyles.bodyM,
                               ),
                             ),
                         ],
@@ -378,7 +400,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                         SvgPicture.asset(
                           'assets/icons/WaveForm.svg',
                           colorFilter:
-                          ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                          ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                         ),
                         SizedBox(width: 5),
                         Text(
@@ -396,7 +418,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       SvgPicture.asset(
                         'assets/icons/trash_icon.svg',
                         colorFilter:
-                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                        ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                       ),
                       SizedBox(width: 8),
                       Text(
@@ -413,7 +435,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       SvgPicture.asset(
                         'assets/icons/setting_icon.svg',
                         colorFilter:
-                        ColorFilter.mode(Color(0xffBFBFBF), BlendMode.srcIn),
+                        ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                       ),
                       SizedBox(width: 8),
                       GestureDetector(
@@ -451,28 +473,26 @@ class _MainPageState extends ConsumerState<MainPage> {
             elevation: 0,
             leading: IconButton(
               onPressed: _menuController.toggleMenu,
-              icon: Icon(
-                Icons.menu,
-                color: Color(0xffB5B5B5),
-                size: 24,
-              ),
+              icon: SvgPicture.asset('assets/icons/List.svg')
             ),
             centerTitle: true,
             actions: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.search,
-                  color: Color(0xffB1B1B1),
-                  size: 24,
+                icon: SvgPicture.asset('assets/icons/MagnifyingGlass.svg',
+                width: 24,
+                height: 24,
+                  colorFilter:
+                  ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: Color(0xffB5B5B5),
-                  size: 24,
+                icon: SvgPicture.asset('assets/icons/Bell.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter:
+                  ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
                 ),
               ),
             ],
