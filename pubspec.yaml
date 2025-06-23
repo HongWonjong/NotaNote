@@ -52,6 +52,7 @@ dependencies:
 
   basic_utils: ^5.7.0
   pointycastle: ^3.9.1
+  package_info_plus: ^8.3.0
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/pages/setting_page/widgets/version_text_widget.dart';
 import 'package:nota_note/pages/terms_page/terms_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
@@ -99,16 +100,8 @@ class SettingsPage extends ConsumerWidget {
           ),
           // 하단 앱 버전 표시
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Text(
-              '버전 0.0.0', // 추후 현재 앱 버전으로 표시할 예정
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF666666),
-                fontFamily: 'Pretendard',
-              ),
-            ),
-          ),
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: VersionTextWidget()),
         ],
       ),
     );
@@ -148,3 +141,4 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
+//VersionTextWidget()
