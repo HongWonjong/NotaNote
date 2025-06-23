@@ -138,8 +138,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                               focusNode: _nameFocusNode,
                               controller: _nameController,
                               maxLength: 10,
-                              style: PretendardTextStyles.bodyM
-                                  .copyWith(color: Colors.grey[900]),
+                              style: PretendardTextStyles.bodyM.copyWith(
+                                color: _nameFocusNode.hasFocus
+                                    ? AppColors.gray400
+                                    : Colors.grey[900],
+                              ),
                               decoration: InputDecoration(
                                 counterText: '',
                                 contentPadding: const EdgeInsets.symmetric(
@@ -148,13 +151,15 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                                 fillColor: Colors.white,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide:
-                                      BorderSide(color: Colors.grey[300]!),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey[300]!,
+                                  ),
                                 ),
+                                //포커스 시 테두리
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(
-                                      color: Colors.black, width: 1.5),
+                                      color: AppColors.primary200, width: 1.5),
                                 ),
                               ),
                               validator: (val) =>
@@ -182,8 +187,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                         child: TextFormField(
                           focusNode: _emailFocusNode,
                           controller: _emailController,
-                          style: PretendardTextStyles.bodyM
-                              .copyWith(color: Colors.grey[900]),
+                          style: PretendardTextStyles.bodyM.copyWith(
+                            color: _emailFocusNode.hasFocus
+                                ? AppColors.gray400
+                                : Colors.grey[900],
+                          ),
                           decoration: InputDecoration(
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 14),
@@ -193,10 +201,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(color: Colors.grey[300]!),
                             ),
+                            //포커스 시 테두리
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                  color: Colors.black, width: 1.5),
+                                  color: AppColors.primary200, width: 1.5),
                             ),
                           ),
                           validator: (val) =>
