@@ -168,6 +168,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
             Divider(),
             InkWell(
               onTap: () {
+                Navigator.pop(context);
                 print('파일 변환 버튼 클릭됨');
               },
               child: Container(
