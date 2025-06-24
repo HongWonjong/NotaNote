@@ -29,6 +29,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final quill.QuillController _controller = quill.QuillController.basic();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+
+  //pdf 관련 내가 추가한거
+  final GlobalKey memoKey = GlobalKey();
+
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
@@ -44,7 +48,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     _controller.addListener(() {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
-      final currentDeltaJson = _controller.document.toDelta().toJson().toString();
+      final currentDeltaJson =
+          _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
@@ -55,11 +60,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).loadFromFirestore(_controller);
+        ref
+            .read(pageViewModelProvider({
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
+            .loadFromFirestore(_controller);
       }
     });
   }
@@ -68,14 +75,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     try {
       final delta = _controller.document.toDelta();
       final deltaJson = delta.toJson();
-      if (deltaJson.isEmpty || (deltaJson.length == 1 && deltaJson[0]['insert'] == '\n')) {
+      if (deltaJson.isEmpty ||
+          (deltaJson.length == 1 && deltaJson[0]['insert'] == '\n')) {
         return;
       }
-      await ref.read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier).saveToFirestore(_controller);
+      await ref
+          .read(pageViewModelProvider({
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
+          .saveToFirestore(_controller);
       _lastDeltaJson = deltaJson.toString();
 
       String firstText = '제목 없음';
@@ -87,7 +97,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           break;
         }
       }
-      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+      await ref
+          .read(memoViewModelProvider(widget.groupId))
+          .updateMemoTitle(widget.noteId, firstText);
     } catch (e) {
       debugPrint('Save failed: $e');
     }
@@ -152,7 +164,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(imageUploadViewModel.errorMessage ?? '이미지 업로드 실패')),
+          SnackBar(
+              content: Text(imageUploadViewModel.errorMessage ?? '이미지 업로드 실패')),
         );
         imageUploadViewModel.reset();
       });
@@ -208,24 +221,29 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: quill.QuillEditor(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        scrollController: _scrollController,
-                        config: quill.QuillEditorConfig(
-                          embedBuilders: FlutterQuillEmbeds.editorBuilders(
-                            imageEmbedConfig: QuillEditorImageEmbedConfig(
-                              imageProviderBuilder: (context, imageUrl) {
-                                try {
-                                  return imageUploadViewModel.getImageProviderSync(imageUrl);
-                                } catch (e) {
-                                  debugPrint('Failed to load image: $e');
-                                  return AssetImage('assets/placeholder.png');
-                                }
-                              },
+                      //pdf 변환을 위해 RepaintBoundary로 묶고 key 설정
+                      child: RepaintBoundary(
+                        key: memoKey,
+                        child: quill.QuillEditor(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          scrollController: _scrollController,
+                          config: quill.QuillEditorConfig(
+                            embedBuilders: FlutterQuillEmbeds.editorBuilders(
+                              imageEmbedConfig: QuillEditorImageEmbedConfig(
+                                imageProviderBuilder: (context, imageUrl) {
+                                  try {
+                                    return imageUploadViewModel
+                                        .getImageProviderSync(imageUrl);
+                                  } catch (e) {
+                                    debugPrint('Failed to load image: $e');
+                                    return AssetImage('assets/placeholder.png');
+                                  }
+                                },
+                              ),
                             ),
+                            padding: EdgeInsets.zero,
                           ),
-                          padding: EdgeInsets.zero,
                         ),
                       ),
                     ),
@@ -256,7 +274,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
-                    SizedBox(height: 10,),
+                    SizedBox(
+                      height: 10,
+                    ),
                     if (isKeyboardVisible)
                       EditorToolbar(
                         controller: _controller,
@@ -279,7 +299,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     Positioned(
                       top: appBarHeight / 8,
                       right: 10,
-                      child: PopupMenuWidget(onClose: _togglePopupMenu),
+                      child: PopupMenuWidget(
+                        onClose: _togglePopupMenu,
+                        memoKey: memoKey, //선언한 메모키 전달
+                        quillController: _controller,
+                      ),
                     ),
                   ],
                 ),

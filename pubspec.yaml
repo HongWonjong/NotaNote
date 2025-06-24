@@ -69,6 +69,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/terms/terms_of_service.md
+    - assets/fonts/NotoSansKR-Regular.otf
   uses-material-design: true
   
   fonts:

@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
 
 class PopupMenuWidget extends StatefulWidget {
   final VoidCallback onClose;
+  final GlobalKey memoKey;
+  final quill.QuillController quillController;
 
-  PopupMenuWidget({required this.onClose});
+  const PopupMenuWidget({
+    required this.onClose,
+    required this.memoKey,
+    required this.quillController,
+    super.key,
+  });
 
   @override
   _PopupMenuWidgetState createState() => _PopupMenuWidgetState();
@@ -165,11 +174,45 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
               ),
             ),
             //pdf 변환 + 디바이더
-            Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Divider(),
+            ),
             InkWell(
               onTap: () {
-                Navigator.pop(context);
-                print('파일 변환 버튼 클릭됨');
+                showDialog(
+                  context: context,
+                  builder: (ctx) => SimpleDialog(
+                    title: Text('PDF 변환 방식 선택'),
+                    children: [
+                      SimpleDialogOption(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          saveTextAsPdf(
+                            text: widget.quillController.document.toPlainText(),
+                            fileName:
+                                "my_note_${DateTime.now().millisecondsSinceEpoch}",
+                            context: context,
+                          );
+                        },
+                        child: Text('텍스트 기반 PDF (검색/복사 가능)'),
+                      ),
+                      SimpleDialogOption(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+
+                          saveNoteAsImagePdf(
+                            context: context,
+                            repaintKey: widget.memoKey,
+                            fileName:
+                                "my_note_img_${DateTime.now().millisecondsSinceEpoch}",
+                          );
+                        },
+                        child: Text('화면 캡처 PDF (UI그대로)'),
+                      ),
+                    ],
+                  ),
+                );
               },
               child: Container(
                 width: double.infinity,
