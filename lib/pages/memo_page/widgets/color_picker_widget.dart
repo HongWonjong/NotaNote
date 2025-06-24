@@ -4,16 +4,13 @@ import 'package:flutter_quill/flutter_quill.dart';
 class ColorPickerWidget extends StatelessWidget {
   final QuillController controller;
   final VoidCallback onClose;
+  final Function(Color) onColorSelected;
 
-  ColorPickerWidget({required this.controller, required this.onClose});
-
-  void _applyColor(Color color) {
-    final selection = controller.selection;
-    if (selection.isValid) {
-      controller.formatSelection(Attribute.fromKeyValue('color', '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}'));
-    }
-    // onClose() 호출 제거: 색상 선택 후 UI 유지
-  }
+  ColorPickerWidget({
+    required this.controller,
+    required this.onClose,
+    required this.onColorSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +32,7 @@ class ColorPickerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDC2828)),
+              onTap: () => onColorSelected(Color(0xFFDC2828)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -47,7 +44,7 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDC7628)),
+              onTap: () => onColorSelected(Color(0xFFDC7628)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -59,7 +56,7 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFFDCB528)),
+              onTap: () => onColorSelected(Color(0xFFDCB528)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -71,7 +68,7 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFF2DA309)),
+              onTap: () => onColorSelected(Color(0xFF2DA309)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -83,7 +80,7 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFF1535EA)),
+              onTap: () => onColorSelected(Color(0xFF1535EA)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -95,7 +92,7 @@ class ColorPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyColor(Color(0xFF000000)),
+              onTap: () => onColorSelected(Color(0xFF000000)),
               child: Container(
                 width: 24,
                 height: 24,

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/viewmodels/recording_viewmodel.dart';
-import 'package:intl/intl.dart';
-import 'package:nota_note/providers/recording_box_visibility_provider.dart';
-import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
+import 'package:nota_note/providers/recording_box_visibility_provider.dart';
+import 'package:nota_note/providers/toolbar_scroll_offset_provider.dart';
 import 'camera_selection_dialog.dart';
 import 'color_picker_widget.dart';
 import 'highlight_picker_widget.dart';
-import 'package:nota_note/providers/toolbar_scroll_offset_provider.dart';
 
 class EditorToolbar extends ConsumerStatefulWidget {
   final QuillController controller;
@@ -39,14 +37,13 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   bool _isColorPickerOpen = false;
   bool _isHighlightPickerOpen = false;
   final ScrollController _scrollController = ScrollController();
+  static const String _zeroWidthSpace = '\u200B';
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     });
 
     _scrollController.addListener(() {
@@ -67,6 +64,33 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     });
   }
 
+  void applyFormatsWithPlaceholder(Map<String, Attribute> attributes) {
+    final selection = widget.controller.selection;
+    if (selection.isValid) {
+      final index = selection.start;
+      final document = widget.controller.document;
+
+
+      // 커서 위치에 새 스타일 적용
+      document.insert(index, _zeroWidthSpace);
+      attributes.forEach((key, attribute) {
+        document.format(index, 1, attribute);
+      });
+
+      // 커서 뒤에 플레이스홀더 삽입 및 스타일 적용
+      document.insert(index + 1, _zeroWidthSpace);
+      attributes.forEach((key, attribute) {
+        document.format(index + 1, 1, attribute);
+      });
+
+      widget.controller.updateSelection(
+        TextSelection.collapsed(offset: index + 2),
+        ChangeSource.local,
+      );
+    }
+    if (mounted) setState(() {});
+  }
+
   void _toggleDropdown(BuildContext context) {
     if (_isDropdownOpen) {
       _overlayEntry?.remove();
@@ -78,9 +102,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       Overlay.of(context).insert(_overlayEntry!);
       _isDropdownOpen = true;
     }
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   void _toggleColorPicker(BuildContext context) {
@@ -94,9 +116,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       Overlay.of(context).insert(_colorOverlayEntry!);
       _isColorPickerOpen = true;
     }
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   void _toggleHighlightPicker(BuildContext context) {
@@ -110,9 +130,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       Overlay.of(context).insert(_highlightOverlayEntry!);
       _isHighlightPickerOpen = true;
     }
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   OverlayEntry _createOverlayEntry(BuildContext context) {
@@ -158,6 +176,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
           child: ColorPickerWidget(
             controller: widget.controller,
             onClose: () => _toggleColorPicker(context),
+            onColorSelected: (color) {
+              final attribute = Attribute.fromKeyValue(
+                'color',
+                '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+              );
+              if (attribute != null) {
+                applyFormatsWithPlaceholder({'color': attribute});
+              }
+            },
           ),
         ),
       ),
@@ -175,6 +202,17 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
           child: HighlightPickerWidget(
             controller: widget.controller,
             onClose: () => _toggleHighlightPicker(context),
+            onHighlightSelected: (color) {
+              final attribute = color == null
+                  ? Attribute.clone(Attribute.background, null)
+                  : Attribute.fromKeyValue(
+                'background',
+                '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+              );
+              if (attribute != null) {
+                applyFormatsWithPlaceholder({'background': attribute});
+              }
+            },
           ),
         ),
       ),
@@ -190,32 +228,16 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     return StatefulBuilder(
       builder: (context, setState) {
         return GestureDetector(
-          onTapDown: (_) {
-            setState(() {
-              isPressed = true;
-            });
-          },
-          onTapCancel: () {
-            setState(() {
-              isPressed = false;
-            });
-          },
+          onTapDown: (_) => setState(() => isPressed = true),
+          onTapCancel: () => setState(() => isPressed = false),
           onTap: () async {
-            setState(() {
-              isPressed = true;
-            });
-            final selection = widget.controller.selection;
-            if (selection.isValid) {
-              widget.controller.formatText(
-                selection.start,
-                selection.end - selection.start,
-                Attribute.fromKeyValue('size', size.toInt()),
-              );
+            setState(() => isPressed = true);
+            final attribute = Attribute.fromKeyValue('size', size.toInt());
+            if (attribute != null) {
+              applyFormatsWithPlaceholder({'size': attribute});
             }
             await Future.delayed(Duration(milliseconds: 100));
-            setState(() {
-              isPressed = false;
-            });
+            setState(() => isPressed = false);
             _toggleDropdown(context);
           },
           child: AnimatedContainer(
@@ -232,10 +254,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               alignment: Alignment.centerLeft,
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: size,
-                  color: Colors.black,
-                ),
+                style: TextStyle(fontSize: size, color: Colors.black),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -272,9 +291,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
 
   void _toggleFormat(Attribute attribute) {
     final isActive = _isFormatActive(attribute);
-    widget.controller.formatSelection(isActive ? Attribute.clone(attribute, null) : attribute);
-    if (mounted) {
-      setState(() {});
+    final newAttribute = isActive ? Attribute.clone(attribute, null) : attribute;
+    if (newAttribute != null) {
+      applyFormatsWithPlaceholder({attribute.key: newAttribute});
     }
   }
 
@@ -283,9 +302,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     if (selection.isValid) {
       final style = widget.controller.getSelectionStyle();
       final currentIndent = style.attributes['indent']?.value as int? ?? 0;
-      widget.controller.formatSelection(Attribute.fromKeyValue('indent', currentIndent + 1));
-      if (mounted) {
-        setState(() {});
+      final attribute = Attribute.fromKeyValue('indent', currentIndent + 1);
+      if (attribute != null) {
+        applyFormatsWithPlaceholder({'indent': attribute});
       }
     }
   }
@@ -295,30 +314,32 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     if (selection.isValid) {
       final style = widget.controller.getSelectionStyle();
       final currentIndent = style.attributes['indent']?.value as int? ?? 0;
-      if (currentIndent > 0) {
-        widget.controller.formatSelection(Attribute.fromKeyValue('indent', currentIndent - 1));
-      } else {
-        widget.controller.formatSelection(Attribute.clone(Attribute.indent, null));
-      }
-      if (mounted) {
-        setState(() {});
+      final attribute = currentIndent > 0
+          ? Attribute.fromKeyValue('indent', currentIndent - 1)
+          : Attribute.clone(Attribute.indent, null);
+      if (attribute != null) {
+        applyFormatsWithPlaceholder({'indent': attribute});
       }
     }
   }
 
   void _toggleList(String listType) {
     final isActive = _isListActive(listType);
-    widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.list, null) : Attribute.fromKeyValue('list', listType));
-    if (mounted) {
-      setState(() {});
+    final attribute = isActive
+        ? Attribute.clone(Attribute.list, null)
+        : Attribute.fromKeyValue('list', listType);
+    if (attribute != null) {
+      applyFormatsWithPlaceholder({'list': attribute});
     }
   }
 
   void _toggleAlign(String alignType) {
     final isActive = _isAlignActive(alignType);
-    widget.controller.formatSelection(isActive ? Attribute.clone(Attribute.align, null) : Attribute.fromKeyValue('align', alignType));
-    if (mounted) {
-      setState(() {});
+    final attribute = isActive
+        ? Attribute.clone(Attribute.align, null)
+        : Attribute.fromKeyValue('align', alignType);
+    if (attribute != null) {
+      applyFormatsWithPlaceholder({'align': attribute});
     }
   }
 
@@ -332,16 +353,14 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
       );
     } else {
       final index = widget.controller.selection.start;
-      widget.controller.document.insert(index, '\n');
-      widget.controller.document.format(index, 1, Attribute.codeBlock);
+      widget.controller.document.insert(index, '\n$_zeroWidthSpace');
+      widget.controller.document.format(index + 1, 1, Attribute.codeBlock);
       widget.controller.updateSelection(
-        TextSelection.collapsed(offset: index + 1),
+        TextSelection.collapsed(offset: index + 2),
         ChangeSource.local,
       );
     }
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   @override
