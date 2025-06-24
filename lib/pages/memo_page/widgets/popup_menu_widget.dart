@@ -19,7 +19,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
       color: Colors.transparent,
       child: Container(
         width: 181,
-        height: 216,
+        height: 270, // 파일 변환 추가로 세로 크기 수정 함
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: ShapeDecoration(
           color: Color(0xFFF0F0F0),
@@ -155,6 +155,40 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
                       '삭제하기',
                       style: TextStyle(
                         color: Color(0xFFFF2F2F),
+                        fontSize: 16,
+                        fontFamily: 'Pretendard',
+                        height: 0.09,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            //pdf 변환 + 디바이더
+            Divider(),
+            InkWell(
+              onTap: () {
+                print('파일 변환 버튼 클릭됨');
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 20),
+                    SvgPicture.asset(
+                      'assets/icons/FilePdf.svg',
+                      width: 20,
+                      height: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '파일 변환하기',
+                      style: TextStyle(
+                        color: Color(0xFF4C4C4C),
                         fontSize: 16,
                         fontFamily: 'Pretendard',
                         height: 0.09,

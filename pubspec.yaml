@@ -53,6 +53,8 @@ dependencies:
   basic_utils: ^5.7.0
   pointycastle: ^3.9.1
   package_info_plus: ^8.3.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
 
 dev_dependencies:
   flutter_test:
