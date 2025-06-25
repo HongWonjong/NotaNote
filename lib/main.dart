@@ -15,13 +15,14 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:nota_note/services/local_storage_service.dart';
+import 'package:nota_note/services/notification_service.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:async';
 
 void main() async {
+  // Logger 초기화
   final logger = Logger(
     printer: PrettyPrinter(
       methodCount: 2,
@@ -32,53 +33,87 @@ void main() async {
       printTime: true,
     ),
   );
-
   logger.i('main() 함수 시작');
-  await dotenv.load(fileName: ".env");
-  logger.i('dotenv 로드 완료');
-
-  // Flutter 프레임워크 에러 핸들링
-  FlutterError.onError = (FlutterErrorDetails details) {
-    logger.e('Flutter 프레임워크 에러: ${details.exception}', stackTrace: details.stack);
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-    Sentry.captureException(details.exception, stackTrace: details.stack);
-  };
-
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MyApp()));
-  logger.i('앱 실행 시작');
-
 
   // 글로벌 에러 핸들링 설정
   runZonedGuarded(() async {
+    // Flutter 프레임워크 에러 핸들링
+    FlutterError.onError = (FlutterErrorDetails details) {
+      logger.e('Flutter 프레임워크 에러: ${details.exception}',
+          stackTrace: details.stack);
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    };
+
+    WidgetsFlutterBinding.ensureInitialized();
+    logger.i('WidgetsFlutterBinding 초기화 완료');
+
+    // Firebase 및 Crashlytics 초기화
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      // Crashlytics 활성화
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
       logger.i('Firebase 및 Crashlytics 초기화 완료');
+    } catch (e, stack) {
+      logger.e('Firebase 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
+    }
 
+    // .env 파일 로드
+    try {
+      await dotenv.load(fileName: ".env");
+      logger.i('dotenv 로드 완료');
+    } catch (e, stack) {
+      logger.e('dotenv 로드 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // Kakao SDK 초기화
+    try {
       KakaoSdk.init(
         nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
         javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
       );
       logger.i('Kakao SDK 초기화 완료');
+    } catch (e, stack) {
+      logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
 
+    // 알림 서비스 초기화
+    try {
+      await NotificationService().initialize();
+      logger.i('알림 서비스 초기화 완료');
+    } catch (e, stack) {
+      logger.e('알림 서비스 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // 로컬 데이터베이스 초기화
+    try {
       await LocalStorageService().database;
       logger.i('로컬 데이터베이스 초기화 완료');
+    } catch (e, stack) {
+      logger.e('로컬 데이터베이스 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
 
+    try {
       await SharedPreferences.getInstance();
       logger.i('SharedPreferences 초기화 완료');
-
     } catch (e, stack) {
-      logger.e('초기화 중 에러: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
-      await Sentry.captureException(e, stackTrace: stack);
+      logger.e('SharedPreferences 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
-  }, (error, stack) async {
+
+    // ProviderScope로 앱 실행
+    logger.i('앱 실행 시작');
+    runApp(const ProviderScope(child: MyApp()));
+  }, (error, stack) {
+    // 비동기 및 기타 예외 처리
     logger.e('글로벌 에러: $error', stackTrace: stack);
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    await Sentry.captureException(error, stackTrace: stack);
   });
 }
 
