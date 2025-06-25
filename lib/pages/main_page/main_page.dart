@@ -14,6 +14,7 @@ import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
+import 'package:nota_note/services/notification_service.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -216,6 +217,57 @@ class _MainPageState extends ConsumerState<MainPage> {
           duration: Duration(seconds: 2),
         ),
       );
+    }
+  }
+
+  void _showTestNotification() async {
+    try {
+      // 간단한 로딩 표시
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('알림을 전송하고 있습니다...'),
+            duration: Duration(seconds: 1),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+
+      // 잠시 대기 후 알림 전송
+      await Future.delayed(Duration(milliseconds: 500));
+
+      await NotificationService().showTestNotification();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('테스트 알림이 전송되었습니다!'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Color(0xFF61CFB2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('알림 전송 오류: $e');
+      if (mounted) {
+        String errorMessage = '알림 전송 중 오류가 발생했습니다';
+
+        if (e.toString().contains('permission')) {
+          errorMessage = '알림 권한이 필요합니다. 설정에서 알림을 허용해주세요.';
+        } else if (e.toString().contains('channel')) {
+          errorMessage = '알림 채널 설정 오류가 발생했습니다.';
+        } else {
+          errorMessage = '알림 전송 중 오류가 발생했습니다: ${e.toString()}';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -508,7 +560,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       ),
                     ),
               IconButton(
-                onPressed: () {},
+                onPressed: _showTestNotification,
                 icon: SvgPicture.asset(
                   'assets/icons/Bell.svg',
                   width: 24,
