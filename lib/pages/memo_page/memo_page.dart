@@ -86,15 +86,31 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _lastDeltaJson = deltaJson.toString();
 
       String firstText = '제목 없음';
+      String? secondText;
+      int lineCount = 0;
+
       for (var op in deltaJson) {
         if (op['insert'] is String) {
-          firstText = (op['insert'] as String).trim().split('\n').first;
-          if (firstText.isEmpty) firstText = '제목 없음';
-          if (firstText.length > 50) firstText = firstText.substring(0, 50);
-          break;
+          final lines = (op['insert'] as String).trim().split('\n');
+          for (var line in lines) {
+            if (line.isNotEmpty) {
+              if (lineCount == 0) {
+                firstText = line;
+                if (firstText.length > 50) firstText = firstText.substring(0, 50);
+              } else if (lineCount >= 1 && secondText == null) {
+                if (line.trim().isNotEmpty) {
+                  secondText = line;
+                  if (secondText.length > 100) secondText = secondText.substring(0, 100);
+                }
+              }
+              lineCount++;
+            }
+          }
+          if (lineCount > 0 && secondText != null) break;
         }
       }
-      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+
+      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
     } catch (e) {
       debugPrint('Save failed: $e');
     }
