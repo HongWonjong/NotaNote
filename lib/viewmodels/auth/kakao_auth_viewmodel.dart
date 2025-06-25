@@ -6,6 +6,8 @@ import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
+import 'package:nota_note/services/note_group_exemple_service.dart';
+
 
 final kakaoAuthViewModelProvider =
     Provider<KakaoAuthViewModel>((ref) => KakaoAuthViewModel(ref));
@@ -15,6 +17,8 @@ class KakaoAuthViewModel {
   KakaoAuthViewModel(this.ref);
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final NoteGroupExampleService _noteGroupExampleService = NoteGroupExampleService();
+
 
   Future<UserModel?> signInWithKakao() async {
     try {
@@ -45,6 +49,8 @@ class KakaoAuthViewModel {
           updatedAt: DateTime.now(),
         );
         await docRef.set(newUser.toJson(), SetOptions(merge: true));
+        await _noteGroupExampleService.createExampleNoteGroup(userId);
+
       }
 
       await saveLoginUserId(userId);

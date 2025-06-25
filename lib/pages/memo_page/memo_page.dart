@@ -214,7 +214,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             },
           ),
         ),
-        title: Text('제목'),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 20),
