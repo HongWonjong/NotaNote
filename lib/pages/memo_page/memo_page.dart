@@ -32,6 +32,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
+  bool _isTagVisible = true;
 
   @override
   void initState() {
@@ -50,6 +51,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
         if (!mounted) return;
         _saveContentAndTitle();
+      });
+    });
+    _scrollController.addListener(() {
+      setState(() {
+        _isTagVisible = _scrollController.offset <= 0;
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -204,10 +210,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60),
+                  if (_isTagVisible) SizedBox(height: 60),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -234,12 +240,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          Positioned(
-            top: 20,
-            left: 20,
-            right: 20,
-            child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
-          ),
+          if (_isTagVisible)
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -256,7 +263,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
-                    SizedBox(height: 10,),
+                    SizedBox(height: 10),
                     if (isKeyboardVisible)
                       EditorToolbar(
                         controller: _controller,
