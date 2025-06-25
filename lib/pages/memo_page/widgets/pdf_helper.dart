@@ -1,14 +1,12 @@
-import 'dart:typed_data';
-import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
-import 'dart:io';
+import 'package:share_plus/share_plus.dart';
 
-//플랫폼 별로 다른 api호출
+// 저장 경로 구하기
 Future<Directory> _getSaveDirectory() async {
   if (Platform.isAndroid) {
     return await getExternalStorageDirectory() ??
@@ -20,65 +18,14 @@ Future<Directory> _getSaveDirectory() async {
   }
 }
 
+// Pretendard 폰트 로딩
 Future<pw.Font> loadKoreanFont() async {
-  final fontData = await rootBundle.load('assets/fonts/NotoSansKR-Regular.otf');
+  final fontData = await rootBundle.load('assets/fonts/Pretendard-Regular.ttf');
   return pw.Font.ttf(fontData);
 }
 
-// Text > Image > PDF(캡처를 통한 PDF 변환)
-Future<void> saveNoteAsImagePdf({
-  required BuildContext context,
-  required GlobalKey repaintKey,
-  required String fileName,
-}) async {
-  try {
-    // 캡처 타이밍 확보
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    final boundaryContext = repaintKey.currentContext;
-    if (boundaryContext == null)
-      throw Exception('화면 캡처에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-
-    // 1. 이미지 캡처
-    RenderRepaintBoundary boundary =
-        boundaryContext.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 3.0);
-    ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
-    if (byteData == null) throw Exception('이미지 변환 실패');
-    Uint8List pngBytes = byteData.buffer.asUint8List();
-
-    // 2. PDF에 이미지 삽입
-    final pdf = pw.Document();
-    final imageProvider = pw.MemoryImage(pngBytes);
-    pdf.addPage(
-      pw.Page(build: (pw.Context context) {
-        return pw.Center(child: pw.Image(imageProvider));
-      }),
-    );
-
-    // 3. 저장
-    // final dir = await getExternalStorageDirectory(); << 안드로이드 전용 API이므로 ios에선 오류남.
-    final dir = await _getSaveDirectory();
-    final file = File('${dir.path}/$fileName.pdf');
-    await file.writeAsBytes(await pdf.save());
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF로 저장되었습니다.')),
-      );
-      print('PDF 저장 경로: ${file.path}');
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF 저장 실패: $e')),
-      );
-    }
-  }
-}
-
-// Text > PDF(텍스트 위젯을 바로 PDF 변환)
-Future<void> saveTextAsPdf({
+// 텍스트 → PDF 저장 & 공유
+Future<void> saveTextAsPdfAndShare({
   required String text,
   required String fileName,
   required BuildContext context,
@@ -93,27 +40,29 @@ Future<void> saveTextAsPdf({
         build: (pw.Context context) {
           return pw.Container(
             padding: const pw.EdgeInsets.all(24),
-            child: pw.Text(text, style: pw.TextStyle(font: ttf, fontSize: 18)),
+            child: pw.Text(
+              text,
+              style: pw.TextStyle(font: ttf, fontSize: 18),
+            ),
           );
         },
       ),
     );
 
-    // final dir = await getExternalStorageDirectory();
     final dir = await _getSaveDirectory();
     final file = File('${dir.path}/$fileName.pdf');
     await file.writeAsBytes(await pdf.save());
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF로 저장되었습니다.')),
+        SnackBar(content: Text('PDF로 저장 및 공유 다이얼로그를 엽니다.')),
       );
-      print('PDF 저장 경로: ${file.path}');
+      await Share.shareXFiles([XFile(file.path)], text: '메모 PDF를 공유합니다.');
     }
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF 저장 실패: $e')),
+        SnackBar(content: Text('PDF 저장/공유 실패: $e')),
       );
     }
   }

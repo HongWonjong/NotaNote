@@ -30,9 +30,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
-  //pdf 관련 내가 추가한거
-  final GlobalKey memoKey = GlobalKey();
-
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
@@ -223,7 +220,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       padding: EdgeInsets.all(16.0),
                       //pdf 변환을 위해 RepaintBoundary로 묶고 key 설정
                       child: RepaintBoundary(
-                        key: memoKey,
                         child: quill.QuillEditor(
                           controller: _controller,
                           focusNode: _focusNode,
@@ -301,7 +297,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       right: 10,
                       child: PopupMenuWidget(
                         onClose: _togglePopupMenu,
-                        memoKey: memoKey, //선언한 메모키 전달
                         quillController: _controller,
                       ),
                     ),
