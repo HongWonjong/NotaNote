@@ -167,6 +167,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         leading: Padding(
           padding: EdgeInsets.only(left: 20),
           child: IconButton(
