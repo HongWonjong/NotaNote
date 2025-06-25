@@ -15,6 +15,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:nota_note/services/local_storage_service.dart';
+import 'package:nota_note/services/notification_service.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,7 +39,8 @@ void main() async {
   runZonedGuarded(() async {
     // Flutter 프레임워크 에러 핸들링
     FlutterError.onError = (FlutterErrorDetails details) {
-      logger.e('Flutter 프레임워크 에러: ${details.exception}', stackTrace: details.stack);
+      logger.e('Flutter 프레임워크 에러: ${details.exception}',
+          stackTrace: details.stack);
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     };
 
@@ -76,6 +78,15 @@ void main() async {
       logger.i('Kakao SDK 초기화 완료');
     } catch (e, stack) {
       logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+    }
+
+    // 알림 서비스 초기화
+    try {
+      await NotificationService().initialize();
+      logger.i('알림 서비스 초기화 완료');
+    } catch (e, stack) {
+      logger.e('알림 서비스 초기화 실패: $e', stackTrace: stack);
       FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
     }
 
