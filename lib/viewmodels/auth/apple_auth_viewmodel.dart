@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nota_note/services/oauth_revoke_service.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:nota_note/services/note_group_exemple_service.dart';
 
 import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
@@ -27,6 +28,8 @@ class AppleAuthViewModel {
   // Firebase 인증 및 Firestore 인스턴스 초기화
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final NoteGroupExampleService _noteGroupExampleService = NoteGroupExampleService();
+
 
   /// Apple 로그인 메서드
   Future<UserModel?> signInWithApple() async {
@@ -134,6 +137,8 @@ class AppleAuthViewModel {
           updatedAt: DateTime.now(),
         );
         await docRef.set(userModel.toJson());
+        await _noteGroupExampleService.createExampleNoteGroup(userId);
+
       } else {
         log('[AppleLogin] 기존 유저 문서 존재함');
       }

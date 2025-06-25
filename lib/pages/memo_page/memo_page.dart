@@ -32,6 +32,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
+  bool _isTagVisible = true;
 
   @override
   void initState() {
@@ -50,6 +51,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
         if (!mounted) return;
         _saveContentAndTitle();
+      });
+      _adjustScrollForCursor();
+    });
+    _scrollController.addListener(() {
+      setState(() {
+        _isTagVisible = _scrollController.offset <= 0;
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,15 +86,31 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _lastDeltaJson = deltaJson.toString();
 
       String firstText = '제목 없음';
+      String? secondText;
+      int lineCount = 0;
+
       for (var op in deltaJson) {
         if (op['insert'] is String) {
-          firstText = (op['insert'] as String).trim().split('\n').first;
-          if (firstText.isEmpty) firstText = '제목 없음';
-          if (firstText.length > 50) firstText = firstText.substring(0, 50);
-          break;
+          final lines = (op['insert'] as String).trim().split('\n');
+          for (var line in lines) {
+            if (line.isNotEmpty) {
+              if (lineCount == 0) {
+                firstText = line;
+                if (firstText.length > 50) firstText = firstText.substring(0, 50);
+              } else if (lineCount >= 1 && secondText == null) {
+                if (line.trim().isNotEmpty) {
+                  secondText = line;
+                  if (secondText.length > 100) secondText = secondText.substring(0, 100);
+                }
+              }
+              lineCount++;
+            }
+          }
+          if (lineCount > 0 && secondText != null) break;
         }
       }
-      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+
+      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
     } catch (e) {
       debugPrint('Save failed: $e');
     }
@@ -96,6 +119,35 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void _togglePopupMenu() {
     setState(() {
       _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
+  void _adjustScrollForCursor() {
+    if (!_focusNode.hasFocus) return;
+    final cursorPosition = _controller.selection.baseOffset;
+    if (cursorPosition < 0) return;
+
+    final editorKey = GlobalKey();
+    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    if (renderObject == null) return;
+
+    final cursorHeight = 20.0; // Approximate cursor height
+    final toolbarHeight = 60.0; // Approximate toolbar height
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        final offset = _scrollController.offset;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
+        if (newOffset <= maxScroll) {
+          _scrollController.animateTo(
+            newOffset,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      }
     });
   }
 
@@ -161,39 +213,34 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            'assets/icons/Arrow.svg',
-            width: 24,
-            height: 24,
-          ),
-          onPressed: () async {
-            if (mounted) {
-              await _saveContentAndTitle();
-            }
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
+        scrolledUnderElevation: 0,
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: IconButton(
             icon: SvgPicture.asset(
-              'assets/icons/Share.svg',
+              'assets/icons/Arrow.svg',
               width: 24,
               height: 24,
             ),
-            onPressed: () {
+            onPressed: () async {
               if (mounted) {
-                _saveContentAndTitle();
+                await _saveContentAndTitle();
               }
+              Navigator.pop(context);
             },
           ),
-          IconButton(
-            icon: SvgPicture.asset(
-              'assets/icons/DotCircle.svg',
-              width: 24,
-              height: 24,
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/DotCircle.svg',
+                width: 24,
+                height: 24,
+              ),
+              onPressed: _togglePopupMenu,
             ),
-            onPressed: _togglePopupMenu,
           ),
         ],
       ),
@@ -204,10 +251,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60),
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 150),
+                    height: _isTagVisible ? 80 : 0,
+                  ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0), // 에디터 툴바와의 간격 조절
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -234,11 +284,16 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          Positioned(
-            top: 20,
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 150),
+            top: _isTagVisible ? 20 : -100,
             left: 20,
             right: 20,
-            child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 150),
+              opacity: _isTagVisible ? 1.0 : 0.0,
+              child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            ),
           ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
@@ -256,7 +311,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
-                    SizedBox(height: 10,),
+                    SizedBox(height: 10),
                     if (isKeyboardVisible)
                       EditorToolbar(
                         controller: _controller,

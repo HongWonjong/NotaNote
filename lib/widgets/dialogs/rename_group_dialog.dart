@@ -71,34 +71,39 @@ Future<String?> showRenameGroupBottomSheet({
                       },
                       child: Text(
                         '완료',
-                        style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Color(0xFF61CFB2), fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 16),
                 TextField(
-                  controller: controller,
-                  maxLength: 25,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: '그룹 이름',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    suffix: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Text(
-                        '${controller.text.length}/25',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                  buildCounter: (_, {required int currentLength, required bool isFocused, required int? maxLength}) => null,
-                ),
+  controller: controller,
+  maxLength: 25,
+  autofocus: true,
+  decoration: InputDecoration(
+    hintText: '그룹 이름',
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Color(0xFF8ADBC6)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Color(0xFF8ADBC6), width: 2),
+    ),
+    suffix: Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Text(
+        '${controller.text.length}/25',
+        style: TextStyle(fontSize: 12, color: Colors.grey),
+      ),
+    ),
+  ),
+  onChanged: (value) {
+    setState(() {});
+  },
+  buildCounter: (_, {required int currentLength, required bool isFocused, required int? maxLength}) => null,
+),
                 SizedBox(height: 16),
               ],
             );
