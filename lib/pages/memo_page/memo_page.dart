@@ -32,6 +32,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
+  bool _isTagVisible = true;
 
   @override
   void initState() {
@@ -50,6 +51,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
         if (!mounted) return;
         _saveContentAndTitle();
+      });
+    });
+    _scrollController.addListener(() {
+      setState(() {
+        _isTagVisible = _scrollController.offset <= 0;
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -161,39 +167,34 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            'assets/icons/Arrow.svg',
-            width: 24,
-            height: 24,
-          ),
-          onPressed: () async {
-            if (mounted) {
-              await _saveContentAndTitle();
-            }
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: IconButton(
             icon: SvgPicture.asset(
-              'assets/icons/Share.svg',
+              'assets/icons/Arrow.svg',
               width: 24,
               height: 24,
             ),
-            onPressed: () {
+            onPressed: () async {
               if (mounted) {
-                _saveContentAndTitle();
+                await _saveContentAndTitle();
               }
+              Navigator.pop(context);
             },
           ),
-          IconButton(
-            icon: SvgPicture.asset(
-              'assets/icons/DotCircle.svg',
-              width: 24,
-              height: 24,
+        ),
+        title: Text('제목'),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/DotCircle.svg',
+                width: 24,
+                height: 24,
+              ),
+              onPressed: _togglePopupMenu,
             ),
-            onPressed: _togglePopupMenu,
           ),
         ],
       ),
@@ -204,10 +205,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60),
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 150),
+                    height: _isTagVisible ? 80 : 0,
+                  ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -234,11 +238,16 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          Positioned(
-            top: 20,
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 150),
+            top: _isTagVisible ? 20 : -100,
             left: 20,
             right: 20,
-            child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 150),
+              opacity: _isTagVisible ? 1.0 : 0.0,
+              child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            ),
           ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
@@ -256,7 +265,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
-                    SizedBox(height: 10,),
+                    SizedBox(height: 10),
                     if (isKeyboardVisible)
                       EditorToolbar(
                         controller: _controller,

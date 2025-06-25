@@ -44,6 +44,7 @@ class AccountDeletedPage extends StatelessWidget {
                       '계정 탈퇴가 완료되었습니다.',
                       textAlign: TextAlign.center,
                       style: PretendardTextStyles.headS.copyWith(
+                        fontWeight: FontWeight.bold,
                         color: Colors.grey[900],
                       ),
                     ),
