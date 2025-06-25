@@ -66,25 +66,41 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
 
   void applyFormatsWithPlaceholder(Map<String, Attribute> attributes) {
     final selection = widget.controller.selection;
-    if (selection.isValid) {
+    if (!selection.isValid) return;
+
+    final document = widget.controller.document;
+
+    if (selection.isCollapsed) {
+      // 커서 위치일 때: 가짜 문자 삽입 및 스타일 적용
+      // 이 부분은 기존 로직을 유지하여 커서 위치에서 스타일이 유지되도록 한다.
       final index = selection.start;
-      final document = widget.controller.document;
-
-
-      // 커서 위치에 새 스타일 적용
-      document.insert(index, _zeroWidthSpace);
+      document.insert(index, _zeroWidthSpace); // 제로 너비 공백 삽입
       attributes.forEach((key, attribute) {
-        document.format(index, 1, attribute);
+        document.format(index, 1, attribute); // 첫 번째 가짜 문자에 스타일 적용
       });
-
-      // 커서 뒤에 플레이스홀더 삽입 및 스타일 적용
-      document.insert(index + 1, _zeroWidthSpace);
+      document.insert(index + 1, _zeroWidthSpace); // 두 번째 가짜 문자 삽입
       attributes.forEach((key, attribute) {
-        document.format(index + 1, 1, attribute);
+        document.format(index + 1, 1, attribute); // 두 번째 가짜 문자에 스타일 적용
       });
-
       widget.controller.updateSelection(
-        TextSelection.collapsed(offset: index + 2),
+        TextSelection.collapsed(offset: index + 2), // 커서를 두 번째 가짜 문자 뒤로 이동
+        ChangeSource.local,
+      );
+    } else {
+      // 범위 선택일 때: 선택된 범위에 스타일 적용
+      final start = selection.start;
+      final length = selection.end - selection.start;
+      attributes.forEach((key, attribute) {
+        widget.controller.formatText(start, length, attribute); // 선택된 범위에 스타일 적용
+      });
+      // 수정된 부분: 선택 상태 유지
+      // 이전 코드에서는 `TextSelection.collapsed(offset: selection.end)`를 사용하여
+      // 커서를 범위 끝으로 이동시키며 선택 상태를 해제했다. 이로 인해 전체 텍스트 선택 시
+      // 커서가 풀리는 문제가 발생했다.
+      // 수정 후: 원래의 선택 범위를 유지하도록 `TextSelection(baseOffset: start, extentOffset: selection.end)`를 사용.
+      // 이렇게 하면 스타일 적용 후에도 선택된 텍스트가 하이라이트된 상태로 유지된다.
+      widget.controller.updateSelection(
+        TextSelection(baseOffset: start, extentOffset: selection.end),
         ChangeSource.local,
       );
     }
