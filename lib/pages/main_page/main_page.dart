@@ -560,7 +560,8 @@ class _MainPageState extends ConsumerState<MainPage> {
                       ),
                     ),
               IconButton(
-                onPressed: _showTestNotification,
+                // onPressed: _showTestNotification,
+                onPressed: () {},
                 icon: SvgPicture.asset(
                   'assets/icons/Bell.svg',
                   width: 24,
