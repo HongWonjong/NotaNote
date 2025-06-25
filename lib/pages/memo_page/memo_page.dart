@@ -205,7 +205,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  if (_isTagVisible) SizedBox(height: 80),
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 150),
+                    height: _isTagVisible ? 80 : 0,
+                  ),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -235,13 +238,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          if (_isTagVisible)
-            Positioned(
-              top: 20,
-              left: 20,
-              right: 20,
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 150),
+            top: _isTagVisible ? 20 : -100,
+            left: 20,
+            right: 20,
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 150),
+              opacity: _isTagVisible ? 1.0 : 0.0,
               child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
             ),
+          ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
