@@ -52,6 +52,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         if (!mounted) return;
         _saveContentAndTitle();
       });
+      _adjustScrollForCursor();
     });
     _scrollController.addListener(() {
       setState(() {
@@ -85,15 +86,31 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _lastDeltaJson = deltaJson.toString();
 
       String firstText = '제목 없음';
+      String? secondText;
+      int lineCount = 0;
+
       for (var op in deltaJson) {
         if (op['insert'] is String) {
-          firstText = (op['insert'] as String).trim().split('\n').first;
-          if (firstText.isEmpty) firstText = '제목 없음';
-          if (firstText.length > 50) firstText = firstText.substring(0, 50);
-          break;
+          final lines = (op['insert'] as String).trim().split('\n');
+          for (var line in lines) {
+            if (line.isNotEmpty) {
+              if (lineCount == 0) {
+                firstText = line;
+                if (firstText.length > 50) firstText = firstText.substring(0, 50);
+              } else if (lineCount >= 1 && secondText == null) {
+                if (line.trim().isNotEmpty) {
+                  secondText = line;
+                  if (secondText.length > 100) secondText = secondText.substring(0, 100);
+                }
+              }
+              lineCount++;
+            }
+          }
+          if (lineCount > 0 && secondText != null) break;
         }
       }
-      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitle(widget.noteId, firstText);
+
+      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
     } catch (e) {
       debugPrint('Save failed: $e');
     }
@@ -102,6 +119,35 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void _togglePopupMenu() {
     setState(() {
       _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
+  void _adjustScrollForCursor() {
+    if (!_focusNode.hasFocus) return;
+    final cursorPosition = _controller.selection.baseOffset;
+    if (cursorPosition < 0) return;
+
+    final editorKey = GlobalKey();
+    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    if (renderObject == null) return;
+
+    final cursorHeight = 20.0; // Approximate cursor height
+    final toolbarHeight = 60.0; // Approximate toolbar height
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        final offset = _scrollController.offset;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
+        if (newOffset <= maxScroll) {
+          _scrollController.animateTo(
+            newOffset,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      }
     });
   }
 
@@ -167,6 +213,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         leading: Padding(
           padding: EdgeInsets.only(left: 20),
           child: IconButton(
@@ -183,7 +230,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             },
           ),
         ),
-        title: Text('제목'),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 20),
@@ -211,7 +257,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0), // 에디터 툴바와의 간격 조절
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,

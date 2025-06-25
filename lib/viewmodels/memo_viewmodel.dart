@@ -48,7 +48,7 @@ class MemoViewModel {
     }
   }
 
-  Future<void> updateMemoTitle(String noteId, String title) async {
+  Future<void> updateMemoTitleAndContent(String noteId, String title, String content) async {
     try {
       final docRef = _firestore
           .collection('notegroups')
@@ -57,10 +57,11 @@ class MemoViewModel {
           .doc(noteId);
       await docRef.update({
         'title': title,
+        'content': content,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
     } catch (e) {
-      throw Exception("메모 제목 업데이트 중 오류가 발생했습니다: $e");
+      throw Exception("메모 제목 및 내용 업데이트 중 오류가 발생했습니다: $e");
     }
   }
 
