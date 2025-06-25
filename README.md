@@ -57,6 +57,7 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 **필드**:
 - **noteId** 🔢: `string` (메모장 고유 ID, Firestore 문서 ID로 사용)
 - **title** 📜: `string` (메모장 제목, 텍스트)
+- **content** 📜: `string` (메모장 첫 줄 내용, 텍스트)
 - **ownerId** 👑: `string` (소유자 유저 ID, users 컬렉션의 userId 참조)
 - **isPublic** 🌐: `boolean` (공개 여부, true/false)
 - **tags** 🏷️: `array<string>` (메모장 태그 리스트, 예: ["#프로젝트", "#기획"])
