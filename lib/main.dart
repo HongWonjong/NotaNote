@@ -1,16 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:nota_note/pages/login_page/login_page.dart';
-import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
-import 'package:nota_note/pages/main_page/main_page.dart';
-import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nota_note/pages/splash_page/splash_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:nota_note/firebase_options.dart';
-import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
@@ -38,7 +32,8 @@ void main() async {
   runZonedGuarded(() async {
     // Flutter 프레임워크 에러 핸들링
     FlutterError.onError = (FlutterErrorDetails details) {
-      logger.e('Flutter 프레임워크 에러: ${details.exception}', stackTrace: details.stack);
+      logger.e('Flutter 프레임워크 에러: ${details.exception}',
+          stackTrace: details.stack);
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     };
 

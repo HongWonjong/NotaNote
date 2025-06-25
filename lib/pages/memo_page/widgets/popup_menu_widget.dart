@@ -6,10 +6,12 @@ import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
 class PopupMenuWidget extends StatefulWidget {
   final VoidCallback onClose;
   final quill.QuillController quillController;
+  final GlobalKey repaintKey;
 
   const PopupMenuWidget({
     required this.onClose,
     required this.quillController,
+    required this.repaintKey,
     super.key,
   });
 
@@ -178,10 +180,12 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
             ),
             InkWell(
               onTap: () async {
-                await saveTextAsPdfAndShare(
-                  text: widget.quillController.document.toPlainText(),
-                  fileName: "my_note_${DateTime.now().millisecondsSinceEpoch}",
+                // 캡처 후 PDF로 저장/공유
+                await captureMemoAsFullPdf(
                   context: context,
+                  repaintKey: widget.repaintKey,
+                  fileName:
+                      "capture_note_${DateTime.now().millisecondsSinceEpoch}",
                 );
               },
               child: Container(

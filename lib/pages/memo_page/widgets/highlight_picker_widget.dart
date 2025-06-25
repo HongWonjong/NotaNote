@@ -5,19 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class HighlightPickerWidget extends StatelessWidget {
   final QuillController controller;
   final VoidCallback onClose;
+  final Function(Color?) onHighlightSelected;
 
-  HighlightPickerWidget({required this.controller, required this.onClose});
-
-  void _applyHighlight(Color? color) {
-    final selection = controller.selection;
-    if (selection.isValid) {
-      if (color == null) {
-        controller.formatSelection(Attribute.clone(Attribute.background, null));
-      } else {
-        controller.formatSelection(Attribute.fromKeyValue('background', '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}'));
-      }
-    }
-  }
+  HighlightPickerWidget({
+    required this.controller,
+    required this.onClose,
+    required this.onHighlightSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +33,7 @@ class HighlightPickerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFF4C0C0)),
+              onTap: () => onHighlightSelected(Color(0xFFF4C0C0)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -51,7 +45,7 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFF3D3BA)),
+              onTap: () => onHighlightSelected(Color(0xFFF3D3BA)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -63,7 +57,7 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFEEDC9B)),
+              onTap: () => onHighlightSelected(Color(0xFFEEDC9B)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -75,7 +69,7 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFC7EBBC)),
+              onTap: () => onHighlightSelected(Color(0xFFC7EBBC)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -87,7 +81,7 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(Color(0xFFCFE4F5)),
+              onTap: () => onHighlightSelected(Color(0xFFCFE4F5)),
               child: Container(
                 width: 24,
                 height: 24,
@@ -99,7 +93,7 @@ class HighlightPickerWidget extends StatelessWidget {
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => _applyHighlight(null),
+              onTap: () => onHighlightSelected(null),
               child: SvgPicture.asset(
                 'assets/icons/HighlightCancel.svg',
                 width: 24,

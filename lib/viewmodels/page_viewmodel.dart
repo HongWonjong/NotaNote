@@ -40,7 +40,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
               TextSelection.collapsed(offset: length),
               ChangeSource.local,
             );
-            print('Loaded Delta JSON: ${page.content}');
           } else {
             controller.document = Document();
           }
@@ -79,7 +78,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       return;
     }
     final deltaJson = controller.document.toDelta().toJson();
-    print('Saving Delta JSON: $deltaJson');
     final page = state.copyWith(content: deltaJson);
 
     try {
@@ -92,7 +90,6 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .doc(pageId)
           .set(page.toFirestore());
       state = page;
-      print('Save successful for pageId: $pageId, content: ${page.content}');
     } catch (e, stackTrace) {
       print('Save failed: $e');
       print('Stack trace: $stackTrace');

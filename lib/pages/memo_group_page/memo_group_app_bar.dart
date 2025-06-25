@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'popup_menu.dart'; // 수정한 SettingsMenu
 import 'package:nota_note/models/sort_options.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String groupId;      // 그룹 ID 추가
@@ -101,7 +102,15 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ]
           : [
-              IconButton(icon: const Icon(Icons.search), onPressed: onSearchPressed),
+              IconButton(
+  icon: SvgPicture.asset(
+    'assets/icons/MagnifyingGlass.svg',
+    width: 24,
+    height: 24,
+    color: Colors.black, // 색상 필요시 적용
+  ),
+  onPressed: onSearchPressed,
+),
               SettingsMenu(
                 isGrid: isGrid,
                 sortOption: sortOption,
@@ -152,7 +161,12 @@ class _SearchField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Colors.grey),
+          SvgPicture.asset(
+            'assets/icons/MagnifyingGlass.svg', // 경로 확인!
+            width: 20,
+            height: 20,
+            color: Colors.grey,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(

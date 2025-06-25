@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
@@ -30,9 +31,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
+  final GlobalKey _captureKey = GlobalKey(); // pdf를 위해 추가
+
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
+  bool _isTagVisible = true;
 
   @override
   void initState() {
@@ -52,6 +56,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
         if (!mounted) return;
         _saveContentAndTitle();
+      });
+      _adjustScrollForCursor();
+    });
+    _scrollController.addListener(() {
+      setState(() {
+        _isTagVisible = _scrollController.offset <= 0;
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,6 +115,37 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void _togglePopupMenu() {
     setState(() {
       _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
+  void _adjustScrollForCursor() {
+    if (!_focusNode.hasFocus) return;
+    final cursorPosition = _controller.selection.baseOffset;
+    if (cursorPosition < 0) return;
+
+    final editorKey = GlobalKey();
+    final renderObject =
+        (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    if (renderObject == null) return;
+
+    final cursorHeight = 20.0; // Approximate cursor height
+    final toolbarHeight = 60.0; // Approximate toolbar height
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        final offset = _scrollController.offset;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final newOffset =
+            offset + cursorHeight + toolbarHeight + keyboardHeight;
+        if (newOffset <= maxScroll) {
+          _scrollController.animateTo(
+            newOffset,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      }
     });
   }
 
@@ -171,39 +212,35 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            'assets/icons/Arrow.svg',
-            width: 24,
-            height: 24,
-          ),
-          onPressed: () async {
-            if (mounted) {
-              await _saveContentAndTitle();
-            }
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
+        scrolledUnderElevation: 0,
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: IconButton(
             icon: SvgPicture.asset(
-              'assets/icons/Share.svg',
+              'assets/icons/Arrow.svg',
               width: 24,
               height: 24,
             ),
-            onPressed: () {
+            onPressed: () async {
               if (mounted) {
-                _saveContentAndTitle();
+                await _saveContentAndTitle();
               }
+              Navigator.pop(context);
             },
           ),
-          IconButton(
-            icon: SvgPicture.asset(
-              'assets/icons/DotCircle.svg',
-              width: 24,
-              height: 24,
+        ),
+        title: Text('제목'),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/DotCircle.svg',
+                width: 24,
+                height: 24,
+              ),
+              onPressed: _togglePopupMenu,
             ),
-            onPressed: _togglePopupMenu,
           ),
         ],
       ),
@@ -214,12 +251,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             child: KeyboardVisibilityBuilder(
               builder: (context, isKeyboardVisible) => Column(
                 children: [
-                  SizedBox(height: 60),
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 150),
+                    height: _isTagVisible ? 80 : 0,
+                  ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      //pdf 변환을 위해 RepaintBoundary로 묶고 key 설정
+                      padding: EdgeInsets.only(
+                          bottom: isKeyboardVisible ? 55.0 : 0.0),
+                      //pdf 변환을 위해 RepaintBoundary로 묶음
                       child: RepaintBoundary(
+                        key: _captureKey,
                         child: quill.QuillEditor(
                           controller: _controller,
                           focusNode: _focusNode,
@@ -248,11 +290,25 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          Positioned(
-            top: 20,
+          // Offstage로 숨겨진 전체 렌더 영역(PDF 캡처용)
+          // Offstage(
+          //   offstage: true, // 사용자에겐 안 보임
+          //   child: RepaintBoundary(
+          //     key: _captureKey, // 이미 선언된 key 재활용
+          //     child: buildFullMemoEditor(),
+          //   ),
+          // ),
+
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 150),
+            top: _isTagVisible ? 20 : -100,
             left: 20,
             right: 20,
-            child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 150),
+              opacity: _isTagVisible ? 1.0 : 0.0,
+              child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+            ),
           ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
@@ -270,9 +326,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
-                    SizedBox(
-                      height: 10,
-                    ),
+                    SizedBox(height: 10),
                     if (isKeyboardVisible)
                       EditorToolbar(
                         controller: _controller,
@@ -298,6 +352,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       child: PopupMenuWidget(
                         onClose: _togglePopupMenu,
                         quillController: _controller,
+                        repaintKey: _captureKey,
                       ),
                     ),
                   ],
