@@ -34,6 +34,8 @@ void main() async {
   );
 
   logger.i('main() 함수 시작');
+  await dotenv.load(fileName: ".env");
+  logger.i('dotenv 로드 완료');
 
   // Flutter 프레임워크 에러 핸들링
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -43,9 +45,9 @@ void main() async {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: MyApp()));
+  logger.i('앱 실행 시작');
 
-  await dotenv.load(fileName: ".env");
-  logger.i('dotenv 로드 완료');
 
   // 글로벌 에러 핸들링 설정
   runZonedGuarded(() async {
@@ -68,8 +70,6 @@ void main() async {
       await SharedPreferences.getInstance();
       logger.i('SharedPreferences 초기화 완료');
 
-      runApp(const ProviderScope(child: MyApp()));
-      logger.i('앱 실행 시작');
     } catch (e, stack) {
       logger.e('초기화 중 에러: $e', stackTrace: stack);
       FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
