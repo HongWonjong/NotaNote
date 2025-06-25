@@ -14,6 +14,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # 오류 수정: sentry_flutter는 일반 패키지입니다
+  sentry_flutter: ^7.16.0
+
   kakao_flutter_sdk: ^1.9.7+3
   flutter_sound: ^9.28.0
   audioplayers: ^6.4.0
@@ -68,9 +71,8 @@ flutter:
     - assets/icons/
     - assets/terms/terms_of_service.md
   uses-material-design: true
-  
+
   fonts:
     - family: Pretendard
       fonts:
         - asset: assets/fonts/Pretendard-Regular.ttf
-
