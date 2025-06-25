@@ -52,6 +52,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         if (!mounted) return;
         _saveContentAndTitle();
       });
+      _adjustScrollForCursor();
     });
     _scrollController.addListener(() {
       setState(() {
@@ -102,6 +103,35 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void _togglePopupMenu() {
     setState(() {
       _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
+  void _adjustScrollForCursor() {
+    if (!_focusNode.hasFocus) return;
+    final cursorPosition = _controller.selection.baseOffset;
+    if (cursorPosition < 0) return;
+
+    final editorKey = GlobalKey();
+    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    if (renderObject == null) return;
+
+    final cursorHeight = 20.0; // Approximate cursor height
+    final toolbarHeight = 60.0; // Approximate toolbar height
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        final offset = _scrollController.offset;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
+        if (newOffset <= maxScroll) {
+          _scrollController.animateTo(
+            newOffset,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      }
     });
   }
 
@@ -167,6 +197,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         leading: Padding(
           padding: EdgeInsets.only(left: 20),
           child: IconButton(
@@ -211,7 +242,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 100.0 : 0.0), // 에디터 툴바와의 간격 조절
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
