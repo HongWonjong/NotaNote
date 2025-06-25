@@ -242,7 +242,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 100.0 : 0.0), // 에디터 툴바와의 간격 조절
+                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0), // 에디터 툴바와의 간격 조절
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
