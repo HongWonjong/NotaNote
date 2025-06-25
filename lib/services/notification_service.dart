@@ -135,7 +135,7 @@ class NotificationService {
       await _notifications.show(
         0,
         'NotaNote 알림',
-        '새로운 메모가 생성되었습니다!',
+        '알림 테스트!',
         platformChannelSpecifics,
         payload: 'test_notification',
       );
