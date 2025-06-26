@@ -144,8 +144,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
-    final cursorHeight = 20.0; // Approximate cursor height
-    final toolbarHeight = 60.0; // Approximate toolbar height
+    final cursorHeight = 20.0;
+    final toolbarHeight = 60.0;
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -272,9 +272,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(
-                          bottom:
-                              isKeyboardVisible ? 55.0 : 0.0), //에디터 툴바와의 간격 조절
+                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -354,6 +352,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       right: 10,
                       child: PopupMenuWidget(
                         onClose: _togglePopupMenu,
+                        groupId: widget.groupId,
+                        noteId: widget.noteId,
                         quillController: _controller,
                       ),
                     ),
