@@ -29,6 +29,7 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers! # 이 줄을 추가하여 AppDelegate.swift의 flutter 모듈 미확인 문제를 해결해보자
 
   pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '11.13.0'
    pod 'Firebase/Crashlytics'

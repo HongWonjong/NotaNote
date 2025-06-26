@@ -61,13 +61,20 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (isSearching) {
       return AppBar(
         backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,  // 스크롤 시 그림자 제거
+        elevation: 0,               // 기본 그림자 제거
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: SvgPicture.asset(
+            'assets/icons/CaretLeft.svg',
+            width: 24,
+            height: 24,
+            color: Colors.black,
+          ),
           onPressed: onCancelSearch,
         ),
         title: _SearchField(
           controller: searchController,
-          onChanged: onSearchChanged,  // 변경 콜백 연결
+          onChanged: onSearchChanged,
         ),
         bottom: _buildCountText(memoCount),
       );
@@ -75,18 +82,31 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       title: Text(groupName),
+      backgroundColor: Colors.white,
+      scrolledUnderElevation: 0, // 스크롤 시 그림자 제거
+      elevation: 0,              // 기본 그림자 제거
       leading: isDeleteMode
-    ? TextButton(
-        onPressed: onCancelDelete,
-        child: const Text(
-          '완료',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-        ),
-      )
-    : null,
+          ? TextButton(
+              onPressed: onCancelDelete,
+              child: const Text(
+                '완료',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
+            )
+          : IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/CaretLeft.svg',
+                width: 24,
+                height: 24,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
       actions: isDeleteMode
           ? [
               TextButton(
@@ -103,14 +123,14 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
             ]
           : [
               IconButton(
-  icon: SvgPicture.asset(
-    'assets/icons/MagnifyingGlass.svg',
-    width: 24,
-    height: 24,
-    color: Colors.black, // 색상 필요시 적용
-  ),
-  onPressed: onSearchPressed,
-),
+                icon: SvgPicture.asset(
+                  'assets/icons/MagnifyingGlass.svg',
+                  width: 24,
+                  height: 24,
+                  color: Colors.black,
+                ),
+                onPressed: onSearchPressed,
+              ),
               SettingsMenu(
                 isGrid: isGrid,
                 sortOption: sortOption,
@@ -119,8 +139,8 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onRename: onRename,
                 onSharingSettingsToggle: onSharingSettingsToggle,
                 onGridToggle: onGridToggle,
-                groupId: groupId,         // 수정된 부분
-                groupTitle: groupName,    // 수정된 부분
+                groupId: groupId,
+                groupTitle: groupName,
               ),
             ],
       bottom: _buildCountText(memoCount),
@@ -129,19 +149,31 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   PreferredSizeWidget _buildCountText(int count) {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(24),
-      child: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 16, bottom: 8),
-        child: Text('총 $count개', style: const TextStyle(fontSize: 18)),
+      preferredSize: const Size.fromHeight(32), // 텍스트 + 구분선 높이
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 16, bottom: 8),
+            child: Text('총 $count개', style: const TextStyle(fontSize: 18)),
+          ),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            indent: 0,
+            endIndent: 0,
+            color: Color(0x1A000000),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _SearchField extends StatelessWidget {
+class _SearchField extends StatefulWidget {
   final TextEditingController controller;
-  final Function(String) onChanged;  // 추가: onChanged 콜백
+  final Function(String) onChanged;
 
   const _SearchField({
     Key? key,
@@ -150,27 +182,48 @@ class _SearchField extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<_SearchField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 38,
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           SvgPicture.asset(
-            'assets/icons/MagnifyingGlass.svg', // 경로 확인!
+            'assets/icons/MagnifyingGlass.svg',
             width: 20,
             height: 20,
             color: Colors.grey,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           Expanded(
             child: TextField(
-              controller: controller,
+              controller: widget.controller,
               autofocus: true,
               cursorColor: Colors.black,
               style: const TextStyle(color: Colors.black),
@@ -180,9 +233,24 @@ class _SearchField extends StatelessWidget {
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
-              onChanged: onChanged,  // 입력 변경 콜백 연결
+              onChanged: widget.onChanged,
             ),
           ),
+          if (widget.controller.text.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () {
+                widget.controller.clear();
+                widget.onChanged('');
+              },
+              child: SvgPicture.asset(
+                'assets/icons/Vector.svg',
+                width: 18,
+                height: 18,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ]
         ],
       ),
     );
