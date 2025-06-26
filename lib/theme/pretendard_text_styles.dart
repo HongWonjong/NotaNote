@@ -11,7 +11,7 @@ class PretendardTextStyles {
 
   static const TextStyle headS = TextStyle(
     fontFamily: 'Pretendard',
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w700,
     fontSize: 22,
     height: 1.5,
     letterSpacing: 0.0,
