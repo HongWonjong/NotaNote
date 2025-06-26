@@ -4,12 +4,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class PinViewModel extends StateNotifier<bool> {
   final String groupId;
   final String noteId;
+  final Ref ref;
 
-  PinViewModel(this.groupId, this.noteId) : super(false);
+  PinViewModel(this.groupId, this.noteId, this.ref) : super(false);
+
+  Stream<bool> getPinStatusStream() {
+    return FirebaseFirestore.instance
+        .collection('notegroups')
+        .doc(groupId)
+        .collection('notes')
+        .doc(noteId)
+        .snapshots()
+        .map((doc) {
+      if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
+        final isPinned = doc['isPinned'] as bool;
+        Future.microtask(() {
+          ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = isPinned;
+        });
+        return isPinned;
+      }
+      Future.microtask(() {
+        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+      });
+      return false;
+    });
+  }
 
   Future<void> loadPinStatus() async {
     try {
-      print('loadPinStatus: Fetching for groupId=$groupId, noteId=$noteId');
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -19,27 +41,25 @@ class PinViewModel extends StateNotifier<bool> {
 
       if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
         state = doc['isPinned'] as bool;
-        print('loadPinStatus: Loaded isPinned=$state');
+        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = state;
       } else {
         state = false;
-        print('loadPinStatus: No isPinned field, setting default false');
+        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
         await FirebaseFirestore.instance
             .collection('notegroups')
             .doc(groupId)
             .collection('notes')
             .doc(noteId)
             .set({'isPinned': false}, SetOptions(merge: true));
-        print('loadPinStatus: Default isPinned=false saved to Firestore');
       }
     } catch (e) {
       state = false;
-      print('loadPinStatus: Error=$e, setting state=false');
+      ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
     }
   }
 
   Future<void> togglePinStatus() async {
     try {
-      print('togglePinStatus: Fetching current status for groupId=$groupId, noteId=$noteId');
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
@@ -51,30 +71,32 @@ class PinViewModel extends StateNotifier<bool> {
       if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
         currentStatus = doc['isPinned'] as bool;
       }
-      print('togglePinStatus: Current isPinned=$currentStatus');
 
       final newStatus = !currentStatus;
-      print('togglePinStatus: Setting state to newStatus=$newStatus');
-      state = newStatus;
-
-      print('togglePinStatus: Saving isPinned=$newStatus to Firestore');
       await FirebaseFirestore.instance
           .collection('notegroups')
           .doc(groupId)
           .collection('notes')
           .doc(noteId)
-          .set({'isPinned': newStatus}, SetOptions(merge: true));
-      print('togglePinStatus: Firestore updated successfully');
+          .set({'isPinned': newStatus, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+
+      state = newStatus;
+      Future.microtask(() {
+        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = newStatus;
+      });
     } catch (e) {
       state = false;
-      print('togglePinStatus: Error=$e, resetting state=false');
+      Future.microtask(() {
+        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+      });
+      print('Error toggling pin status: $e');
     }
   }
 }
 
 final pinViewModelProvider = StateNotifierProvider.family<PinViewModel, bool, Map<String, String>>(
-      (ref, params) {
-    print('pinViewModelProvider: Creating provider for groupId=${params['groupId']}, noteId=${params['noteId']}');
-    return PinViewModel(params['groupId']!, params['noteId']!);
-  },
+      (ref, params) => PinViewModel(params['groupId']!, params['noteId']!, ref),
 );
+final pinStatusProvider = StateProvider.family<bool, Map<String, String>>((ref, params) {
+  return false;
+});
