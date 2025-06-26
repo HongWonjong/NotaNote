@@ -15,6 +15,9 @@ import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/services/notification_service.dart';
+import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:flutter/cupertino.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -23,7 +26,8 @@ class MainPage extends ConsumerStatefulWidget {
   ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends ConsumerState<MainPage> {
+class _MainPageState extends ConsumerState<MainPage>
+    with TickerProviderStateMixin {
   final SlidingMenuController _menuController = SlidingMenuController();
   bool _isGroupExpanded = false;
   String? _newGroupName;
@@ -32,11 +36,23 @@ class _MainPageState extends ConsumerState<MainPage> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
+  bool _isFabOpen = false;
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabAnimation;
+
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
     _searchController.addListener(_onSearchChanged);
+    _fabAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 250),
+    );
+    _fabAnimation = CurvedAnimation(
+      parent: _fabAnimationController,
+      curve: Curves.easeOut,
+    );
   }
 
   void _onSearchChanged() {
@@ -71,9 +87,21 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   void dispose() {
+    _fabAnimationController.dispose();
     _textController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _toggleFab() {
+    setState(() {
+      _isFabOpen = !_isFabOpen;
+      if (_isFabOpen) {
+        _fabAnimationController.forward();
+      } else {
+        _fabAnimationController.reverse();
+      }
+    });
   }
 
   void _showAddGroupDialog() {
@@ -695,16 +723,155 @@ class _MainPageState extends ConsumerState<MainPage> {
           ),
         ],
       ),
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: FloatingActionButton(
-          onPressed: _showAddGroupDialog,
-          backgroundColor: Color(0xFF61CFB2),
-          shape: CircleBorder(),
-          elevation: 0,
-          child: SvgPicture.asset('assets/icons/floatingActionButton_icon.svg'),
-        ),
+      floatingActionButton: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          AnimatedBuilder(
+            animation: _fabAnimationController,
+            builder: (context, child) {
+              final visible = _fabAnimationController.value > 0.0;
+              return Visibility(
+                visible: visible,
+                child: IgnorePointer(
+                  ignoring: _fabAnimationController.value == 0.0,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(0, 1.5),
+                      end: Offset(0, 0),
+                    ).animate(_fabAnimation),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 140),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '빠른 메모 작성하기',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF191919),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          FloatingActionButton(
+                            heroTag: 'memo',
+                            onPressed: () async {
+                              _toggleFab();
+                              final groupViewModel =
+                                  ref.read(groupViewModelProvider);
+                              final groups = groupViewModel.groups;
+                              if (groups.isEmpty) {
+                                if (mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => CupertinoAlertDialog(
+                                      title: Text(
+                                        '알림',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      content: Text('먼저 그룹을 생성해주세요.'),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text('확인'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              final groupId = groups.first.id;
+                              final memoViewModel =
+                                  ref.read(memoViewModelProvider(groupId));
+                              final newNoteId = await memoViewModel.addMemo();
+                              if (newNoteId != null && mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MemoPage(
+                                      groupId: groupId,
+                                      noteId: newNoteId,
+                                      pageId: '1',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            backgroundColor: Color(0xFFD7F3EB),
+                            shape: CircleBorder(),
+                            child: SvgPicture.asset(
+                                'assets/icons/PencilSimple_green.svg'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          AnimatedBuilder(
+            animation: _fabAnimationController,
+            builder: (context, child) {
+              final visible = _fabAnimationController.value > 0.0;
+              return Visibility(
+                visible: visible,
+                child: IgnorePointer(
+                  ignoring: _fabAnimationController.value == 0.0,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(0, 1),
+                      end: Offset(0, 0),
+                    ).animate(_fabAnimation),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 70),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '새 그룹 생성',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF191919),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          FloatingActionButton(
+                            heroTag: 'group',
+                            onPressed: () {
+                              _toggleFab();
+                              _showAddGroupDialog();
+                            },
+                            backgroundColor: Color(0xFFD7F3EB),
+                            shape: CircleBorder(),
+                            child:
+                                SvgPicture.asset('assets/icons/FolderPlus.svg'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          FloatingActionButton(
+            heroTag: 'main',
+            onPressed: _toggleFab,
+            shape: CircleBorder(),
+            backgroundColor: Color(0xFF60CFB1),
+            child: AnimatedRotation(
+              turns: _isFabOpen ? 0.125 : 0,
+              duration: Duration(milliseconds: 250),
+              child: Icon(Icons.add, color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
