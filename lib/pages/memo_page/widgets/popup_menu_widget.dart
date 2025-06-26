@@ -1,20 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/viewmodels/pin_viewmodel.dart';
 
-class PopupMenuWidget extends StatefulWidget {
+class PopupMenuWidget extends ConsumerStatefulWidget {
   final VoidCallback onClose;
+  final String groupId;
+  final String noteId;
 
-  PopupMenuWidget({required this.onClose});
+  PopupMenuWidget({
+    required this.onClose,
+    required this.groupId,
+    required this.noteId,
+  });
 
   @override
   _PopupMenuWidgetState createState() => _PopupMenuWidgetState();
 }
 
-class _PopupMenuWidgetState extends State<PopupMenuWidget> {
-  bool _isPinned = false;
+class _PopupMenuWidgetState extends ConsumerState<PopupMenuWidget> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    print('PopupMenuWidget initState: groupId=${widget.groupId}, noteId=${widget.noteId}');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      print('Loading pin status...');
+      await ref.read(pinViewModelProvider({
+        'groupId': widget.groupId,
+        'noteId': widget.noteId,
+      }).notifier).loadPinStatus();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          print('Loading complete, _isLoading=false');
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final pinStatus = ref.watch(pinViewModelProvider({
+      'groupId': widget.groupId,
+      'noteId': widget.noteId,
+    }));
+    print('PopupMenuWidget build: pinStatus=$pinStatus');
+
     return Material(
       color: Colors.transparent,
       child: Container(
@@ -27,17 +60,24 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: Column(
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InkWell(
-              onTap: () {
-                setState(() {
-                  _isPinned = !_isPinned;
-                });
-                print('고정 버튼 클릭됨');
+              onTap: _isLoading
+                  ? null
+                  : () async {
+                print('Pin button tapped: current pinStatus=$pinStatus');
+                final notifier = ref.read(pinViewModelProvider({
+                  'groupId': widget.groupId,
+                  'noteId': widget.noteId,
+                }).notifier);
+                await notifier.togglePinStatus();
+                print('Pin button tap completed');
               },
               child: Container(
                 width: double.infinity,
@@ -52,11 +92,11 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
                       'assets/icons/PushPin.svg',
                       width: 20,
                       height: 20,
-                      color: _isPinned ? Color(0xFF61CFB2) : null,
+                      color: pinStatus ? Color(0xFF61CFB2) : null,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _isPinned ? '고정 해제하기' : '고정하기',
+                      pinStatus ? '고정 해제하기' : '고정하기',
                       style: TextStyle(
                         color: Color(0xFF4C4C4C),
                         fontSize: 16,
@@ -69,9 +109,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
               ),
             ),
             InkWell(
-              onTap: () {
-                print('복제 버튼 클릭됨');
-              },
+              onTap: () {},
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -101,9 +139,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
               ),
             ),
             InkWell(
-              onTap: () {
-                print('이동 버튼 클릭됨');
-              },
+              onTap: () {},
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -133,9 +169,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
               ),
             ),
             InkWell(
-              onTap: () {
-                print('삭제 버튼 클릭됨');
-              },
+              onTap: () {},
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
