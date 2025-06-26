@@ -804,7 +804,8 @@ class _MainPageState extends ConsumerState<MainPage>
                             },
                             backgroundColor: Colors.white,
                             shape: CircleBorder(),
-                            child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+                            child: SvgPicture.asset(
+                                'assets/icons/PencilSimple_green.svg'),
                           ),
                         ],
                       ),
@@ -848,7 +849,8 @@ class _MainPageState extends ConsumerState<MainPage>
                             },
                             backgroundColor: Colors.white,
                             shape: CircleBorder(),
-                            child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+                            child:
+                                SvgPicture.asset('assets/icons/FolderPlus.svg'),
                           ),
                         ],
                       ),
@@ -862,7 +864,7 @@ class _MainPageState extends ConsumerState<MainPage>
             heroTag: 'main',
             onPressed: _toggleFab,
             shape: CircleBorder(),
-            backgroundColor: Color(0xFF61CFB2),
+            backgroundColor: Color(0xFF60CFB1),
             child: AnimatedRotation(
               turns: _isFabOpen ? 0.125 : 0,
               duration: Duration(milliseconds: 250),
