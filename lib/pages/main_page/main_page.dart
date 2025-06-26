@@ -745,50 +745,6 @@ class _MainPageState extends ConsumerState<MainPage>
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            '새 그룹 생성',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF191919),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          FloatingActionButton(
-                            heroTag: 'group',
-                            onPressed: () {
-                              _toggleFab();
-                              _showAddGroupDialog();
-                            },
-                            backgroundColor: Colors.white,
-                            shape: CircleBorder(),
-                            child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          AnimatedBuilder(
-            animation: _fabAnimationController,
-            builder: (context, child) {
-              final visible = _fabAnimationController.value > 0.0;
-              return Visibility(
-                visible: visible,
-                child: IgnorePointer(
-                  ignoring: _fabAnimationController.value == 0.0,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: Offset(0, 1),
-                      end: Offset(0, 0),
-                    ).animate(_fabAnimation),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 70),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
                             '빠른 메모 작성하기',
                             style: TextStyle(
                               fontSize: 14,
@@ -849,6 +805,50 @@ class _MainPageState extends ConsumerState<MainPage>
                             backgroundColor: Colors.white,
                             shape: CircleBorder(),
                             child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          AnimatedBuilder(
+            animation: _fabAnimationController,
+            builder: (context, child) {
+              final visible = _fabAnimationController.value > 0.0;
+              return Visibility(
+                visible: visible,
+                child: IgnorePointer(
+                  ignoring: _fabAnimationController.value == 0.0,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(0, 1),
+                      end: Offset(0, 0),
+                    ).animate(_fabAnimation),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 70),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '새 그룹 생성',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF191919),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          FloatingActionButton(
+                            heroTag: 'group',
+                            onPressed: () {
+                              _toggleFab();
+                              _showAddGroupDialog();
+                            },
+                            backgroundColor: Colors.white,
+                            shape: CircleBorder(),
+                            child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
                           ),
                         ],
                       ),
