@@ -23,7 +23,11 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   @override
   void initState() {
     super.initState();
-    ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).loadTags().then((_) {
+    ref
+        .read(tagViewModelProvider(
+            {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+        .loadTags()
+        .then((_) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -43,7 +47,10 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
     if (!mounted) return;
     final tags = ref.read(tagListProvider);
     if (tag.isNotEmpty && tags.length < 3) {
-      await ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).addTag(tag);
+      await ref
+          .read(tagViewModelProvider(
+              {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+          .addTag(tag);
       if (mounted) {
         setState(() {
           _isEditingNewTag = false;
@@ -62,7 +69,10 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
 
   void _removeTag(String tag) {
     if (!mounted) return;
-    ref.read(tagViewModelProvider({'groupId': widget.groupId, 'noteId': widget.noteId}).notifier).removeTag(tag);
+    ref
+        .read(tagViewModelProvider(
+            {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+        .removeTag(tag);
     if (mounted) {
       setState(() {
         _selectedTag = null;
@@ -151,20 +161,21 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                 ),
                                 deleteIcon: isSelected
                                     ? Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFB1E7D9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.close,
-                                    color: Color(0xFF4D4D4D),
-                                    size: 16,
-                                  ),
-                                )
+                                        width: 20,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFFB1E7D9),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Color(0xFF4D4D4D),
+                                          size: 16,
+                                        ),
+                                      )
                                     : null,
-                                onDeleted: isSelected ? () => _removeTag(tag) : null,
+                                onDeleted:
+                                    isSelected ? () => _removeTag(tag) : null,
                               ),
                             );
                           }).toList(),
@@ -192,7 +203,8 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey,
                                     ),
-                                    contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                    contentPadding:
+                                        EdgeInsets.symmetric(vertical: 8.0),
                                   ),
                                   onSubmitted: _addTag,
                                 ),
@@ -204,7 +216,9 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                               ),
                               padding: EdgeInsets.zero,
                             ),
-                          if (tags.isNotEmpty && tags.length < 3 && !_isEditingNewTag)
+                          if (tags.isNotEmpty &&
+                              tags.length < 3 &&
+                              !_isEditingNewTag)
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 4),
                               child: Container(
@@ -213,11 +227,13 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                 decoration: ShapeDecoration(
                                   color: Color(0xFFD8F3EC),
                                   shape: CupertinoRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(6)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(6)),
                                   ),
                                 ),
                                 child: IconButton(
-                                  icon: Icon(Icons.add, size: 16.0, color: Color(0xFF61CFB2)),
+                                  icon: Icon(Icons.add,
+                                      size: 16.0, color: Color(0xFF61CFB2)),
                                   onPressed: () {
                                     if (mounted) {
                                       setState(() {
