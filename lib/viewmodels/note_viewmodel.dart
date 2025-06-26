@@ -34,6 +34,7 @@ class NoteViewModel extends StateNotifier<Note?> {
           return Page.fromFirestore(pageDoc);
         }).toList();
       } catch (e) {
+        print('Error loading pages: $e');
       }
 
       try {
@@ -48,6 +49,7 @@ class NoteViewModel extends StateNotifier<Note?> {
           return Comment.fromFirestore(commentDoc);
         }).toList();
       } catch (e) {
+        print('Error loading comments: $e');
       }
 
       if (doc.exists) {
@@ -64,15 +66,19 @@ class NoteViewModel extends StateNotifier<Note?> {
           updatedAt: Timestamp.now(),
           pages: [],
           comments: [],
+          isPinned: false,
         );
         await saveToFirestore();
       }
+      print('Note loaded: ${state?.toFirestore()}');
     } catch (e) {
+      print('Error loading note: $e');
     }
   }
 
   Future<void> saveToFirestore() async {
     if (state == null) {
+      print('State is null in saveToFirestore');
       return;
     }
 
@@ -83,6 +89,7 @@ class NoteViewModel extends StateNotifier<Note?> {
           .collection('notes')
           .doc(noteId)
           .set(state!.toFirestore(), SetOptions(merge: true));
+      print('Note saved: ${state!.toFirestore()}');
 
       for (var page in state!.pages) {
         try {
@@ -95,6 +102,7 @@ class NoteViewModel extends StateNotifier<Note?> {
               .doc(page.noteId)
               .set(page.toFirestore());
         } catch (e) {
+          print('Error saving page ${page.noteId}: $e');
         }
       }
 
@@ -109,16 +117,15 @@ class NoteViewModel extends StateNotifier<Note?> {
               .doc(comment.commentId)
               .set(comment.toFirestore());
         } catch (e) {
+          print('Error saving comment ${comment.commentId}: $e');
         }
       }
     } catch (e) {
+      print('Error saving note: $e');
     }
   }
 }
 
 final noteViewModelProvider = StateNotifierProvider.family<NoteViewModel, Note?, Map<String, String>>(
-      (ref, params) => NoteViewModel(
-    params['groupId']!,
-    params['noteId']!,
-  ),
+      (ref, params) => NoteViewModel(params['groupId']!, params['noteId']!),
 );
