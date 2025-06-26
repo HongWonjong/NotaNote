@@ -17,6 +17,7 @@ import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/services/notification_service.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:flutter/cupertino.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -780,10 +781,25 @@ class _MainPageState extends ConsumerState<MainPage>
                           final groups = groupViewModel.groups;
                           if (groups.isEmpty) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                              showDialog(
+                                context: context,
+                                builder: (context) => CupertinoAlertDialog(
+                                  title: Text(
+                                    '알림',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                   content: Text('먼저 그룹을 생성해주세요.'),
-                                  duration: Duration(seconds: 2),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      child: Text('확인'),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                    ),
+                                  ],
                                 ),
                               );
                             }
