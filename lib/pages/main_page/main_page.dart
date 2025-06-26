@@ -723,42 +723,44 @@ class _MainPageState extends ConsumerState<MainPage>
       floatingActionButton: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          SlideTransition(
-            position: Tween<Offset>(
-              begin: Offset(0, 1.5),
-              end: Offset(0, 0),
-            ).animate(_fabAnimation),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 140),
-              child: FloatingActionButton(
-                heroTag: 'group',
-                onPressed: () {
-                  _toggleFab();
-                  _showAddGroupDialog();
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+          if (_isFabOpen)
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(0, 1.5),
+                end: Offset(0, 0),
+              ).animate(_fabAnimation),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 140),
+                child: FloatingActionButton(
+                  heroTag: 'group',
+                  onPressed: () {
+                    _toggleFab();
+                    _showAddGroupDialog();
+                  },
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+                ),
               ),
             ),
-          ),
-          SlideTransition(
-            position: Tween<Offset>(
-              begin: Offset(0, 1),
-              end: Offset(0, 0),
-            ).animate(_fabAnimation),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 70),
-              child: FloatingActionButton(
-                heroTag: 'memo',
-                onPressed: () {
-                  _toggleFab();
-                  // TODO: 메모장 생성 함수 연결
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+          if (_isFabOpen)
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(0, 1),
+                end: Offset(0, 0),
+              ).animate(_fabAnimation),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 70),
+                child: FloatingActionButton(
+                  heroTag: 'memo',
+                  onPressed: () {
+                    _toggleFab();
+                    // TODO: 메모장 생성 함수 연결
+                  },
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+                ),
               ),
             ),
-          ),
           FloatingActionButton(
             heroTag: 'main',
             onPressed: _toggleFab,
