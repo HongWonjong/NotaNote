@@ -60,6 +60,7 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 - **content** 📜: `string` (메모장 두 번째 줄 내용, 텍스트)
 - **ownerId** 👑: `string` (소유자 유저 ID, users 컬렉션의 userId 참조)
 - **isPublic** 🌐: `boolean` (공개 여부, true/false)
+- **isPinned** 🌐: `boolean` (고정 여부, true/false, 기본값: false)
 - **tags** 🏷️: `array<string>` (메모장 태그 리스트, 예: ["#프로젝트", "#기획"])
 - **permissions** 🔒: `map<string, string>` (유저별 권한, 예: { "uid123": "owner", "uid456": "editor" })
 - **createdAt** 🕒: `timestamp` (메모장 생성 시간)
