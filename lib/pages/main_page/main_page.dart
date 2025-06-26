@@ -747,6 +747,7 @@ class _MainPageState extends ConsumerState<MainPage>
                           _showAddGroupDialog();
                         },
                         backgroundColor: Colors.white,
+                        shape: CircleBorder(),
                         child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
                       ),
                     ),
@@ -806,6 +807,7 @@ class _MainPageState extends ConsumerState<MainPage>
                           }
                         },
                         backgroundColor: Colors.white,
+                        shape: CircleBorder(),
                         child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
                       ),
                     ),
@@ -817,6 +819,7 @@ class _MainPageState extends ConsumerState<MainPage>
           FloatingActionButton(
             heroTag: 'main',
             onPressed: _toggleFab,
+            shape: CircleBorder(),
             backgroundColor: Color(0xFF61CFB2),
             child: AnimatedRotation(
               turns: _isFabOpen ? 0.125 : 0,
