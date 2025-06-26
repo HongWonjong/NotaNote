@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
@@ -6,12 +7,10 @@ import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
 class PopupMenuWidget extends StatefulWidget {
   final VoidCallback onClose;
   final quill.QuillController quillController;
-  final GlobalKey repaintKey;
 
   const PopupMenuWidget({
     required this.onClose,
     required this.quillController,
-    required this.repaintKey,
     super.key,
   });
 
@@ -179,14 +178,11 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
               child: Divider(),
             ),
             InkWell(
-              onTap: () async {
-                // 캡처 후 PDF로 저장/공유
-                await captureMemoAsFullPdf(
-                  context: context,
-                  repaintKey: widget.repaintKey,
-                  fileName:
-                      "capture_note_${DateTime.now().millisecondsSinceEpoch}",
-                );
+              // Delta 파싱 방식을 호출하도록
+              onTap: () {
+                widget.onClose();
+                // PdfGenerator의 공개 메소드를 호출
+                PdfGenerator.exportToPdf(widget.quillController.document);
               },
               child: Container(
                 width: double.infinity,
@@ -201,7 +197,7 @@ class _PopupMenuWidgetState extends State<PopupMenuWidget> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'PDF로 내보내기',
+                      '내보내기',
                       style: TextStyle(
                         color: Color(0xFF4C4C4C),
                         fontSize: 16,

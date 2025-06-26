@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
@@ -30,8 +29,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final quill.QuillController _controller = quill.QuillController.basic();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-
-  final GlobalKey _captureKey = GlobalKey(); // pdf를 위해 추가
 
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
@@ -258,30 +255,27 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(
-                          bottom: isKeyboardVisible ? 55.0 : 0.0),
-                      //pdf 변환을 위해 RepaintBoundary로 묶음
-                      child: RepaintBoundary(
-                        key: _captureKey,
-                        child: quill.QuillEditor(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          scrollController: _scrollController,
-                          config: quill.QuillEditorConfig(
-                            embedBuilders: FlutterQuillEmbeds.editorBuilders(
-                              imageEmbedConfig: QuillEditorImageEmbedConfig(
-                                imageProviderBuilder: (context, imageUrl) {
-                                  try {
-                                    return imageUploadViewModel
-                                        .getImageProviderSync(imageUrl);
-                                  } catch (e) {
-                                    debugPrint('Failed to load image: $e');
-                                    return AssetImage('assets/placeholder.png');
-                                  }
-                                },
-                              ),
+                          bottom:
+                              isKeyboardVisible ? 55.0 : 0.0), //에디터 툴바와의 간격 조절
+                      child: quill.QuillEditor(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        scrollController: _scrollController,
+                        config: quill.QuillEditorConfig(
+                          embedBuilders: FlutterQuillEmbeds.editorBuilders(
+                            imageEmbedConfig: QuillEditorImageEmbedConfig(
+                              imageProviderBuilder: (context, imageUrl) {
+                                try {
+                                  return imageUploadViewModel
+                                      .getImageProviderSync(imageUrl);
+                                } catch (e) {
+                                  debugPrint('Failed to load image: $e');
+                                  return AssetImage('assets/placeholder.png');
+                                }
+                              },
                             ),
-                            padding: EdgeInsets.zero,
                           ),
+                          padding: EdgeInsets.zero,
                         ),
                       ),
                     ),
@@ -290,15 +284,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          // Offstage로 숨겨진 전체 렌더 영역(PDF 캡처용)
-          // Offstage(
-          //   offstage: true, // 사용자에겐 안 보임
-          //   child: RepaintBoundary(
-          //     key: _captureKey, // 이미 선언된 key 재활용
-          //     child: buildFullMemoEditor(),
-          //   ),
-          // ),
-
           AnimatedPositioned(
             duration: Duration(milliseconds: 150),
             top: _isTagVisible ? 20 : -100,
@@ -352,7 +337,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       child: PopupMenuWidget(
                         onClose: _togglePopupMenu,
                         quillController: _controller,
-                        repaintKey: _captureKey,
                       ),
                     ),
                   ],
