@@ -741,15 +741,28 @@ class _MainPageState extends ConsumerState<MainPage>
                     ).animate(_fabAnimation),
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 140),
-                      child: FloatingActionButton(
-                        heroTag: 'group',
-                        onPressed: () {
-                          _toggleFab();
-                          _showAddGroupDialog();
-                        },
-                        backgroundColor: Colors.white,
-                        shape: CircleBorder(),
-                        child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '빠른 메모 작성하기',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF191919),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          FloatingActionButton(
+                            heroTag: 'group',
+                            onPressed: () {
+                              _toggleFab();
+                              _showAddGroupDialog();
+                            },
+                            backgroundColor: Colors.white,
+                            shape: CircleBorder(),
+                            child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -772,59 +785,72 @@ class _MainPageState extends ConsumerState<MainPage>
                     ).animate(_fabAnimation),
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 70),
-                      child: FloatingActionButton(
-                        heroTag: 'memo',
-                        onPressed: () async {
-                          _toggleFab();
-                          final groupViewModel =
-                              ref.read(groupViewModelProvider);
-                          final groups = groupViewModel.groups;
-                          if (groups.isEmpty) {
-                            if (mounted) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => CupertinoAlertDialog(
-                                  title: Text(
-                                    '알림',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '빠른 메모 작성하기',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF191919),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          FloatingActionButton(
+                            heroTag: 'memo',
+                            onPressed: () async {
+                              _toggleFab();
+                              final groupViewModel =
+                                  ref.read(groupViewModelProvider);
+                              final groups = groupViewModel.groups;
+                              if (groups.isEmpty) {
+                                if (mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => CupertinoAlertDialog(
+                                      title: Text(
+                                        '알림',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      content: Text('먼저 그룹을 생성해주세요.'),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text('확인'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              final groupId = groups.first.id;
+                              final memoViewModel =
+                                  ref.read(memoViewModelProvider(groupId));
+                              final newNoteId = await memoViewModel.addMemo();
+                              if (newNoteId != null && mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MemoPage(
+                                      groupId: groupId,
+                                      noteId: newNoteId,
+                                      pageId: '1',
                                     ),
                                   ),
-                                  content: Text('먼저 그룹을 생성해주세요.'),
-                                  actions: [
-                                    CupertinoDialogAction(
-                                      child: Text('확인'),
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                            return;
-                          }
-                          final groupId = groups.first.id;
-                          final memoViewModel =
-                              ref.read(memoViewModelProvider(groupId));
-                          final newNoteId = await memoViewModel.addMemo();
-                          if (newNoteId != null && mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MemoPage(
-                                  groupId: groupId,
-                                  noteId: newNoteId,
-                                  pageId: '1',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        backgroundColor: Colors.white,
-                        shape: CircleBorder(),
-                        child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+                                );
+                              }
+                            },
+                            backgroundColor: Colors.white,
+                            shape: CircleBorder(),
+                            child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+                          ),
+                        ],
                       ),
                     ),
                   ),
