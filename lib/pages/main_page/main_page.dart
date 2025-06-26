@@ -745,7 +745,7 @@ class _MainPageState extends ConsumerState<MainPage>
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            '빠른 메모 작성하기',
+                            '새 그룹 생성',
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF191919),
