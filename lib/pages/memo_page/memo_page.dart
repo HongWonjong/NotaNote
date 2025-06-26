@@ -29,6 +29,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   final quill.QuillController _controller = quill.QuillController.basic();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+
   Timer? _autoSaveTimer;
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
@@ -45,7 +46,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     _controller.addListener(() {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
-      final currentDeltaJson = _controller.document.toDelta().toJson().toString();
+      final currentDeltaJson =
+          _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
@@ -62,11 +64,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
-        ref.read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier).loadFromFirestore(_controller);
+        ref
+            .read(pageViewModelProvider({
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
+            .loadFromFirestore(_controller);
       }
     });
   }
@@ -75,14 +79,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     try {
       final delta = _controller.document.toDelta();
       final deltaJson = delta.toJson();
-      if (deltaJson.isEmpty || (deltaJson.length == 1 && deltaJson[0]['insert'] == '\n')) {
+      if (deltaJson.isEmpty ||
+          (deltaJson.length == 1 && deltaJson[0]['insert'] == '\n')) {
         return;
       }
-      await ref.read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier).saveToFirestore(_controller);
+      await ref
+          .read(pageViewModelProvider({
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
+          .saveToFirestore(_controller);
       _lastDeltaJson = deltaJson.toString();
 
       String firstText = '제목 없음';
@@ -96,11 +103,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             if (line.isNotEmpty) {
               if (lineCount == 0) {
                 firstText = line;
-                if (firstText.length > 50) firstText = firstText.substring(0, 50);
+                if (firstText.length > 50)
+                  firstText = firstText.substring(0, 50);
               } else if (lineCount >= 1 && secondText == null) {
                 if (line.trim().isNotEmpty) {
                   secondText = line;
-                  if (secondText.length > 100) secondText = secondText.substring(0, 100);
+                  if (secondText.length > 100)
+                    secondText = secondText.substring(0, 100);
                 }
               }
               lineCount++;
@@ -110,7 +119,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         }
       }
 
-      await ref.read(memoViewModelProvider(widget.groupId)).updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
+      await ref
+          .read(memoViewModelProvider(widget.groupId))
+          .updateMemoTitleAndContent(
+              widget.noteId, firstText, secondText ?? '');
     } catch (e) {
       debugPrint('Save failed: $e');
     }
@@ -128,7 +140,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     if (cursorPosition < 0) return;
 
     final editorKey = GlobalKey();
-    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    final renderObject =
+        (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
     final cursorHeight = 20.0; // Approximate cursor height
@@ -139,7 +152,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       if (_scrollController.hasClients) {
         final offset = _scrollController.offset;
         final maxScroll = _scrollController.position.maxScrollExtent;
-        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
+        final newOffset =
+            offset + cursorHeight + toolbarHeight + keyboardHeight;
         if (newOffset <= maxScroll) {
           _scrollController.animateTo(
             newOffset,
@@ -204,7 +218,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(imageUploadViewModel.errorMessage ?? '이미지 업로드 실패')),
+          SnackBar(
+              content: Text(imageUploadViewModel.errorMessage ?? '이미지 업로드 실패')),
         );
         imageUploadViewModel.reset();
       });
@@ -257,7 +272,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0), // 에디터 툴바와의 간격 조절
+                      padding: EdgeInsets.only(
+                          bottom:
+                              isKeyboardVisible ? 55.0 : 0.0), //에디터 툴바와의 간격 조절
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -267,7 +284,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                             imageEmbedConfig: QuillEditorImageEmbedConfig(
                               imageProviderBuilder: (context, imageUrl) {
                                 try {
-                                  return imageUploadViewModel.getImageProviderSync(imageUrl);
+                                  return imageUploadViewModel
+                                      .getImageProviderSync(imageUrl);
                                 } catch (e) {
                                   debugPrint('Failed to load image: $e');
                                   return AssetImage('assets/placeholder.png');
@@ -334,7 +352,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     Positioned(
                       top: appBarHeight / 8,
                       right: 10,
-                      child: PopupMenuWidget(onClose: _togglePopupMenu),
+                      child: PopupMenuWidget(
+                        onClose: _togglePopupMenu,
+                        quillController: _controller,
+                      ),
                     ),
                   ],
                 ),
