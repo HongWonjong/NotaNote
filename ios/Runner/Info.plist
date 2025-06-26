@@ -66,10 +66,8 @@
     <string>앱이 문서 폴더에 데이터를 저장하기 위해 권한이 필요합니다.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>메모장에 이미지와 PDF 파일을 저장하기 위해 앨범 접근 권한이 필요합니다.</string>
-
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>PDF 파일을 사진 앨범에 저장하려면 접근 권한이 필요합니다.</string>
-
     <key>NSCameraUsageDescription</key>
     <string>메모장에 직접 촬영된 이미지를 저장하기 위해 카메라 접근 권한이 필요합니다.</string>
     <!-- 필수 추가 키 -->
