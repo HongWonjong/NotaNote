@@ -17,7 +17,8 @@ class RecordingControllerBox extends ConsumerStatefulWidget {
   _RecordingControllerBoxState createState() => _RecordingControllerBoxState();
 }
 
-class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox> {
+class _RecordingControllerBoxState
+    extends ConsumerState<RecordingControllerBox> {
   bool _isMenuVisible = false;
   bool _isLanguageMenuVisible = false;
   OverlayEntry? _menuOverlayEntry;
@@ -127,7 +128,8 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
   OverlayEntry _createLanguageMenuOverlayEntry(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final RenderBox? buttonBox = _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? buttonBox =
+        _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
     final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
     final buttonSize = buttonBox?.size ?? Size.zero;
 
@@ -242,10 +244,12 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                 Expanded(
                   child: Container(
                     height: 32,
-                    padding: EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
+                    padding:
+                        EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
                     decoration: ShapeDecoration(
                       color: Color(0xFFF0F0F0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -279,7 +283,8 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '텍스트로 변환',
             onTap: () async {
               _toggleMenu(context);
-              if (widget.controller != null && recordingState.recordings.isNotEmpty) {
+              if (widget.controller != null &&
+                  recordingState.recordings.isNotEmpty) {
                 final recording = recordingState.recordings.first;
                 await recordingViewModel.transcribeRecording(
                   recording.path,
@@ -301,7 +306,8 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '다운로드',
             onTap: () {
               if (recordingState.recordings.isNotEmpty) {
-                Future.microtask(() => recordingViewModel.downloadRecording(recordingState.recordings.first.path));
+                Future.microtask(() => recordingViewModel
+                    .downloadRecording(recordingState.recordings.first.path));
               }
               _toggleMenu(context);
               setState(() {});
@@ -325,9 +331,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
             label: '삭제',
             onTap: () {
               if (recordingState.recordings.isNotEmpty) {
-                recordingViewModel.deleteRecording(recordingState.recordings.first.path);
+                recordingViewModel
+                    .deleteRecording(recordingState.recordings.first.path);
                 if (ref.read(recordingViewModelProvider).recordings.isEmpty) {
-                  ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                  ref.read(recordingBoxVisibilityProvider.notifier).state =
+                      false;
                 }
               }
               _toggleMenu(context);
@@ -341,12 +349,12 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
   }
 
   Widget _buildMenuItem(
-      BuildContext context, {
-        required String svgPath,
-        required String label,
-        required VoidCallback onTap,
-        Color textColor = const Color(0xFF4C4C4C),
-      }) {
+    BuildContext context, {
+    required String svgPath,
+    required String label,
+    required VoidCallback onTap,
+    Color textColor = const Color(0xFF4C4C4C),
+  }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -402,9 +410,11 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
     final screenWidth = MediaQuery.of(context).size.width;
 
-    print('Rendering recordings: ${recordingState.recordings.map((r) => "${r.path}: ${r.createdAt.toIso8601String()}").toList()}');
+    print(
+        'Rendering recordings: ${recordingState.recordings.map((r) => "${r.path}: ${r.createdAt.toIso8601String()}").toList()}');
     if (recordingState.recordings.isNotEmpty) {
-      print('Selected recording: ${recordingState.recordings.first.path}, CreatedAt: ${recordingState.recordings.first.createdAt.toIso8601String()}');
+      print(
+          'Selected recording: ${recordingState.recordings.first.path}, CreatedAt: ${recordingState.recordings.first.createdAt.toIso8601String()}');
     }
 
     return Material(
@@ -429,87 +439,99 @@ class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox>
                 Expanded(
                   child: recordingState.recordings.isNotEmpty
                       ? LayoutBuilder(
-                    builder: (context, constraints) {
-                      final recording = recordingState.recordings.first;
-                      print('Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
-                      return Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Consumer(
-                          builder: (context, ref, child) {
-                            final state = ref.watch(recordingViewModelProvider);
-                            final isPlaying = recordingViewModel.isPlaying(recording.path);
-                            final currentPosition = state.currentPosition;
-                            final displayDuration = isPlaying
-                                ? currentPosition
-                                : (state.isCompleted && state.currentlyPlayingPath == recording.path)
-                                ? recording.duration
-                                : recording.duration;
-                            print('isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
-                            return Row(
-                              children: [
-                                IconButton(
-                                  icon: isPlaying
-                                      ? SvgPicture.asset(
-                                    'assets/icons/Pause.svg',
-                                    width: 24,
-                                    height: 24,
-                                  )
-                                      : SvgPicture.asset(
-                                    'assets/icons/Play.svg',
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                  onPressed: () {
-                                    if (isPlaying) {
-                                      recordingViewModel.pausePlayback();
-                                    } else {
-                                      recordingViewModel.playRecording(recording.path);
-                                    }
-                                    if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
-                                      widget.focusNode!.requestFocus();
-                                    }
-                                    setState(() {});
-                                  },
-                                ),
-                                Text(
-                                  '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
-                                  style: TextStyle(
-                                    fontSize: 14.0,
-                                    color: isPlaying ? Color(0xFF61CFB2) : Colors.black,
-                                  ),
-                                ),
-                              ],
+                          builder: (context, constraints) {
+                            final recording = recordingState.recordings.first;
+                            print(
+                                'Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  final state =
+                                      ref.watch(recordingViewModelProvider);
+                                  final isPlaying = recordingViewModel
+                                      .isPlaying(recording.path);
+                                  final currentPosition = state.currentPosition;
+                                  final displayDuration = isPlaying
+                                      ? currentPosition
+                                      : (state.isCompleted &&
+                                              state.currentlyPlayingPath ==
+                                                  recording.path)
+                                          ? recording.duration
+                                          : recording.duration;
+                                  print(
+                                      'isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
+                                  return Row(
+                                    children: [
+                                      IconButton(
+                                        icon: isPlaying
+                                            ? SvgPicture.asset(
+                                                'assets/icons/Pause.svg',
+                                                width: 24,
+                                                height: 24,
+                                              )
+                                            : SvgPicture.asset(
+                                                'assets/icons/Play.svg',
+                                                width: 24,
+                                                height: 24,
+                                              ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          if (isPlaying) {
+                                            recordingViewModel.pausePlayback();
+                                          } else {
+                                            recordingViewModel
+                                                .playRecording(recording.path);
+                                          }
+                                          if (widget.focusNode != null &&
+                                              widget
+                                                  .focusNode!.canRequestFocus) {
+                                            widget.focusNode!.requestFocus();
+                                          }
+                                          setState(() {});
+                                        },
+                                      ),
+                                      Text(
+                                        '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          fontSize: 14.0,
+                                          color: isPlaying
+                                              ? Color(0xFF61CFB2)
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
                             );
                           },
-                        ),
-                      );
-                    },
-                  )
+                        )
                       : Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '녹음된 파일이 없습니다.',
-                          style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '녹음된 파일이 없습니다.',
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.grey),
+                              ),
+                              SizedBox(width: 8.0),
+                              TextButton(
+                                onPressed: () {
+                                  recordingViewModel.startRecording();
+                                  setState(() {});
+                                },
+                                child: Text('녹음 시작'),
+                              ),
+                            ],
+                          ),
                         ),
-                        SizedBox(width: 8.0),
-                        TextButton(
-                          onPressed: () {
-                            recordingViewModel.startRecording();
-                            setState(() {});
-                          },
-                          child: Text('녹음 시작'),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
                 IconButton(
                   icon: Icon(Icons.more_horiz, size: 20.0),

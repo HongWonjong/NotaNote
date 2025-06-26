@@ -51,10 +51,13 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_markdown: ^0.7.7+1
   dart_jsonwebtoken: ^3.1.1
+  flutter_local_notifications: ^18.0.0+1
 
   basic_utils: ^5.7.0
   pointycastle: ^3.9.1
   package_info_plus: ^8.3.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
 
 dev_dependencies:
   flutter_test:
