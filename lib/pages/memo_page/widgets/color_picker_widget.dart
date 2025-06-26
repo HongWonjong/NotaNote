@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nota_note/theme/colors.dart';
 
 class ColorPickerWidget extends StatelessWidget {
   final QuillController controller;
   final VoidCallback onClose;
   final Function(Color) onColorSelected;
+  final Color? selectedColor;
 
   ColorPickerWidget({
     required this.controller,
     required this.onClose,
     required this.onColorSelected,
+    this.selectedColor,
   });
 
   @override
@@ -38,7 +41,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDC2828),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDC2828).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -50,7 +60,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDC7628),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDC7628).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -62,7 +79,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDCB528),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDCB528).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -74,7 +98,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF2DA309),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF2DA309).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -86,7 +117,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF1535EA),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF1535EA).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -98,7 +136,14 @@ class ColorPickerWidget extends StatelessWidget {
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF000000),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF000000).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
