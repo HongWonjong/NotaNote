@@ -13,6 +13,7 @@ class Note {
   final Timestamp updatedAt;
   final List<Page> pages;
   final List<Comment> comments;
+  final bool isPinned;
 
   Note({
     required this.noteId,
@@ -25,6 +26,7 @@ class Note {
     required this.updatedAt,
     required this.pages,
     required this.comments,
+    required this.isPinned,
   });
 
   factory Note.fromFirestore(DocumentSnapshot doc, List<Page> pages, List<Comment> comments) {
@@ -40,6 +42,7 @@ class Note {
       updatedAt: data['updatedAt'] as Timestamp? ?? Timestamp.now(),
       pages: pages,
       comments: comments,
+      isPinned: data['isPinned'] ?? false,
     );
   }
 
@@ -52,10 +55,11 @@ class Note {
       'permissions': permissions,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'isPinned': isPinned,
     };
   }
 
-  Note copyWith({List<String>? tags}) {
+  Note copyWith({List<String>? tags, bool? isPinned}) {
     return Note(
       noteId: this.noteId,
       title: this.title,
@@ -67,6 +71,7 @@ class Note {
       updatedAt: Timestamp.now(),
       pages: this.pages,
       comments: this.comments,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 }
