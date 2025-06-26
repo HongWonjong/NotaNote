@@ -15,6 +15,8 @@ import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/services/notification_service.dart';
+import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -770,9 +772,38 @@ class _MainPageState extends ConsumerState<MainPage>
                       padding: const EdgeInsets.only(bottom: 70),
                       child: FloatingActionButton(
                         heroTag: 'memo',
-                        onPressed: () {
+                        onPressed: () async {
                           _toggleFab();
-                          // TODO: 메모장 생성 함수 연결
+                          final groupViewModel =
+                              ref.read(groupViewModelProvider);
+                          final groups = groupViewModel.groups;
+                          if (groups.isEmpty) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('먼저 그룹을 생성해주세요.'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                          final groupId = groups.first.id;
+                          final memoViewModel =
+                              ref.read(memoViewModelProvider(groupId));
+                          final newNoteId = await memoViewModel.addMemo();
+                          if (newNoteId != null && mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MemoPage(
+                                  groupId: groupId,
+                                  noteId: newNoteId,
+                                  pageId: '1',
+                                ),
+                              ),
+                            );
+                          }
                         },
                         backgroundColor: Colors.white,
                         child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
