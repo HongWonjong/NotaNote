@@ -802,7 +802,7 @@ class _MainPageState extends ConsumerState<MainPage>
                                 );
                               }
                             },
-                            backgroundColor: Colors.white,
+                            backgroundColor: Color(0xFFD7F3EB),
                             shape: CircleBorder(),
                             child: SvgPicture.asset(
                                 'assets/icons/PencilSimple_green.svg'),
@@ -847,7 +847,7 @@ class _MainPageState extends ConsumerState<MainPage>
                               _toggleFab();
                               _showAddGroupDialog();
                             },
-                            backgroundColor: Colors.white,
+                            backgroundColor: Color(0xFFD7F3EB),
                             shape: CircleBorder(),
                             child:
                                 SvgPicture.asset('assets/icons/FolderPlus.svg'),
