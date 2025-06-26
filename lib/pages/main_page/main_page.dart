@@ -23,7 +23,8 @@ class MainPage extends ConsumerStatefulWidget {
   ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends ConsumerState<MainPage> {
+class _MainPageState extends ConsumerState<MainPage>
+    with TickerProviderStateMixin {
   final SlidingMenuController _menuController = SlidingMenuController();
   bool _isGroupExpanded = false;
   String? _newGroupName;
@@ -32,11 +33,23 @@ class _MainPageState extends ConsumerState<MainPage> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
+  bool _isFabOpen = false;
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabAnimation;
+
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
     _searchController.addListener(_onSearchChanged);
+    _fabAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 250),
+    );
+    _fabAnimation = CurvedAnimation(
+      parent: _fabAnimationController,
+      curve: Curves.easeOut,
+    );
   }
 
   void _onSearchChanged() {
@@ -71,9 +84,21 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   void dispose() {
+    _fabAnimationController.dispose();
     _textController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _toggleFab() {
+    setState(() {
+      _isFabOpen = !_isFabOpen;
+      if (_isFabOpen) {
+        _fabAnimationController.forward();
+      } else {
+        _fabAnimationController.reverse();
+      }
+    });
   }
 
   void _showAddGroupDialog() {
@@ -695,16 +720,56 @@ class _MainPageState extends ConsumerState<MainPage> {
           ),
         ],
       ),
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: FloatingActionButton(
-          onPressed: _showAddGroupDialog,
-          backgroundColor: Color(0xFF61CFB2),
-          shape: CircleBorder(),
-          elevation: 0,
-          child: SvgPicture.asset('assets/icons/floatingActionButton_icon.svg'),
-        ),
+      floatingActionButton: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(0, 1.5),
+              end: Offset(0, 0),
+            ).animate(_fabAnimation),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 140),
+              child: FloatingActionButton(
+                heroTag: 'group',
+                onPressed: () {
+                  _toggleFab();
+                  _showAddGroupDialog();
+                },
+                backgroundColor: Colors.white,
+                child: Icon(Icons.folder, color: Color(0xFF61CFB2)),
+              ),
+            ),
+          ),
+          SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(0, 1),
+              end: Offset(0, 0),
+            ).animate(_fabAnimation),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 70),
+              child: FloatingActionButton(
+                heroTag: 'memo',
+                onPressed: () {
+                  _toggleFab();
+                  // TODO: 메모장 생성 함수 연결
+                },
+                backgroundColor: Colors.white,
+                child: Icon(Icons.edit, color: Color(0xFF61CFB2)),
+              ),
+            ),
+          ),
+          FloatingActionButton(
+            heroTag: 'main',
+            onPressed: _toggleFab,
+            backgroundColor: Color(0xFF61CFB2),
+            child: AnimatedRotation(
+              turns: _isFabOpen ? 0.125 : 0,
+              duration: Duration(milliseconds: 250),
+              child: Icon(Icons.add, color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
