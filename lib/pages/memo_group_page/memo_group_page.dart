@@ -231,8 +231,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
       return '방금 전';
     }
   }
-
-  Widget _buildMemoCard(Memo memo) {
+Widget _buildMemoCard(Memo memo) {
   final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
 
   Widget buildCheckCircle() {
@@ -273,14 +272,17 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     child: isGrid
         ? Container(
             width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 170),
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
               bottom: 16,
-              top: isDeleteMode ? 22 : 16, // 삭제모드일 땐 위쪽 공간 좀 더 줌
+              top: isDeleteMode ? 22 : 16,
             ),
+            constraints: const BoxConstraints(
+          minHeight: 260,  // 충분히 크게 (원하는 값으로 조정)
+          // maxHeight 제거하거나 높게 설정
+        ),
             decoration: BoxDecoration(
               color: Colors.white,
               border: const Border(
@@ -297,17 +299,31 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                 Padding(
                   padding: EdgeInsets.only(left: isDeleteMode ? 32 : 0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
-                        child: Text.rich(
-                          _highlightSearchText(
-                            trimTitleForDisplay(memo.title, 8),
-                            searchText,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Text.rich(
+                        _highlightSearchText(
+                          trimTitleForDisplay(memo.title, 8),
+                          searchText,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        memo.content,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF333333),
+                          fontSize: 13,
+                          fontFamily: 'Pretendard',
+                          height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -327,7 +343,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${memo.tags[0]}',
+                                memo.tags[0],
                                 style: const TextStyle(
                                   color: Color(0xFF191919),
                                   fontSize: 12,
@@ -337,8 +353,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (memo.tags.length > 1)
-                              const SizedBox(width: 6),
+                            if (memo.tags.length > 1) const SizedBox(width: 6),
                             if (memo.tags.length > 1)
                               Text(
                                 '+${memo.tags.length - 1}',
@@ -384,7 +399,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               left: 16,
               right: 16,
               bottom: 12,
-              top: isDeleteMode ? 20 : 12, // 삭제모드일 땐 위쪽 공간 늘림
+              top: isDeleteMode ? 20 : 12,
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -407,6 +422,23 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        memo.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF333333),
+                          fontSize: 13,
+                          fontFamily: 'Pretendard',
+                          height: 1.3,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       if (memo.tags.isNotEmpty)
@@ -489,7 +521,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
             padding: const EdgeInsets.all(8),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 1.5,
+              childAspectRatio: 0.9,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
