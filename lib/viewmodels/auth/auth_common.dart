@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// UID로부터 SHA256 해시를 생성하고, 앞 6자리만 잘라서 해시태그 생성
@@ -31,7 +32,9 @@ Future<String?> getCurrentUserId({bool appLaunch = false}) async {
   }
 
   if (provider == 'apple') {
-    if (appLaunch) {
+    final userIdentifier = await getAppleUserIdentifier();
+
+    if (userIdentifier == null) {
       // 앱 처음 실행일 경우만 자동 로그인 방지
       log('[Apple] 앱 최초 실행 → 자동 로그인 방지 → null 반환');
       return null;
@@ -96,6 +99,15 @@ Future<void> signOut() async {
     } catch (e) {
       log('[AuthCommon] Kakao 로그아웃 예외 무시: $e');
     }
+  } else if (provider == 'apple') {
+    // Firebase에서 세션 제거
+    await FirebaseAuth.instance.signOut();
+    log('[AuthCommon] Apple(Firebase) 로그아웃 완료');
+    // Apple은 별도 세션 없음 (getCredentialState로만 확인)
+    // 필요시 SharedPreferences에서 apple_user_identifier 등 추가 삭제
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('apple_user_identifier');
+    log('[AuthCommon] Apple userIdentifier 제거 완료');
   }
 
   await clearLoginInfo(); // SharedPreferences에서 유저 정보 초기화

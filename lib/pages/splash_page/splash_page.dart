@@ -8,6 +8,7 @@ import 'package:nota_note/pages/on_boarding_page/on_boarding_page.dart';
 import 'package:nota_note/pages/main_page/main_page.dart';
 import 'package:nota_note/providers/onboarding_provider.dart';
 import 'package:logger/logger.dart';
+import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -41,6 +42,8 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
     final hasCompletedOnBoarding = results[0] as bool;
     final userId = results[1] as String?;
+    ref.read(userIdProvider.notifier).state = userId; // 동기화
+
     logger.i('스플래시 페이지 - 온보딩 완료 여부: $hasCompletedOnBoarding, 사용자 ID: $userId');
 
     if (!mounted) return;
@@ -104,7 +107,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                 width: 100,
                 height: 100,
                 placeholderBuilder: (context) =>
-                const CircularProgressIndicator(),
+                    const CircularProgressIndicator(),
               ),
               const SizedBox(height: 32),
               SvgPicture.asset(
