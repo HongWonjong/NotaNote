@@ -21,21 +21,26 @@ class KakaoAuthViewModel {
 
   Future<UserModel?> signInWithKakao() async {
     try {
-      // 1. 카카오톡 설치 여부 확인 후 로그인
-      log('Kakao 로그인 시도');
-      final isInstalled = await isKakaoTalkInstalled();
-      log('카카오톡 설치여부: $isInstalled');
+      // // 1. 카카오톡 설치 여부 확인 후 로그인(현재 비활성화 지우지 마십쇼)
+      // log('Kakao 로그인 시도');
+      // final isInstalled = await isKakaoTalkInstalled();
+      // log('카카오톡 설치여부: $isInstalled');
 
-      OAuthToken token;
-      if (isInstalled) {
-        token = await UserApi.instance.loginWithKakaoTalk();
-        log('loginWithKakaoTalk 완료: $token');
-      } else {
-        token = await UserApi.instance.loginWithKakaoAccount();
-        log('loginWithKakaoAccount 완료: $token');
-      }
+      // OAuthToken token;
+      // if (isInstalled) {
+      //   token = await UserApi.instance.loginWithKakaoTalk();
+      //   log('loginWithKakaoTalk 완료: $token');
+      // } else {
+      //   token = await UserApi.instance.loginWithKakaoAccount();
+      //   log('loginWithKakaoAccount 완료: $token');
+      // }
 
-      // 2. 토큰이 세팅되었는지 확인
+      log('Kakao 계정 로그인 시도');
+      // 현재 카카오톡 로그인 오류로 무조건 계정 로그인 방식만 사용(카카오 설치 여부 확인 안함.)
+      final token = await UserApi.instance.loginWithKakaoAccount();
+      log('loginWithKakaoAccount 완료: $token');
+
+      // 토큰이 세팅되었는지 확인
       bool hasToken = await AuthApi.instance.hasToken();
       log('AuthApi.hasToken(): $hasToken');
       int retry = 0;
@@ -48,7 +53,7 @@ class KakaoAuthViewModel {
       }
       if (!hasToken) throw Exception('카카오 토큰 획득 실패');
 
-      // 3. 토큰이 있다면 정상적으로 유저정보 요청
+      // 토큰이 있다면 정상적으로 유저정보 요청
       final user = await UserApi.instance.me();
       final userId = user.id.toString();
       final email = user.kakaoAccount?.email ?? 'no_email@kakao.com';
