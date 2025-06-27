@@ -8,7 +8,6 @@ import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 import 'package:nota_note/services/note_group_exemple_service.dart';
 
-
 final kakaoAuthViewModelProvider =
     Provider<KakaoAuthViewModel>((ref) => KakaoAuthViewModel(ref));
 
@@ -17,23 +16,22 @@ class KakaoAuthViewModel {
   KakaoAuthViewModel(this.ref);
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final NoteGroupExampleService _noteGroupExampleService = NoteGroupExampleService();
-
+  final NoteGroupExampleService _noteGroupExampleService =
+      NoteGroupExampleService();
 
   Future<UserModel?> signInWithKakao() async {
     try {
+      //카카오톡 설치 여부
       final isInstalled = await isKakaoTalkInstalled();
       final token = isInstalled
-          ? await UserApi.instance.loginWithKakaoTalk()
-          : await UserApi.instance.loginWithKakaoAccount();
+          ? await UserApi.instance.loginWithKakaoTalk() //카카오톡 앱 로그인
+          : await UserApi.instance.loginWithKakaoAccount(); //카카오계정 웹 로그인
 
       final user = await UserApi.instance.me();
       final userId = user.id.toString();
-
       final email = user.kakaoAccount?.email ?? 'no_email@kakao.com';
       final displayName = user.kakaoAccount?.profile?.nickname ?? 'Unknown';
       final photoUrl = user.kakaoAccount?.profile?.profileImageUrl ?? '';
-
       final docRef = _firestore.collection('users').doc(userId);
       final userDoc = await docRef.get();
 
@@ -50,7 +48,6 @@ class KakaoAuthViewModel {
         );
         await docRef.set(newUser.toJson(), SetOptions(merge: true));
         await _noteGroupExampleService.createExampleNoteGroup(userId);
-
       }
 
       await saveLoginUserId(userId);

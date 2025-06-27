@@ -3,7 +3,7 @@ description: "NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 
 
 publish_to: "none"
 
-version: 1.0.3+4
+version: 1.0.4+5
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -14,7 +14,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # 오류 수정: sentry_flutter는 일반 패키지입니다
   sentry_flutter: ^9.1.0
 
   kakao_flutter_sdk: ^1.9.7+3

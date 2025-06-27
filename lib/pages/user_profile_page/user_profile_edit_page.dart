@@ -4,6 +4,7 @@ import 'package:nota_note/models/user_model.dart';
 import 'package:nota_note/pages/user_profile_page/widgets/profile_image_widget.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/theme/colors.dart';
+import 'package:nota_note/viewmodels/user_profile_viewmodel.dart';
 
 class UserProfileEditPage extends StatefulWidget {
   final UserModel user;
@@ -58,7 +59,11 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 // 프로필 업데이트 함수 호출
-                // await updateUserProfile( ... );
+                await updateUserProfile(
+                  userId: widget.user.userId,
+                  displayName: _nameController.text.trim(),
+                  email: _emailController.text.trim(),
+                );
                 if (mounted) {
                   Navigator.pop(context, true);
                 }
