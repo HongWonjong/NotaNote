@@ -200,7 +200,7 @@ class _MainPageState extends ConsumerState<MainPage>
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Color(0xFF61CFB2)),
                     ),
-                    suffixText: '$textLength/10',
+                    suffixText: '$textLength/25',
                     suffixStyle: TextStyle(
                       color: Colors.grey[500],
                       fontSize: 14,
@@ -214,7 +214,7 @@ class _MainPageState extends ConsumerState<MainPage>
                       _newGroupName = value;
                     });
                   },
-                  maxLength: 10,
+                  maxLength: 25,
                   buildCounter: (context,
                       {required currentLength, required isFocused, maxLength}) {
                     return null;
