@@ -10,6 +10,8 @@ import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'widgets/color_picker_widget.dart';
+import 'widgets/highlight_picker_widget.dart';
 import 'package:nota_note/pages/memo_page/widgets/popup_menu_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
@@ -38,6 +40,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(selectedColorProvider.notifier).state = null;
+      }
+    });
+
     _focusNode.addListener(() {
       if (_focusNode.hasFocus && !ref.read(recordingBoxVisibilityProvider)) {
         ref.read(recordingBoxVisibilityProvider.notifier).state = false;
@@ -47,7 +55,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
       final currentDeltaJson =
-          _controller.document.toDelta().toJson().toString();
+      _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
@@ -66,16 +74,18 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         _focusNode.requestFocus();
         ref
             .read(pageViewModelProvider({
-              'groupId': widget.groupId,
-              'noteId': widget.noteId,
-              'pageId': widget.pageId,
-            }).notifier)
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier)
             .loadFromFirestore(_controller);
       }
     });
   }
 
   Future<void> _saveContentAndTitle() async {
+    if (!mounted) return;
+
     try {
       final delta = _controller.document.toDelta();
       final deltaJson = delta.toJson();
@@ -85,10 +95,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       }
       await ref
           .read(pageViewModelProvider({
-            'groupId': widget.groupId,
-            'noteId': widget.noteId,
-            'pageId': widget.pageId,
-          }).notifier)
+        'groupId': widget.groupId,
+        'noteId': widget.noteId,
+        'pageId': widget.pageId,
+      }).notifier)
           .saveToFirestore(_controller);
       _lastDeltaJson = deltaJson.toString();
 
@@ -119,10 +129,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         }
       }
 
-      await ref
-          .read(memoViewModelProvider(widget.groupId))
-          .updateMemoTitleAndContent(
-              widget.noteId, firstText, secondText ?? '');
+      if (mounted) {
+        await ref
+            .read(memoViewModelProvider(widget.groupId))
+            .updateMemoTitleAndContent(
+            widget.noteId, firstText, secondText ?? '');
+      }
     } catch (e) {
       debugPrint('Save failed: $e');
     }
@@ -141,7 +153,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
 
     final editorKey = GlobalKey();
     final renderObject =
-        (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
     final cursorHeight = 20.0;

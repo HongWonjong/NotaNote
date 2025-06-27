@@ -123,7 +123,6 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
 
   Future<void> syncRecordingsWithLoading() async {
     state = state.copyWith(isSyncing: true, syncMessage: '데이터 정합성 확인 중...');
-    await Future.delayed(Duration(seconds: 2)); // 파일 안정화 대기
     await _syncRecordings();
     state = state.copyWith(isSyncing: false, syncMessage: '');
   }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/theme/colors.dart';
 
-class HighlightPickerWidget extends StatelessWidget {
+final selectedHighlightProvider = StateProvider<Color?>((ref) => null);
+
+class HighlightPickerWidget extends ConsumerWidget {
   final QuillController controller;
   final VoidCallback onClose;
   final Function(Color?) onHighlightSelected;
@@ -14,7 +18,14 @@ class HighlightPickerWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedHighlight = ref.watch(selectedHighlightProvider);
+
+    void selectHighlight(Color? color) {
+      ref.read(selectedHighlightProvider.notifier).state = color;
+      onHighlightSelected(color);
+    }
+
     return Material(
       elevation: 4.0,
       borderRadius: BorderRadius.circular(12),
@@ -33,71 +44,120 @@ class HighlightPickerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => onHighlightSelected(Color(0xFFF4C0C0)),
+              onTap: () => selectHighlight(Color(0xFFF4C0C0)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFF4C0C0),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedHighlight?.value == Color(0xFFF4C0C0).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onHighlightSelected(Color(0xFFF3D3BA)),
+              onTap: () => selectHighlight(Color(0xFFF3D3BA)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFF3D3BA),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedHighlight?.value == Color(0xFFF3D3BA).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onHighlightSelected(Color(0xFFEEDC9B)),
+              onTap: () => selectHighlight(Color(0xFFEEDC9B)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFEEDC9B),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedHighlight?.value == Color(0xFFEEDC9B).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onHighlightSelected(Color(0xFFC7EBBC)),
+              onTap: () => selectHighlight(Color(0xFFC7EBBC)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFC7EBBC),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedHighlight?.value == Color(0xFFC7EBBC).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onHighlightSelected(Color(0xFFCFE4F5)),
+              onTap: () => selectHighlight(Color(0xFFCFE4F5)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFCFE4F5),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedHighlight?.value == Color(0xFFCFE4F5).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onHighlightSelected(null),
-              child: SvgPicture.asset(
-                'assets/icons/HighlightCancel.svg',
+              onTap: () => selectHighlight(null),
+              child: Container(
                 width: 24,
                 height: 24,
+                decoration: ShapeDecoration(
+                  shape: OvalBorder(
+                    side: selectedHighlight == null
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
+                ),
+                child: SvgPicture.asset(
+                  'assets/icons/HighlightCancel.svg',
+                  width: 24,
+                  height: 24,
+                ),
               ),
             ),
           ],

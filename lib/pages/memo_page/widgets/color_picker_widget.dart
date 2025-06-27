@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nota_note/theme/colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ColorPickerWidget extends StatelessWidget {
+final selectedColorProvider = StateProvider<Color?>((ref) => null);
+
+class ColorPickerWidget extends ConsumerWidget {
   final QuillController controller;
   final VoidCallback onClose;
   final Function(Color) onColorSelected;
@@ -13,7 +17,14 @@ class ColorPickerWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedColor = ref.watch(selectedColorProvider);
+
+    void selectColor(Color color) {
+      ref.read(selectedColorProvider.notifier).state = color;
+      onColorSelected(color);
+    }
+
     return Material(
       elevation: 4.0,
       borderRadius: BorderRadius.circular(12),
@@ -32,73 +43,115 @@ class ColorPickerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFFDC2828)),
+              onTap: () => selectColor(Color(0xFFDC2828)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDC2828),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDC2828).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFFDC7628)),
+              onTap: () => selectColor(Color(0xFFDC7628)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDC7628),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDC7628).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFFDCB528)),
+              onTap: () => selectColor(Color(0xFFDCB528)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFFDCB528),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFFDCB528).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFF2DA309)),
+              onTap: () => selectColor(Color(0xFF2DA309)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF2DA309),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF2DA309).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFF1535EA)),
+              onTap: () => selectColor(Color(0xFF1535EA)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF1535EA),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF1535EA).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 18),
             GestureDetector(
-              onTap: () => onColorSelected(Color(0xFF000000)),
+              onTap: () => selectColor(Color(0xFF000000)),
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
                   color: Color(0xFF000000),
-                  shape: OvalBorder(),
+                  shape: OvalBorder(
+                    side: selectedColor?.value == Color(0xFF000000).value
+                        ? BorderSide(
+                      color: AppColors.primary300Main,
+                      width: 2,
+                    )
+                        : BorderSide.none,
+                  ),
                 ),
               ),
             ),
