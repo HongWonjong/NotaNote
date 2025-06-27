@@ -21,12 +21,27 @@ class KakaoAuthViewModel {
 
   Future<UserModel?> signInWithKakao() async {
     try {
-      //카카오톡 설치 여부
+      // 1. 카카오톡 설치 여부 확인 후 로그인
       final isInstalled = await isKakaoTalkInstalled();
-      final token = isInstalled
-          ? await UserApi.instance.loginWithKakaoTalk() //카카오톡 앱 로그인
-          : await UserApi.instance.loginWithKakaoAccount(); //카카오계정 웹 로그인
+      OAuthToken token;
+      if (isInstalled) {
+        token = await UserApi.instance.loginWithKakaoTalk();
+      } else {
+        token = await UserApi.instance.loginWithKakaoAccount();
+      }
 
+      // 2. 토큰이 세팅되었는지 확인
+      bool hasToken = await AuthApi.instance.hasToken();
+      int retry = 0;
+      while (!hasToken && retry < 5) {
+        // iOS에서 복귀 직후 토큰이 아직 세팅 안 된 경우가 있다고함. 잠깐 대기 후 재시도
+        await Future.delayed(const Duration(milliseconds: 200));
+        hasToken = await AuthApi.instance.hasToken();
+        retry++;
+      }
+      if (!hasToken) throw Exception('카카오 토큰 획득 실패');
+
+      // 3. 토큰이 있다면 정상적으로 유저정보 요청
       final user = await UserApi.instance.me();
       final userId = user.id.toString();
       final email = user.kakaoAccount?.email ?? 'no_email@kakao.com';

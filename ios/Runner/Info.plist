@@ -16,8 +16,12 @@
     </array>
     <key>LSApplicationQueriesSchemes</key>
     <array>
+      <!-- 카카오톡으로 로그인 -->
       <string>kakaokompassauth</string>
+      <!-- 카카오톡 공유 -->
       <string>kakaolink</string>
+      <!-- 카카오톡 채널 -->
+      <string>kakaoplus</string>
       <string>kakaotalk</string>
       <string>kakaostory</string>
       <string>storykompassauth</string>
