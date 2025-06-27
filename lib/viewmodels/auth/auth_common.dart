@@ -31,7 +31,9 @@ Future<String?> getCurrentUserId({bool appLaunch = false}) async {
   }
 
   if (provider == 'apple') {
-    if (appLaunch) {
+    final userIdentifier = await getAppleUserIdentifier();
+
+    if (userIdentifier == null) {
       // 앱 처음 실행일 경우만 자동 로그인 방지
       log('[Apple] 앱 최초 실행 → 자동 로그인 방지 → null 반환');
       return null;
