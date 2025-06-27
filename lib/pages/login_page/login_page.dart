@@ -126,11 +126,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               onTap: () async {
                 log('[로그인] 카카오 로그인 시도');
                 final user = await kakaoViewModel.signInWithKakao();
-                if (user == null || !mounted) return;
+                // if (user == null || !mounted) return;
+                // 카카오 오류 해결 위해 로그 추가
+                if (user == null) {
+                  log('[로그인] 카카오 로그인 실패: user == null');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('카카오 로그인에 실패했습니다')),
+                    );
+                  }
+                  return;
+                }
+                if (!mounted) return;
                 await _navigateAfterLogin();
               },
             ),
-            // 카카오~하단만 고정
+            // 카카오~하단 고정
             const SizedBox(height: bottomSpace),
           ],
         ),
