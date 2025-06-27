@@ -740,7 +740,7 @@ class _MainPageState extends ConsumerState<MainPage>
                       end: Offset(0, 0),
                     ).animate(_fabAnimation),
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 140),
+                      padding: const EdgeInsets.only(bottom: 160),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -804,6 +804,7 @@ class _MainPageState extends ConsumerState<MainPage>
                             },
                             backgroundColor: Color(0xFFD7F3EB),
                             shape: CircleBorder(),
+                            elevation: 0,
                             child: SvgPicture.asset(
                                 'assets/icons/PencilSimple_green.svg'),
                           ),
@@ -829,7 +830,7 @@ class _MainPageState extends ConsumerState<MainPage>
                       end: Offset(0, 0),
                     ).animate(_fabAnimation),
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 70),
+                      padding: const EdgeInsets.only(bottom: 80),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -849,6 +850,7 @@ class _MainPageState extends ConsumerState<MainPage>
                             },
                             backgroundColor: Color(0xFFD7F3EB),
                             shape: CircleBorder(),
+                            elevation: 0,
                             child:
                                 SvgPicture.asset('assets/icons/FolderPlus.svg'),
                           ),
@@ -865,6 +867,7 @@ class _MainPageState extends ConsumerState<MainPage>
             onPressed: _toggleFab,
             shape: CircleBorder(),
             backgroundColor: Color(0xFF60CFB1),
+            elevation: 0,
             child: AnimatedRotation(
               turns: _isFabOpen ? 0.125 : 0,
               duration: Duration(milliseconds: 250),
