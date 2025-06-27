@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/group_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
 import 'package:nota_note/pages/setting_page/settings_page.dart';
+import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/sliding_menu_scaffold.dart';
 import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
@@ -317,6 +318,23 @@ class _MainPageState extends ConsumerState<MainPage>
     );
   }
 
+  //프로필 이미지 적용
+  Widget _buildProfileImage(String? photoUrl) {
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 16,
+        backgroundImage: NetworkImage(photoUrl),
+        backgroundColor: AppColors.gray200,
+      );
+    } else {
+      return SvgPicture.asset(
+        'assets/icons/ProfileImage3.svg',
+        width: 32,
+        height: 32,
+      );
+    }
+  }
+
   Widget _buildMenu(List<GroupModel> groups, String? userId) {
     return SafeArea(
       child: Padding(
@@ -340,11 +358,7 @@ class _MainPageState extends ConsumerState<MainPage>
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            'assets/icons/ProfileImage3.svg',
-                            width: 32,
-                            height: 32,
-                          ),
+                          _buildProfileImage(user?.photoUrl),
                           const SizedBox(height: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
