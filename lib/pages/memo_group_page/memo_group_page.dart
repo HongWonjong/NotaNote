@@ -6,6 +6,7 @@ import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/utils/view_mode_prefs.dart';
 
 String trimTitleForDisplay(String title, int maxLength) {
   if (title.length <= maxLength) {
@@ -44,10 +45,17 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   @override
   void initState() {
     super.initState();
+    _loadViewMode();
     _searchController.addListener(() {
       setState(() {
         searchText = _searchController.text;
       });
+    });
+  }
+Future<void> _loadViewMode() async {
+    final saved = await ViewModePrefs.loadIsGrid();
+    setState(() {
+      isGrid = saved;
     });
   }
 
@@ -100,6 +108,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
     setState(() {
       isGrid = value;
     });
+    ViewModePrefs.saveIsGrid(value);
   }
 
   List<Memo> getFilteredMemos(List<Memo> memos) {
@@ -302,6 +311,7 @@ Widget _buildMemoCard(Memo memo) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      SizedBox(height: 6),
                       Text.rich(
                         _highlightSearchText(
                           trimTitleForDisplay(memo.title, 8),
@@ -314,7 +324,7 @@ Widget _buildMemoCard(Memo memo) {
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 18),
                       Text(
                         memo.content,
                         maxLines: 3,
@@ -415,6 +425,7 @@ Widget _buildMemoCard(Memo memo) {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(height: 6),
                       Text.rich(
                         _highlightSearchText(
                           trimTitleForDisplay(memo.title, 20),
@@ -428,7 +439,7 @@ Widget _buildMemoCard(Memo memo) {
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 18),
                       Text(
                         memo.content,
                         maxLines: 2,
