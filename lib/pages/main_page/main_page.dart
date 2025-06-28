@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/group_model.dart';
 import 'package:nota_note/pages/main_page/widgets/main_item.dart';
+import 'package:nota_note/pages/main_page/widgets/shared_main_item.dart';
 import 'package:nota_note/pages/setting_page/settings_page.dart';
 import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
@@ -303,7 +304,8 @@ class _MainPageState extends ConsumerState<MainPage>
   @override
   Widget build(BuildContext context) {
     final groupViewModel = ref.watch(groupViewModelProvider);
-    final groups = groupViewModel.groups;
+    final ownedGroups = groupViewModel.ownedGroups;
+    final sharedGroups = groupViewModel.sharedGroups;
     final isLoading = groupViewModel.isLoading;
     final error = groupViewModel.error;
 
@@ -311,8 +313,8 @@ class _MainPageState extends ConsumerState<MainPage>
 
     return SlidingMenuScaffold(
       controller: _menuController,
-      menuWidget: _buildMenu(groups, userId),
-      contentWidget: _buildContent(groups, isLoading, error, userId),
+      menuWidget: _buildMenu(ownedGroups, userId),
+      contentWidget: _buildContent(ownedGroups, sharedGroups, isLoading, error, userId),
       animationDuration: const Duration(milliseconds: 250),
       menuBackgroundColor: Colors.white,
     );
@@ -466,8 +468,7 @@ class _MainPageState extends ConsumerState<MainPage>
                                     SizedBox(width: 4),
                                     Text(
                                       '(${group.noteCount})',
-                                      style: PretendardTextStyles.bodyS
-                                          .copyWith(
+                                      style: PretendardTextStyles.bodyS.copyWith(
                                           color: Colors.grey[500],
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 0.5),
@@ -563,7 +564,11 @@ class _MainPageState extends ConsumerState<MainPage>
   }
 
   Widget _buildContent(
-      List<GroupModel> groups, bool isLoading, String? error, String? userId) {
+      List<GroupModel> ownedGroups,
+      List<GroupModel> sharedGroups,
+      bool isLoading,
+      String? error,
+      String? userId) {
     final invitationCount = ref.watch(notificationViewModelProvider).invitationCount;
 
     return Scaffold(
@@ -666,107 +671,182 @@ class _MainPageState extends ConsumerState<MainPage>
                 : null,
           ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                if (isLoading)
-                  Center(child: CircularProgressIndicator())
-                else if (error != null)
-                  Text(
-                    error,
-                    style: TextStyle(color: Colors.red),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          '총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredGroups.length : groups.length)}개',
-                          style: TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : (_isSearching
-                      ? ref
-                      .watch(groupViewModelProvider)
-                      .filteredGroups
-                      .isEmpty
-                      : groups.isEmpty)
-                      ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.folder_open,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          '생성된 그룹이 없습니다',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '새 그룹을 추가해보세요',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                      : ListView.separated(
-                    padding: EdgeInsets.zero,
-                    itemCount: _isSearching
-                        ? ref
-                        .watch(groupViewModelProvider)
-                        .filteredGroups
-                        .length
-                        : groups.length,
-                    separatorBuilder: (context, index) => Container(),
-                    itemBuilder: (context, index) {
-                      final group = _isSearching
-                          ? ref
-                          .watch(groupViewModelProvider)
-                          .filteredGroups[index]
-                          : groups[index];
-                      return MainItem(
-                        title: group.name,
-                        groupId: group.id,
-                        noteCount: group.noteCount,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MemoGroupPage(
-                                groupId: group.id,
-                                groupName: group.name,
-                              ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20),
+                  if (isLoading)
+                    Center(child: CircularProgressIndicator())
+                  else if (error != null)
+                    Text(
+                      error,
+                      style: TextStyle(color: Colors.red),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '내 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredOwnedGroups.length : ownedGroups.length)}개)',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
-                        searchQuery: _isSearching
-                            ? _searchController.text
-                            : null,
-                      );
-                    },
-                  ),
-                ),
-              ],
+                          ),
+                          SizedBox(height: 16),
+                          (_isSearching
+                              ? ref
+                              .watch(groupViewModelProvider)
+                              .filteredOwnedGroups
+                              : ownedGroups)
+                              .isEmpty
+                              ? Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.folder_open,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  '생성된 그룹이 없습니다',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  '새 그룹을 추가해보세요',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                              : ListView.separated(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            itemCount: _isSearching
+                                ? ref
+                                .watch(groupViewModelProvider)
+                                .filteredOwnedGroups
+                                .length
+                                : ownedGroups.length,
+                            separatorBuilder: (context, index) =>
+                                Container(),
+                            itemBuilder: (context, index) {
+                              final group = _isSearching
+                                  ? ref
+                                  .watch(groupViewModelProvider)
+                                  .filteredOwnedGroups[index]
+                                  : ownedGroups[index];
+                              return MainItem(
+                                title: group.name,
+                                groupId: group.id,
+                                noteCount: group.noteCount,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MemoGroupPage(
+                                        groupId: group.id,
+                                        groupName: group.name,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                searchQuery: _isSearching
+                                    ? _searchController.text
+                                    : null,
+                              );
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            '공유된 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredSharedGroups.length : sharedGroups.length)}개)',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          (_isSearching
+                              ? ref
+                              .watch(groupViewModelProvider)
+                              .filteredSharedGroups
+                              : sharedGroups)
+                              .isEmpty
+                              ? Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.share,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  '공유된 그룹이 없습니다',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                              : ListView.separated(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            itemCount: _isSearching
+                                ? ref
+                                .watch(groupViewModelProvider)
+                                .filteredSharedGroups
+                                .length
+                                : sharedGroups.length,
+                            separatorBuilder: (context, index) =>
+                                Container(),
+                            itemBuilder: (context, index) {
+                              final group = _isSearching
+                                  ? ref
+                                  .watch(groupViewModelProvider)
+                                  .filteredSharedGroups[index]
+                                  : sharedGroups[index];
+                              return SharedMainItem(
+                                title: group.name,
+                                groupId: group.id,
+                                noteCount: group.noteCount,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MemoGroupPage(
+                                        groupId: group.id,
+                                        groupName: group.name,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                searchQuery: _isSearching
+                                    ? _searchController.text
+                                    : null,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
@@ -806,7 +886,7 @@ class _MainPageState extends ConsumerState<MainPage>
                               _toggleFab();
                               final groupViewModel =
                               ref.read(groupViewModelProvider);
-                              final groups = groupViewModel.groups;
+                              final groups = groupViewModel.ownedGroups;
                               if (groups.isEmpty) {
                                 if (mounted) {
                                   showDialog(
