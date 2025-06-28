@@ -1,3 +1,4 @@
+// 권한 관리를 위한 클래스
 class Member {
   String name;
   String hashTag; // 원래 email 쓰고 있었는데 email 등록은 가입 시 선택사항이므로 해시태그를 사용하자

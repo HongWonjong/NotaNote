@@ -7,7 +7,6 @@ class SharingSettingsViewModel {
 
   SharingSettingsViewModel({required this.groupId});
 
-  // 파이어스토어에서 소유자와 다른 멤버들의 정보를 가지고 와서 멤버 인스턴스로 추가해주자.
   Future<List<Member>> getMembers() async {
     try {
       final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
@@ -21,7 +20,6 @@ class SharingSettingsViewModel {
 
       List<Member> members = [];
 
-      // Add owner first (based on creatorId)
       if (creatorId != null) {
         final userDoc = await _firestore.collection('users').doc(creatorId).get();
         if (userDoc.exists) {
@@ -29,7 +27,9 @@ class SharingSettingsViewModel {
           members.add(Member(
             name: userData['displayName'] ?? 'Unknown',
             hashTag: userData['hashTag'] ?? '@unknown',
-            imageUrl: userData['photoUrl'] ?? '',
+            imageUrl: userData['photoUrl']?.isNotEmpty == true
+                ? userData['photoUrl']
+                : 'https://via.placeholder.com/150',
             role: 'owner',
             isEditable: false,
           ));
@@ -40,12 +40,10 @@ class SharingSettingsViewModel {
         print('creatorId is null for groupId: $groupId');
       }
 
-      // Add other members from permissions
       for (var permission in permissions) {
         final userId = permission['userId'] as String;
         final role = permission['role'] as String;
 
-        // Skip if userId is the creator (already added)
         if (userId == creatorId) continue;
 
         final userDoc = await _firestore.collection('users').doc(userId).get();
@@ -54,7 +52,9 @@ class SharingSettingsViewModel {
           members.add(Member(
             name: userData['displayName'] ?? 'Unknown',
             hashTag: userData['hashTag'] ?? '@unknown',
-            imageUrl: userData['photoUrl'] ?? '',
+            imageUrl: userData['photoUrl']?.isNotEmpty == true
+                ? userData['photoUrl']
+                : 'https://via.placeholder.com/150',
             role: role,
             isEditable: role != 'owner',
           ));
@@ -69,10 +69,25 @@ class SharingSettingsViewModel {
     }
   }
 
-  // Invite new member by hashTag
-  Future<bool> inviteMember(String hashTag, String role) async {
+  Future<bool> inviteMember(String hashTag, String role, String inviterId) async {
     try {
-      // Find user by hashTag
+      final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
+      final permissions = List<Map<String, dynamic>>.from(groupDoc.data()?['permissions'] ?? []);
+
+      final userQueryForExisting = await _firestore
+          .collection('users')
+          .where('hashTag', isEqualTo: hashTag)
+          .limit(1)
+          .get();
+
+      if (userQueryForExisting.docs.isNotEmpty) {
+        final existingUserId = userQueryForExisting.docs.first.id;
+        if (permissions.any((perm) => perm['userId'] == existingUserId)) {
+          print('User with hashTag $hashTag is already invited.');
+          return false;
+        }
+      }
+
       final userQuery = await _firestore
           .collection('users')
           .where('hashTag', isEqualTo: hashTag)
@@ -81,20 +96,42 @@ class SharingSettingsViewModel {
 
       if (userQuery.docs.isEmpty) {
         print('User not found for hashTag: $hashTag');
-        return false; // User not found
+        return false;
       }
 
       final userId = userQuery.docs.first.id;
+      final inviterDoc = await _firestore.collection('users').doc(inviterId).get();
+      if (!inviterDoc.exists) {
+        print('Inviter not found for inviterId: $inviterId');
+        return false;
+      }
+      final inviterData = inviterDoc.data()!;
 
-      // Update permissions in notegroup
+      final waitingRole = role == 'editor' ? 'editor_waiting' : 'guest_waiting';
+
       await _firestore.collection('notegroups').doc(groupId).update({
         'permissions': FieldValue.arrayUnion([
           {
             'userId': userId,
-            'role': role, // 'editor' or 'guest'
+            'role': waitingRole,
           }
         ])
       });
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('invitations')
+          .add({
+        'groupId': groupId,
+        'inviterName': inviterData['displayName'] ?? 'Unknown',
+        'inviterHashTag': inviterData['hashTag'] ?? '@unknown',
+        'role': waitingRole,
+        'invitedAt': Timestamp.now(),
+        'status': 'pending',
+      });
+
+      print('Invitation sent to $hashTag with role $waitingRole');
       return true;
     } catch (e) {
       print('Error inviting member: $e');
@@ -102,14 +139,11 @@ class SharingSettingsViewModel {
     }
   }
 
-  // Update member role
   Future<bool> updateMemberRole(String userId, String newRole) async {
     try {
-      // Get current permissions
       final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
       final permissions = List<Map<String, dynamic>>.from(groupDoc.data()?['permissions'] ?? []);
 
-      // Find and update the specific member's role
       final updatedPermissions = permissions.map((perm) {
         if (perm['userId'] == userId) {
           return {'userId': userId, 'role': newRole};
@@ -117,7 +151,6 @@ class SharingSettingsViewModel {
         return perm;
       }).toList();
 
-      // Update Firestore
       await _firestore.collection('notegroups').doc(groupId).update({
         'permissions': updatedPermissions,
       });
@@ -128,20 +161,60 @@ class SharingSettingsViewModel {
     }
   }
 
-  // Remove member
-  Future<bool> removeMember(String userId) async {
+  Future<bool> cancelInvitation(String userId) async {
     try {
-      // Get current permissions
       final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
       final permissions = List<Map<String, dynamic>>.from(groupDoc.data()?['permissions'] ?? []);
 
-      // Remove the member
       final updatedPermissions = permissions.where((perm) => perm['userId'] != userId).toList();
 
-      // Update Firestore
       await _firestore.collection('notegroups').doc(groupId).update({
         'permissions': updatedPermissions,
       });
+
+      final invitationQuery = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('invitations')
+          .where('groupId', isEqualTo: groupId)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (var doc in invitationQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      print('Invitation canceled for userId: $userId');
+      return true;
+    } catch (e) {
+      print('Error canceling invitation: $e');
+      return false;
+    }
+  }
+
+  Future<bool> removeMember(String userId) async {
+    try {
+      final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
+      final permissions = List<Map<String, dynamic>>.from(groupDoc.data()?['permissions'] ?? []);
+
+      final updatedPermissions = permissions.where((perm) => perm['userId'] != userId).toList();
+
+      await _firestore.collection('notegroups').doc(groupId).update({
+        'permissions': updatedPermissions,
+      });
+
+      final invitationQuery = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('invitations')
+          .where('groupId', isEqualTo: groupId)
+          .get();
+
+      for (var doc in invitationQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      print('Member removed: $userId');
       return true;
     } catch (e) {
       print('Error removing member: $e');

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/member.dart';
 import 'package:nota_note/viewmodels/sharing_settings_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SharingSettingsSheet extends StatefulWidget {
   final List<Member> members;
@@ -26,6 +27,8 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
     'owner': '소유자',
     'guest': '읽기 전용',
     'editor': '편집 전용',
+    'guest_waiting': '읽기 전용 (대기 중)',
+    'editor_waiting': '편집 전용 (대기 중)',
   };
   final Map<String, String> displayRoleToInternal = {
     '읽기 전용': 'guest',
@@ -35,10 +38,15 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   final TextEditingController _hashTagController = TextEditingController();
   String _selectedInviteRole = 'guest'; // Default role for invitation
 
+  // SharedPreferences에서 userId 가져오기
+  Future<String?> get _userId async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
+  }
+
   @override
   void initState() {
     super.initState();
-    // Safely set selectedMemberIndex based on members list length
     selectedMemberIndex = widget.members.isNotEmpty
         ? widget.initialSelectedIndex.clamp(0, widget.members.length - 1)
         : 0;
@@ -90,20 +98,56 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                 itemCount: widget.members.length,
                 itemBuilder: (context, index) {
                   final member = widget.members[index];
-                  return GestureDetector(
-                    onTap: member.isEditable
-                        ? () => setState(() {
-                      selectedMemberIndex = index;
-                    })
-                        : null,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                      child: _buildMemberTile(
-                        imageUrl: member.imageUrl,
-                        name: member.name,
-                        hashTag: member.hashTag,
-                        role: member.role,
+                  final isPending = member.role.contains('waiting');
+                  return Opacity(
+                    opacity: isPending ? 0.6 : 1.0,
+                    child: GestureDetector(
+                      onTap: member.isEditable && !isPending
+                          ? () => setState(() {
+                        selectedMemberIndex = index;
+                      })
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildMemberTile(
+                                imageUrl: member.imageUrl,
+                                name: member.name,
+                                hashTag: member.hashTag,
+                                role: member.role,
+                              ),
+                            ),
+                            if (isPending) // Show cancel button for pending invitations
+                              IconButton(
+                                icon: const Icon(Icons.close, color: Colors.red),
+                                onPressed: () async {
+                                  final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+                                  final userId = await _getUserIdFromHashTag(member.hashTag);
+                                  if (userId != null) {
+                                    final success = await viewModel.cancelInvitation(userId);
+                                    if (success) {
+                                      setState(() {
+                                        widget.members.removeAt(index);
+                                        selectedMemberIndex = widget.members.isNotEmpty
+                                            ? selectedMemberIndex.clamp(0, widget.members.length - 1)
+                                            : 0;
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('초대가 취소되었습니다.')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('초대 취소에 실패했습니다.')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -112,7 +156,9 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             ),
             const Divider(),
             const SizedBox(height: 16),
-            if (widget.members.isNotEmpty && widget.members[selectedMemberIndex].isEditable) ...[
+            if (widget.members.isNotEmpty &&
+                widget.members[selectedMemberIndex].isEditable &&
+                !widget.members[selectedMemberIndex].role.contains('waiting')) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -201,8 +247,15 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     );
                     return;
                   }
+                  final currentUserId = await _userId;
+                  if (currentUserId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('현재 사용자 정보를 가져올 수 없습니다.')),
+                    );
+                    return;
+                  }
                   final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                  final success = await viewModel.inviteMember(hashTag, _selectedInviteRole);
+                  final success = await viewModel.inviteMember(hashTag, _selectedInviteRole, currentUserId);
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('초대가 완료되었습니다.')),
@@ -217,12 +270,12 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     });
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('초대 실패: 사용자를 찾을 수 없습니다.')),
+                      const SnackBar(content: Text('초대 실패: 사용자를 찾을 수 없거나 이미 초대된 사용자입니다.')),
                     );
                   }
                 },
                 child: SvgPicture.asset(
-                  'assets/icons/Button.svg',
+                  'assets/icons/MemberInviteButton.svg',
                   width: 250,
                   height: 72,
                   fit: BoxFit.contain,
@@ -235,7 +288,6 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
     );
   }
 
-  // Helper method to get userId from hashTag
   Future<String?> _getUserIdFromHashTag(String hashTag) async {
     try {
       final userQuery = await FirebaseFirestore.instance
@@ -262,8 +314,11 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
     return Row(
       children: [
         CircleAvatar(
-          backgroundImage: NetworkImage(imageUrl),
           radius: 20,
+          backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+          child: imageUrl.isEmpty
+              ? const Icon(Icons.person, size: 20, color: Colors.grey)
+              : null,
         ),
         const SizedBox(width: 12),
         Expanded(
