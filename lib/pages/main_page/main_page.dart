@@ -18,7 +18,9 @@ import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/services/notification_service.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:nota_note/pages/notification_page/notification_page.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:nota_note/viewmodels/notification_viewmodel.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -188,7 +190,7 @@ class _MainPageState extends ConsumerState<MainPage>
                   decoration: InputDecoration(
                     hintText: '그룹 이름',
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey[300]!),
@@ -237,7 +239,7 @@ class _MainPageState extends ConsumerState<MainPage>
     if (success && mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LoginPage()),
-        (route) => false,
+            (route) => false,
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -251,7 +253,6 @@ class _MainPageState extends ConsumerState<MainPage>
 
   void _showTestNotification() async {
     try {
-      // 간단한 로딩 표시
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -262,7 +263,6 @@ class _MainPageState extends ConsumerState<MainPage>
         );
       }
 
-      // 잠시 대기 후 알림 전송
       await Future.delayed(Duration(milliseconds: 500));
 
       await NotificationService().showTestNotification();
@@ -318,7 +318,6 @@ class _MainPageState extends ConsumerState<MainPage>
     );
   }
 
-  //프로필 이미지 적용
   Widget _buildProfileImage(String? photoUrl) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return CircleAvatar(
@@ -344,53 +343,53 @@ class _MainPageState extends ConsumerState<MainPage>
           children: [
             if (userId != null)
               ref.watch(userProfileProvider(userId)).when(
-                    data: (user) => Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 28),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(color: Color(0xFFF0F0F0)),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                data: (user) => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFF0F0F0)),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileImage(user?.photoUrl),
+                      const SizedBox(height: 16),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildProfileImage(user?.photoUrl),
-                          const SizedBox(height: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user?.displayName ?? '닉네임',
-                                style: TextStyle(
-                                  color: Color(0xFF191919),
-                                  fontSize: 14,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                user?.email ?? '이메일',
-                                style: TextStyle(
-                                  color: Color(0xFF666666),
-                                  fontSize: 12,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.5,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            user?.displayName ?? '닉네임',
+                            style: TextStyle(
+                              color: Color(0xFF191919),
+                              fontSize: 14,
+                              fontFamily: 'Pretendard',
+                              height: 1.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? '이메일',
+                            style: TextStyle(
+                              color: Color(0xFF666666),
+                              fontSize: 12,
+                              fontFamily: 'Pretendard',
+                              height: 1.5,
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    loading: () => Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('Error: $e'),
+                    ],
                   ),
+                ),
+                loading: () => Center(child: CircularProgressIndicator()),
+                error: (e, _) => Text('Error: $e'),
+              ),
             SizedBox(height: 25),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -424,17 +423,17 @@ class _MainPageState extends ConsumerState<MainPage>
                         },
                         icon: _isGroupExpanded
                             ? SvgPicture.asset(
-                                'assets/icons/ArrowDown.svg',
-                                width: 24,
-                                height: 24,
-                                color: Color(0xFF616161),
-                              )
+                          'assets/icons/ArrowDown.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
+                        )
                             : SvgPicture.asset(
-                                'assets/icons/ArrowRight.svg',
-                                width: 24,
-                                height: 24,
-                                color: Color(0xFF616161),
-                              ),
+                          'assets/icons/ArrowRight.svg',
+                          width: 24,
+                          height: 24,
+                          color: Color(0xFF616161),
+                        ),
                       ),
                     ],
                   ),
@@ -469,9 +468,9 @@ class _MainPageState extends ConsumerState<MainPage>
                                       '(${group.noteCount})',
                                       style: PretendardTextStyles.bodyS
                                           .copyWith(
-                                              color: Colors.grey[500],
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.5),
+                                          color: Colors.grey[500],
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5),
                                     ),
                                   ],
                                 ),
@@ -565,6 +564,8 @@ class _MainPageState extends ConsumerState<MainPage>
 
   Widget _buildContent(
       List<GroupModel> groups, bool isLoading, String? error, String? userId) {
+    final invitationCount = ref.watch(notificationViewModelProvider).invitationCount;
+
     return Scaffold(
       body: Column(
         children: [
@@ -578,57 +579,90 @@ class _MainPageState extends ConsumerState<MainPage>
             actions: [
               _isSearching
                   ? IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isSearching = false;
-                          _searchController.clear();
-                          ref.read(groupViewModelProvider).searchGroups('');
-                        });
-                      },
-                      icon: Icon(Icons.close, color: Color(0xFF616161)),
-                    )
+                onPressed: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchController.clear();
+                    ref.read(groupViewModelProvider).searchGroups('');
+                  });
+                },
+                icon: Icon(Icons.close, color: Color(0xFF616161)),
+              )
                   : IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isSearching = true;
-                        });
-                      },
-                      icon: SvgPicture.asset(
-                        'assets/icons/MagnifyingGlass.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: ColorFilter.mode(
-                            Color(0xFF616161), BlendMode.srcIn),
-                      ),
-                    ),
-              IconButton(
-                // onPressed: _showTestNotification,
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    _isSearching = true;
+                  });
+                },
                 icon: SvgPicture.asset(
-                  'assets/icons/Bell.svg',
+                  'assets/icons/MagnifyingGlass.svg',
                   width: 24,
                   height: 24,
-                  colorFilter:
-                      ColorFilter.mode(Color(0xFF616161), BlendMode.srcIn),
+                  colorFilter: ColorFilter.mode(
+                      Color(0xFF616161), BlendMode.srcIn),
                 ),
+              ),
+              Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const NotificationPage()),
+                      );
+                    },
+                    icon: SvgPicture.asset(
+                      'assets/icons/Bell.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(
+                          Color(0xFF616161), BlendMode.srcIn),
+                    ),
+                  ),
+                  if (invitationCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF60CFB1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$invitationCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontFamily: 'Pretendard',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
             title: _isSearching
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: '그룹 이름 검색',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                      ),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '그룹 이름 검색',
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding:
+                  EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                ),
+                style: TextStyle(fontSize: 16),
+              ),
+            )
                 : null,
           ),
           Expanded(
@@ -662,75 +696,75 @@ class _MainPageState extends ConsumerState<MainPage>
                   child: isLoading
                       ? Center(child: CircularProgressIndicator())
                       : (_isSearching
-                              ? ref
-                                  .watch(groupViewModelProvider)
-                                  .filteredGroups
-                                  .isEmpty
-                              : groups.isEmpty)
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.folder_open,
-                                    size: 48,
-                                    color: Colors.grey[400],
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    '생성된 그룹이 없습니다',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    '새 그룹을 추가해보세요',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
+                      ? ref
+                      .watch(groupViewModelProvider)
+                      .filteredGroups
+                      .isEmpty
+                      : groups.isEmpty)
+                      ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.folder_open,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          '생성된 그룹이 없습니다',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '새 그룹을 추가해보세요',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      : ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: _isSearching
+                        ? ref
+                        .watch(groupViewModelProvider)
+                        .filteredGroups
+                        .length
+                        : groups.length,
+                    separatorBuilder: (context, index) => Container(),
+                    itemBuilder: (context, index) {
+                      final group = _isSearching
+                          ? ref
+                          .watch(groupViewModelProvider)
+                          .filteredGroups[index]
+                          : groups[index];
+                      return MainItem(
+                        title: group.name,
+                        groupId: group.id,
+                        noteCount: group.noteCount,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MemoGroupPage(
+                                groupId: group.id,
+                                groupName: group.name,
                               ),
-                            )
-                          : ListView.separated(
-                              padding: EdgeInsets.zero,
-                              itemCount: _isSearching
-                                  ? ref
-                                      .watch(groupViewModelProvider)
-                                      .filteredGroups
-                                      .length
-                                  : groups.length,
-                              separatorBuilder: (context, index) => Container(),
-                              itemBuilder: (context, index) {
-                                final group = _isSearching
-                                    ? ref
-                                        .watch(groupViewModelProvider)
-                                        .filteredGroups[index]
-                                    : groups[index];
-                                return MainItem(
-                                  title: group.name,
-                                  groupId: group.id,
-                                  noteCount: group.noteCount,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => MemoGroupPage(
-                                          groupId: group.id,
-                                          groupName: group.name,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  searchQuery: _isSearching
-                                      ? _searchController.text
-                                      : null,
-                                );
-                              },
                             ),
+                          );
+                        },
+                        searchQuery: _isSearching
+                            ? _searchController.text
+                            : null,
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -771,7 +805,7 @@ class _MainPageState extends ConsumerState<MainPage>
                             onPressed: () async {
                               _toggleFab();
                               final groupViewModel =
-                                  ref.read(groupViewModelProvider);
+                              ref.read(groupViewModelProvider);
                               final groups = groupViewModel.groups;
                               if (groups.isEmpty) {
                                 if (mounted) {
@@ -801,7 +835,7 @@ class _MainPageState extends ConsumerState<MainPage>
                               }
                               final groupId = groups.first.id;
                               final memoViewModel =
-                                  ref.read(memoViewModelProvider(groupId));
+                              ref.read(memoViewModelProvider(groupId));
                               final newNoteId = await memoViewModel.addMemo();
                               if (newNoteId != null && mounted) {
                                 Navigator.push(
@@ -866,7 +900,7 @@ class _MainPageState extends ConsumerState<MainPage>
                             shape: CircleBorder(),
                             elevation: 0,
                             child:
-                                SvgPicture.asset('assets/icons/FolderPlus.svg'),
+                            SvgPicture.asset('assets/icons/FolderPlus.svg'),
                           ),
                         ],
                       ),
