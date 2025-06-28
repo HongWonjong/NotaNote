@@ -37,6 +37,8 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
     {"userId": "user_002", "role": "editor"},
     {"userId": "user_003", "role": "guest"}
     {"userId": "user_004", "role": "guest"}
+    {"userId": "user_004", "role": "guest_waiting"}
+    {"userId": "user_004", "role": "editor_waiting"}
     ]
 - **ownerHashTag** 👑: `string` (소유자 유저 ID, users 컬렉션의 hashTag 참조, 이걸 기반으로 소유자의 메모 그룹을 탐색할 것)
 
