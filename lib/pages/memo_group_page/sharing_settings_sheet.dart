@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -21,12 +22,12 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   late int selectedMemberIndex;
   final Map<String, String> roleDisplayMap = {
     '소유자': '소유자',
-    '뷰어': '읽기 전용',
-    '에디터': '편집 전용',
+    'guest': '읽기 전용',
+    'editor': '편집 전용',
   };
   final Map<String, String> displayRoleToInternal = {
-    '읽기 전용': '뷰어',
-    '편집 전용': '에디터',
+    '읽기 전용': 'guest',
+    '편집 전용': 'editor',
   };
 
   @override
@@ -85,7 +86,7 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                       child: _buildMemberTile(
                         imageUrl: member.imageUrl,
                         name: member.name,
-                        email: member.email,
+                        hashTag: member.hashTag,
                         role: member.role,
                       ),
                     ),
@@ -112,7 +113,7 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     onChanged: (value) {
                       if (value == null) return;
                       setState(() {
-                        widget.members[selectedMemberIndex].role = displayRoleToInternal[value] ?? '뷰어';
+                        widget.members[selectedMemberIndex].role = displayRoleToInternal[value] ?? 'guest';
                       });
                     },
                   ),
@@ -121,8 +122,6 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             ] else
               const Text('권한 설정이 불가능한 멤버입니다.'),
             const SizedBox(height: 24),
-            const SizedBox(height: 12),
-            const SizedBox(height: 12),
             GestureDetector(
               onTap: () {
                 Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
@@ -148,7 +147,7 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   Widget _buildMemberTile({
     required String imageUrl,
     required String name,
-    required String email,
+    required String hashTag,
     required String role,
   }) {
     return Row(
@@ -163,12 +162,12 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(email, style: const TextStyle(color: Colors.grey)),
+              Text(hashTag, style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
         Text(
-          role,
+          roleDisplayMap[role] ?? role,
           style: const TextStyle(color: Colors.grey),
         ),
       ],

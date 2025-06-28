@@ -1,13 +1,13 @@
 class Member {
   String name;
-  String email;
+  String hashTag;
   String imageUrl;
   String role;
   bool isEditable;
 
   Member({
     required this.name,
-    required this.email,
+    required this.hashTag,
     required this.imageUrl,
     required this.role,
     required this.isEditable,
