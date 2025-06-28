@@ -5,6 +5,7 @@ import 'package:nota_note/models/sort_options.dart';
 import 'package:nota_note/models/member.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
 import 'sharing_settings_sheet.dart';
+import 'package:nota_note/viewmodels/sharing_settings_viewmodel.dart';
 
 class SettingsMenu extends ConsumerStatefulWidget {
   final bool isGrid;
@@ -234,30 +235,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     );
   }
 
-  void _showSharingSettings() {
-    List<Member> members = [
-      Member(
-        name: '홍길동',
-        email: 'owner@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=3',
-        role: '소유자',
-        isEditable: false,
-      ),
-      Member(
-        name: '김영희',
-        email: 'viewer@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=5',
-        role: '뷰어',
-        isEditable: true,
-      ),
-      Member(
-        name: '박철수',
-        email: 'editor@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=8',
-        role: '에디터',
-        isEditable: true,
-      ),
-    ];
+  void _showSharingSettings() async {
+    final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+    final members = await viewModel.getMembers();
+
+    if (!mounted) return;
 
     showModalBottomSheet(
       context: context,
@@ -268,8 +250,9 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       ),
       builder: (context) {
         return SharingSettingsSheet(
+          groupId: widget.groupId,
           members: members,
-          initialSelectedIndex: 1,
+          initialSelectedIndex: members.isNotEmpty ? 1 : 0,
         );
       },
     );
