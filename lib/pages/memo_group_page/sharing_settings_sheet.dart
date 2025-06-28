@@ -23,6 +23,7 @@ class SharingSettingsSheet extends StatefulWidget {
 
 class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   late int selectedMemberIndex;
+  late List<Member> members;
   final Map<String, String> roleDisplayMap = {
     'owner': '소유자',
     'guest': '읽기 전용',
@@ -36,9 +37,8 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   };
 
   final TextEditingController _hashTagController = TextEditingController();
-  String _selectedInviteRole = 'guest'; // Default role for invitation
+  String _selectedInviteRole = 'guest';
 
-  // SharedPreferences에서 userId 가져오기
   Future<String?> get _userId async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId');
@@ -47,8 +47,9 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
   @override
   void initState() {
     super.initState();
-    selectedMemberIndex = widget.members.isNotEmpty
-        ? widget.initialSelectedIndex.clamp(0, widget.members.length - 1)
+    members = List.from(widget.members);
+    selectedMemberIndex = members.isNotEmpty
+        ? widget.initialSelectedIndex.clamp(0, members.length - 1)
         : 0;
   }
 
@@ -92,36 +93,46 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 20),
             Expanded(
-              child: widget.members.isEmpty
+              child: members.isEmpty
                   ? const Center(child: Text('소유자 정보가 없습니다.'))
                   : ListView.builder(
-                itemCount: widget.members.length,
+                physics: const ClampingScrollPhysics(),
+                itemCount: members.length,
                 itemBuilder: (context, index) {
-                  final member = widget.members[index];
-                  final isPending = member.role.contains('waiting');
-                  return Opacity(
-                    opacity: isPending ? 0.6 : 1.0,
-                    child: GestureDetector(
-                      onTap: member.isEditable && !isPending
-                          ? () => setState(() {
+                  final member = members[index];
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (member.role == 'owner') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('소유자는 선택할 수 없습니다.')),
+                        );
+                        return;
+                      }
+                      print('Tapped member: ${member.name}, index: $index, role: ${member.role}');
+                      setState(() {
                         selectedMemberIndex = index;
-                      })
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _buildMemberTile(
-                                imageUrl: member.imageUrl,
-                                name: member.name,
-                                hashTag: member.hashTag,
-                                role: member.role,
-                              ),
+                        print('Updated selectedMemberIndex: $selectedMemberIndex');
+                      });
+                    },
+                    child: Container(
+                      key: ValueKey(member.hashTag),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildMemberTile(
+                              imageUrl: member.imageUrl,
+                              name: member.name,
+                              hashTag: member.hashTag,
+                              role: member.role,
                             ),
-                            if (isPending) // Show cancel button for pending invitations
-                              IconButton(
+                          ),
+                          if (member.role.contains('waiting'))
+                            SizedBox(
+                              width: 48,
+                              child: IconButton(
                                 icon: const Icon(Icons.close, color: Colors.red),
                                 onPressed: () async {
                                   final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
@@ -130,9 +141,9 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                                     final success = await viewModel.cancelInvitation(userId);
                                     if (success) {
                                       setState(() {
-                                        widget.members.removeAt(index);
-                                        selectedMemberIndex = widget.members.isNotEmpty
-                                            ? selectedMemberIndex.clamp(0, widget.members.length - 1)
+                                        members.removeAt(index);
+                                        selectedMemberIndex = members.isNotEmpty
+                                            ? selectedMemberIndex.clamp(0, members.length - 1)
                                             : 0;
                                       });
                                       ScaffoldMessenger.of(context).showSnackBar(
@@ -146,8 +157,62 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                                   }
                                 },
                               ),
-                          ],
-                        ),
+                            )
+                          else if (member.role == 'editor' || member.role == 'guest')
+                            SizedBox(
+                              width: 48,
+                              child: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.redAccent),
+                                onPressed: () async {
+                                  // 확인 다이얼로그 표시
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('멤버 탈퇴'),
+                                      content: Text('${member.name}을(를) 그룹에서 탈퇴시키겠습니까?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('취소'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('탈퇴', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm == true) {
+                                    final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+                                    final userId = await _getUserIdFromHashTag(member.hashTag);
+                                    if (userId != null) {
+                                      final success = await viewModel.removeMember(userId);
+                                      if (success) {
+                                        setState(() {
+                                          members.removeAt(index);
+                                          selectedMemberIndex = members.isNotEmpty
+                                              ? selectedMemberIndex.clamp(0, members.length - 1)
+                                              : 0;
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('멤버가 탈퇴되었습니다.')),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('멤버 탈퇴에 실패했습니다.')),
+                                        );
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('사용자를 찾을 수 없습니다.')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   );
@@ -156,9 +221,7 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             ),
             const Divider(),
             const SizedBox(height: 16),
-            if (widget.members.isNotEmpty &&
-                widget.members[selectedMemberIndex].isEditable &&
-                !widget.members[selectedMemberIndex].role.contains('waiting')) ...[
+            if (members.isNotEmpty && members[selectedMemberIndex].role != 'owner') ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -167,7 +230,10 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                   DropdownButton<String>(
-                    value: roleDisplayMap[widget.members[selectedMemberIndex].role] ?? '읽기 전용',
+                    value: roleDisplayMap[members[selectedMemberIndex].role.contains('waiting')
+                        ? displayRoleToInternal[roleDisplayMap[members[selectedMemberIndex].role]] ?? 'guest'
+                        : members[selectedMemberIndex].role] ??
+                        '읽기 전용',
                     items: const [
                       DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
                       DropdownMenuItem(value: '편집 전용', child: Text('편집 전용')),
@@ -176,12 +242,18 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                       if (value == null) return;
                       final newRole = displayRoleToInternal[value] ?? 'guest';
                       final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                      final userId = await _getUserIdFromHashTag(widget.members[selectedMemberIndex].hashTag);
+                      final userId = await _getUserIdFromHashTag(members[selectedMemberIndex].hashTag);
                       if (userId != null) {
                         final success = await viewModel.updateMemberRole(userId, newRole);
                         if (success) {
                           setState(() {
-                            widget.members[selectedMemberIndex].role = newRole;
+                            members[selectedMemberIndex] = Member(
+                              name: members[selectedMemberIndex].name,
+                              hashTag: members[selectedMemberIndex].hashTag,
+                              imageUrl: members[selectedMemberIndex].imageUrl,
+                              role: newRole,
+                              isEditable: true,
+                            );
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('권한이 변경되었습니다.')),
@@ -202,7 +274,6 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
               ),
               const SizedBox(height: 16),
             ],
-            // Invite Member Section
             const Text('멤버 초대', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 8),
             TextField(
@@ -261,12 +332,11 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                       const SnackBar(content: Text('초대가 완료되었습니다.')),
                     );
                     _hashTagController.clear();
-                    // Refresh members list
                     final updatedMembers = await viewModel.getMembers();
                     setState(() {
-                      widget.members.clear();
-                      widget.members.addAll(updatedMembers);
-                      selectedMemberIndex = widget.members.isNotEmpty ? 0 : 0;
+                      members.clear();
+                      members.addAll(updatedMembers);
+                      selectedMemberIndex = members.isNotEmpty ? 0 : 0;
                     });
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
