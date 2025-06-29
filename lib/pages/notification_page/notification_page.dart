@@ -57,7 +57,7 @@ class NotificationPage extends ConsumerWidget {
             return Center(child: Text('오류: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('새로운 초대가 없습니다.'));
+            return const Center(child: Text('새로운 알림이 없습니다.'));
           }
 
           final invitations = snapshot.data!.docs;
