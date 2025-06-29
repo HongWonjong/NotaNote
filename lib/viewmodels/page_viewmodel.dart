@@ -3,12 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:nota_note/models/page_model.dart' as page_model;
+import 'dart:async';
+import 'dart:convert';
 
 class PageViewModel extends StateNotifier<page_model.Page> {
   final String groupId;
   final String noteId;
   final String pageId;
   bool _isLoaded = false;
+  StreamSubscription? _subscription;
+  bool _isEditing = false;
+  DocumentSnapshot? _pendingSnapshot;
 
   PageViewModel(this.groupId, this.noteId, this.pageId)
       : super(page_model.Page(
@@ -72,6 +77,63 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     }
   }
 
+  void listenToFirestore(QuillController controller, {required bool isEditing}) {
+    _isEditing = isEditing;
+    _subscription?.cancel();
+    _subscription = FirebaseFirestore.instance
+        .collection('notegroups')
+        .doc(groupId)
+        .collection('notes')
+        .doc(noteId)
+        .collection('pages')
+        .doc(pageId)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists) {
+        if (_isEditing || snapshot.metadata.hasPendingWrites) {
+          _pendingSnapshot = snapshot;
+          return;
+        }
+        await _processSnapshot(controller, snapshot);
+      }
+    });
+  }
+
+  Future<void> _processSnapshot(QuillController controller, DocumentSnapshot snapshot) async {
+    final page = page_model.Page.fromFirestore(snapshot);
+    final newContentJson = jsonEncode(page.content);
+    final currentContentJson = jsonEncode(controller.document.toDelta().toJson());
+
+    if (newContentJson != currentContentJson) {
+      try {
+        final cursorPosition = controller.selection.baseOffset;
+        if (page.content.isNotEmpty) {
+          controller.document = Document.fromJson(page.content);
+        } else {
+          controller.document = Document();
+        }
+        final newLength = controller.document.length;
+        final newCursorPosition = cursorPosition >= 0 && cursorPosition <= newLength
+            ? cursorPosition
+            : newLength;
+        controller.updateSelection(
+          TextSelection.collapsed(offset: newCursorPosition),
+          ChangeSource.local,
+        );
+        state = page;
+      } catch (e) {
+        print('Failed to update document: $e');
+      }
+    }
+    _pendingSnapshot = null;
+  }
+
+  void processPendingSnapshot(QuillController controller) async {
+    if (_pendingSnapshot != null && !_isEditing) {
+      await _processSnapshot(controller, _pendingSnapshot!);
+    }
+  }
+
   Future<void> saveToFirestore(QuillController controller) async {
     if (!mounted) {
       print('Save skipped: PageViewModel is disposed');
@@ -94,6 +156,12 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       print('Save failed: $e');
       print('Stack trace: $stackTrace');
     }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
 
