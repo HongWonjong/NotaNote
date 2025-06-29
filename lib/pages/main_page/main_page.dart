@@ -933,6 +933,7 @@ class _MainPageState extends ConsumerState<MainPage>
                                       groupId: groupId,
                                       noteId: newNoteId,
                                       pageId: '1',
+                                      role: Role.owner.value,
                                     ),
                                   ),
                                 );
