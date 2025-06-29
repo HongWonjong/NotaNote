@@ -72,22 +72,25 @@ class SharingSettingsViewModel {
   Future<bool> inviteMember(String hashTag, String role, String inviterId) async {
     try {
       final groupDoc = await _firestore.collection('notegroups').doc(groupId).get();
+      if (!groupDoc.exists) {
+        print('Group document not found for groupId: $groupId');
+        return false;
+      }
       final permissions = List<Map<String, dynamic>>.from(groupDoc.data()?['permissions'] ?? []);
+      final ownerHashTag = groupDoc.data()?['ownerHashTag'] as String?;
+      final creatorId = groupDoc.data()?['creatorId'] as String?;
 
-      final userQueryForExisting = await _firestore
-          .collection('users')
-          .where('hashTag', isEqualTo: hashTag)
-          .limit(1)
-          .get();
+      // 해시태그 정규화 (# 제거, 공백 제거, 소문자 변환)
+      final normalizedHashTag = hashTag.replaceAll('#', '').trim().toLowerCase();
+      final normalizedOwnerHashTag = ownerHashTag?.replaceAll('#', '').trim().toLowerCase();
 
-      if (userQueryForExisting.docs.isNotEmpty) {
-        final existingUserId = userQueryForExisting.docs.first.id;
-        if (permissions.any((perm) => perm['userId'] == existingUserId)) {
-          print('User with hashTag $hashTag is already invited.');
-          return false;
-        }
+      // 소유자 해시태그 체크
+      if (normalizedOwnerHashTag != null && normalizedOwnerHashTag == normalizedHashTag) {
+        print('Cannot invite owner with hashTag: $hashTag (matches ownerHashTag: $ownerHashTag)');
+        return false;
       }
 
+      // 사용자 조회 및 중복/소유자 체크
       final userQuery = await _firestore
           .collection('users')
           .where('hashTag', isEqualTo: hashTag)
@@ -100,6 +103,13 @@ class SharingSettingsViewModel {
       }
 
       final userId = userQuery.docs.first.id;
+
+      // 소유자 ID 체크 및 기존 멤버 중복 체크
+      if (userId == creatorId || permissions.any((perm) => perm['userId'] == userId)) {
+        print('User with hashTag $hashTag (userId: $userId) is already invited or is the owner.');
+        return false;
+      }
+
       final inviterDoc = await _firestore.collection('users').doc(inviterId).get();
       if (!inviterDoc.exists) {
         print('Inviter not found for inviterId: $inviterId');
