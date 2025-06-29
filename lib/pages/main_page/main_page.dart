@@ -23,7 +23,7 @@ import 'package:nota_note/viewmodels/notification_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:nota_note/models/role.dart';
-
+import 'package:nota_note/models/shared_group_with_role.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -307,16 +307,16 @@ class _MainPageState extends ConsumerState<MainPage>
   Widget build(BuildContext context) {
     final groupViewModel = ref.watch(groupViewModelProvider);
     final ownedGroups = groupViewModel.ownedGroups;
-    final sharedGroups = groupViewModel.sharedGroups;
+    final sharedGroupsWithRole = groupViewModel.sharedGroupsWithRole;
     final isLoading = groupViewModel.isLoading;
     final error = groupViewModel.error;
-
     final userId = ref.watch(userIdProvider);
 
     return SlidingMenuScaffold(
       controller: _menuController,
       menuWidget: _buildMenu(ownedGroups, userId),
-      contentWidget: _buildContent(ownedGroups, sharedGroups, isLoading, error, userId),
+      contentWidget: _buildContent(
+          ownedGroups, sharedGroupsWithRole, isLoading, error, userId),
       animationDuration: const Duration(milliseconds: 250),
       menuBackgroundColor: Colors.white,
     );
@@ -452,7 +452,6 @@ class _MainPageState extends ConsumerState<MainPage>
                               padding: const EdgeInsets.only(bottom: 14),
                               child: GestureDetector(
                                 onTap: () {
-                                  print("${Role.owner.value}");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -569,10 +568,11 @@ class _MainPageState extends ConsumerState<MainPage>
 
   Widget _buildContent(
       List<GroupModel> ownedGroups,
-      List<GroupModel> sharedGroups,
+      List<SharedGroupWithRole> sharedGroupsWithRole,
       bool isLoading,
       String? error,
-      String? userId) {
+      String? userId,
+      ) {
     final invitationCount = ref.watch(notificationViewModelProvider).invitationCount;
 
     return Scaffold(
@@ -758,7 +758,6 @@ class _MainPageState extends ConsumerState<MainPage>
                                 noteCount: group.noteCount,
                                 role: Role.owner.value,
                                 onTap: () {
-                                  print("${Role.owner.value}");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -778,7 +777,7 @@ class _MainPageState extends ConsumerState<MainPage>
                           ),
                           SizedBox(height: 24),
                           Text(
-                            '공유된 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredSharedGroups.length : sharedGroups.length)}개)',
+                            '공유된 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredSharedGroupsWithRole.length : sharedGroupsWithRole.length)}개)',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -788,8 +787,8 @@ class _MainPageState extends ConsumerState<MainPage>
                           (_isSearching
                               ? ref
                               .watch(groupViewModelProvider)
-                              .filteredSharedGroups
-                              : sharedGroups)
+                              .filteredSharedGroupsWithRole
+                              : sharedGroupsWithRole)
                               .isEmpty
                               ? Center(
                             child: Column(
@@ -817,51 +816,30 @@ class _MainPageState extends ConsumerState<MainPage>
                             itemCount: _isSearching
                                 ? ref
                                 .watch(groupViewModelProvider)
-                                .filteredSharedGroups
+                                .filteredSharedGroupsWithRole
                                 .length
-                                : sharedGroups.length,
+                                : sharedGroupsWithRole.length,
                             separatorBuilder: (context, index) =>
                                 Container(),
                             itemBuilder: (context, index) {
-                              final group = _isSearching
+                              final sharedGroup = _isSearching
                                   ? ref
                                   .watch(groupViewModelProvider)
-                                  .filteredSharedGroups[index]
-                                  : sharedGroups[index];
-                              final permissionsDynamic =
-                              group.toMap()['permissions'];
-                              List<Map<String, dynamic>>? permissions;
-                              if (permissionsDynamic is List) {
-                                permissions = permissionsDynamic
-                                    .map((item) => Map<String, dynamic>.from(item))
-                                    .toList();
-                              }
-                              final userId = ref.watch(userIdProvider);
-                              String role = Role.guest.value;
-                              if (permissions != null && userId != null) {
-                                final userPermission = permissions.firstWhere(
-                                      (perm) => perm['userId'] == userId,
-                                  orElse: () => {'role': Role.guest.value},
-                                );
-                                role = userPermission['role'] == Role.editor.value
-                                    ? Role.editor.value
-                                    : Role.guest.value;
-                              }
+                                  .filteredSharedGroupsWithRole[index]
+                                  : sharedGroupsWithRole[index];
                               return SharedMainItem(
-                                title: group.name,
-                                groupId: group.id,
-                                noteCount: group.noteCount,
-                                role: role,
+                                title: sharedGroup.group.name,
+                                groupId: sharedGroup.group.id,
+                                noteCount: sharedGroup.group.noteCount,
+                                role: sharedGroup.role,
                                 onTap: () {
-                                  print("${role}");
-
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => MemoGroupPage(
-                                        groupId: group.id,
-                                        groupName: group.name,
-                                        role: role,
+                                        groupId: sharedGroup.group.id,
+                                        groupName: sharedGroup.group.name,
+                                        role: sharedGroup.role,
                                       ),
                                     ),
                                   );
