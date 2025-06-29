@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/theme/colors.dart';
+import 'package:nota_note/pages/main_page/main_page.dart';
 
 class SharedMainItem extends ConsumerWidget {
   final String title;
   final String groupId;
   final int noteCount;
+  final String role;
   final VoidCallback? onTap;
   final String? searchQuery;
 
@@ -15,6 +17,7 @@ class SharedMainItem extends ConsumerWidget {
     required this.title,
     required this.groupId,
     required this.noteCount,
+    required this.role,
     this.onTap,
     this.searchQuery,
   }) : super(key: key);

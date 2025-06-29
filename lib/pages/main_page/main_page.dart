@@ -17,11 +17,21 @@ import 'package:nota_note/pages/memo_group_page/memo_group_page.dart';
 import 'package:nota_note/providers/user_profile_provider.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 import 'package:nota_note/services/notification_service.dart';
-import 'package:nota_note/pages/memo_page/memo_page.dart';
-import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'package:nota_note/pages/notification_page/notification_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:nota_note/viewmodels/notification_viewmodel.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:nota_note/pages/memo_page/memo_page.dart';
+
+// 역할 정보를 위한 Enum 클래스
+enum Role {
+  owner('owner'),
+  editor('editor'),
+  guest('guest');
+
+  final String value;
+  const Role(this.value);
+}
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -450,12 +460,14 @@ class _MainPageState extends ConsumerState<MainPage>
                               padding: const EdgeInsets.only(bottom: 14),
                               child: GestureDetector(
                                 onTap: () {
+                                  print("${Role.owner.value}");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => MemoGroupPage(
                                         groupId: group.id,
                                         groupName: group.name,
+                                        role: Role.owner.value,
                                       ),
                                     ),
                                   );
@@ -752,13 +764,16 @@ class _MainPageState extends ConsumerState<MainPage>
                                 title: group.name,
                                 groupId: group.id,
                                 noteCount: group.noteCount,
+                                role: Role.owner.value,
                                 onTap: () {
+                                  print("${Role.owner.value}");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => MemoGroupPage(
                                         groupId: group.id,
                                         groupName: group.name,
+                                        role: Role.owner.value,
                                       ),
                                     ),
                                   );
@@ -821,17 +836,40 @@ class _MainPageState extends ConsumerState<MainPage>
                                   .watch(groupViewModelProvider)
                                   .filteredSharedGroups[index]
                                   : sharedGroups[index];
+                              final permissionsDynamic =
+                              group.toMap()['permissions'];
+                              List<Map<String, dynamic>>? permissions;
+                              if (permissionsDynamic is List) {
+                                permissions = permissionsDynamic
+                                    .map((item) => Map<String, dynamic>.from(item))
+                                    .toList();
+                              }
+                              final userId = ref.watch(userIdProvider);
+                              String role = Role.guest.value;
+                              if (permissions != null && userId != null) {
+                                final userPermission = permissions.firstWhere(
+                                      (perm) => perm['userId'] == userId,
+                                  orElse: () => {'role': Role.guest.value},
+                                );
+                                role = userPermission['role'] == Role.editor.value
+                                    ? Role.editor.value
+                                    : Role.guest.value;
+                              }
                               return SharedMainItem(
                                 title: group.name,
                                 groupId: group.id,
                                 noteCount: group.noteCount,
+                                role: role,
                                 onTap: () {
+                                  print("${role}");
+
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => MemoGroupPage(
                                         groupId: group.id,
                                         groupName: group.name,
+                                        role: role,
                                       ),
                                     ),
                                   );

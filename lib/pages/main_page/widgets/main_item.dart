@@ -4,11 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/group_viewmodel.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
 import 'package:nota_note/theme/colors.dart';
+import 'package:nota_note/pages/main_page/main_page.dart';
 
 class MainItem extends ConsumerWidget {
   final String title;
   final String groupId;
   final int noteCount;
+  final String role;
   final VoidCallback? onTap;
   final String? searchQuery;
 
@@ -17,6 +19,7 @@ class MainItem extends ConsumerWidget {
     required this.title,
     required this.groupId,
     required this.noteCount,
+    required this.role,
     this.onTap,
     this.searchQuery,
   }) : super(key: key);

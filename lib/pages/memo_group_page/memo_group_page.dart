@@ -18,11 +18,13 @@ String trimTitleForDisplay(String title, int maxLength) {
 class MemoGroupPage extends ConsumerStatefulWidget {
   final String groupId;
   final String groupName;
+  final String role;
 
   const MemoGroupPage({
     super.key,
     required this.groupId,
     required this.groupName,
+    required this.role,
   });
 
   @override
