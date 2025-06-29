@@ -20,8 +20,14 @@ class MemoPage extends ConsumerStatefulWidget {
   final String groupId;
   final String noteId;
   final String pageId;
+  final String role;
 
-  MemoPage({required this.groupId, required this.noteId, required this.pageId});
+  MemoPage({
+    required this.groupId,
+    required this.noteId,
+    required this.pageId,
+    required this.role,
+  });
 
   @override
   _MemoPageState createState() => _MemoPageState();
@@ -41,6 +47,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
+    // role에 따라 QuillController의 readOnly 설정
+    _controller.readOnly = widget.role == 'guest';
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(selectedColorProvider.notifier).state = null;
@@ -231,6 +240,11 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }));
     final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
+    // Guest일 경우 태그, 툴바, 더보기 버튼 비활성화
+    final showTags = widget.role != 'guest';
+    final showToolbar = widget.role != 'guest';
+    final showPopupMenu = widget.role != 'guest';
+
     if (imageUploadState == ImageUploadState.loading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -277,7 +291,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               height: 24,
             ),
             onPressed: () async {
-              if (mounted) {
+              if (mounted && widget.role != 'guest') {
                 await _saveContentAndTitle();
               }
               Navigator.pop(context);
@@ -285,17 +299,18 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ),
         actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/DotCircle.svg',
-                width: 24,
-                height: 24,
+          if (showPopupMenu)
+            Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: IconButton(
+                icon: SvgPicture.asset(
+                  'assets/icons/DotCircle.svg',
+                  width: 24,
+                  height: 24,
+                ),
+                onPressed: _togglePopupMenu,
               ),
-              onPressed: _togglePopupMenu,
             ),
-          ),
         ],
       ),
       body: Stack(
@@ -307,11 +322,12 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 children: [
                   AnimatedContainer(
                     duration: Duration(milliseconds: 150),
-                    height: _isTagVisible ? 80 : 0,
+                    height: showTags && _isTagVisible ? 80 : 0,
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: isKeyboardVisible ? 55.0 : 0.0),
+                      padding: EdgeInsets.only(
+                          bottom: isKeyboardVisible && showToolbar ? 55.0 : 0.0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -339,17 +355,18 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          AnimatedPositioned(
-            duration: Duration(milliseconds: 150),
-            top: _isTagVisible ? 20 : -100,
-            left: 20,
-            right: 20,
-            child: AnimatedOpacity(
+          if (showTags)
+            AnimatedPositioned(
               duration: Duration(milliseconds: 150),
-              opacity: _isTagVisible ? 1.0 : 0.0,
-              child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+              top: _isTagVisible ? 20 : -100,
+              left: 20,
+              right: 20,
+              child: AnimatedOpacity(
+                duration: Duration(milliseconds: 150),
+                opacity: _isTagVisible ? 1.0 : 0.0,
+                child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+              ),
             ),
-          ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -361,25 +378,26 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isBoxVisible)
+                    if (isBoxVisible && widget.role == 'owner')
                       RecordingControllerBox(
                         controller: _controller,
                         focusNode: _focusNode,
                       ),
                     SizedBox(height: 10),
-                    if (isKeyboardVisible)
+                    if (isKeyboardVisible && showToolbar)
                       EditorToolbar(
                         controller: _controller,
                         groupId: widget.groupId,
                         noteId: widget.noteId,
                         pageId: widget.pageId,
+                        role: widget.role,
                       ),
                   ],
                 ),
               ),
             ),
           ),
-          if (_isPopupVisible)
+          if (_isPopupVisible && showPopupMenu)
             GestureDetector(
               onTap: _togglePopupMenu,
               child: Container(
@@ -394,6 +412,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         groupId: widget.groupId,
                         noteId: widget.noteId,
                         quillController: _controller,
+                        role: widget.role,
                       ),
                     ),
                   ],

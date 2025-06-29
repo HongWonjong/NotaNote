@@ -11,12 +11,14 @@ class PopupMenuWidget extends ConsumerWidget {
   final String groupId;
   final String noteId;
   final quill.QuillController quillController;
+  final String role;
 
   const PopupMenuWidget({
     required this.onClose,
     required this.groupId,
     required this.noteId,
     required this.quillController,
+    required this.role,
     super.key,
   });
 
@@ -70,12 +72,13 @@ class PopupMenuWidget extends ConsumerWidget {
               text: '이동하기',
               onTap: () {}, // TODO: Implement move functionality
             ),
-            _buildMenuItem(
-              icon: 'assets/icons/Delete.svg',
-              text: '삭제하기',
-              textColor: const Color(0xFFFF2F2F),
-              onTap: () {}, // TODO: Implement delete functionality
-            ),
+            if (role == 'owner')
+              _buildMenuItem(
+                icon: 'assets/icons/Delete.svg',
+                text: '삭제하기',
+                textColor: const Color(0xFFFF2F2F),
+                onTap: () {}, // TODO: Implement delete functionality
+              ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Divider(),
