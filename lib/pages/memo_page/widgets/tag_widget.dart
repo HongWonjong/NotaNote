@@ -6,8 +6,14 @@ import 'package:cupertino_rrect/cupertino_rrect.dart';
 class TagWidget extends ConsumerStatefulWidget {
   final String groupId;
   final String noteId;
+  final String role;
 
-  TagWidget({super.key, required this.groupId, required this.noteId});
+  TagWidget({
+    super.key,
+    required this.groupId,
+    required this.noteId,
+    required this.role,
+  });
 
   @override
   _TagWidgetState createState() => _TagWidgetState();
@@ -25,7 +31,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
     super.initState();
     ref
         .read(tagViewModelProvider(
-            {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+        {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
         .loadTags()
         .then((_) {
       if (mounted) {
@@ -44,12 +50,12 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   }
 
   Future<void> _addTag(String tag) async {
-    if (!mounted) return;
+    if (!mounted || widget.role == 'guest') return; // guest는 태그 추가 불가
     final tags = ref.read(tagListProvider);
     if (tag.isNotEmpty && tags.length < 3) {
       await ref
           .read(tagViewModelProvider(
-              {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+          {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
           .addTag(tag);
       if (mounted) {
         setState(() {
@@ -68,10 +74,10 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   }
 
   void _removeTag(String tag) {
-    if (!mounted) return;
+    if (!mounted || widget.role == 'guest') return; // guest는 태그 삭제 불가
     ref
         .read(tagViewModelProvider(
-            {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
+        {'groupId': widget.groupId, 'noteId': widget.noteId}).notifier)
         .removeTag(tag);
     if (mounted) {
       setState(() {
@@ -81,7 +87,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
   }
 
   void _requestFocus() {
-    if (_isEditingNewTag && mounted) {
+    if (_isEditingNewTag && mounted && widget.role != 'guest') {
       FocusScope.of(context).requestFocus(_tagFocusNode);
     }
   }
@@ -110,10 +116,10 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                         spacing: 8.0,
                         runSpacing: 4.0,
                         children: [
-                          if (tags.isEmpty && !_isEditingNewTag)
+                          if (tags.isEmpty && !_isEditingNewTag && widget.role != 'guest')
                             GestureDetector(
                               onTap: () {
-                                if (mounted) {
+                                if (mounted && widget.role != 'guest') {
                                   setState(() {
                                     _isEditingNewTag = true;
                                   });
@@ -138,13 +144,15 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                           ...tags.map((tag) {
                             final isSelected = _selectedTag == tag;
                             return GestureDetector(
-                              onTap: () {
+                              onTap: widget.role != 'guest'
+                                  ? () {
                                 if (mounted) {
                                   setState(() {
                                     _selectedTag = isSelected ? null : tag;
                                   });
                                 }
-                              },
+                              }
+                                  : null, // guest는 클릭 비활성화
                               child: Chip(
                                 side: BorderSide.none,
                                 label: Text(
@@ -159,27 +167,28 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   borderRadius: BorderRadius.circular(6),
                                   side: BorderSide.none,
                                 ),
-                                deleteIcon: isSelected
+                                deleteIcon: widget.role != 'guest' && isSelected
                                     ? Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFFB1E7D9),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.close,
-                                          color: Color(0xFF4D4D4D),
-                                          size: 16,
-                                        ),
-                                      )
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB1E7D9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Color(0xFF4D4D4D),
+                                    size: 16,
+                                  ),
+                                )
                                     : null,
-                                onDeleted:
-                                    isSelected ? () => _removeTag(tag) : null,
+                                onDeleted: widget.role != 'guest' && isSelected
+                                    ? () => _removeTag(tag)
+                                    : null,
                               ),
                             );
                           }).toList(),
-                          if (_isEditingNewTag)
+                          if (_isEditingNewTag && widget.role != 'guest')
                             Chip(
                               side: BorderSide.none,
                               label: SizedBox(
@@ -204,7 +213,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                       color: Colors.grey,
                                     ),
                                     contentPadding:
-                                        EdgeInsets.symmetric(vertical: 8.0),
+                                    EdgeInsets.symmetric(vertical: 8.0),
                                   ),
                                   onSubmitted: _addTag,
                                 ),
@@ -218,7 +227,8 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                             ),
                           if (tags.isNotEmpty &&
                               tags.length < 3 &&
-                              !_isEditingNewTag)
+                              !_isEditingNewTag &&
+                              widget.role != 'guest')
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 4),
                               child: Container(
@@ -228,7 +238,7 @@ class _TagWidgetState extends ConsumerState<TagWidget> {
                                   color: Color(0xFFD8F3EC),
                                   shape: CupertinoRectangleBorder(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(6)),
+                                    BorderRadius.all(Radius.circular(6)),
                                   ),
                                 ),
                                 child: IconButton(

@@ -240,8 +240,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }));
     final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
-    // Guest일 경우 태그, 툴바, 더보기 버튼 비활성화
-    final showTags = widget.role != 'guest';
+    // Guest일 경우 툴바, 더보기 버튼 비활성화
     final showToolbar = widget.role != 'guest';
     final showPopupMenu = widget.role != 'guest';
 
@@ -322,7 +321,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                 children: [
                   AnimatedContainer(
                     duration: Duration(milliseconds: 150),
-                    height: showTags && _isTagVisible ? 80 : 0,
+                    height: _isTagVisible ? 80 : 0,
                   ),
                   Expanded(
                     child: Padding(
@@ -355,18 +354,21 @@ class _MemoPageState extends ConsumerState<MemoPage> {
               ),
             ),
           ),
-          if (showTags)
-            AnimatedPositioned(
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 150),
+            top: _isTagVisible ? 20 : -100,
+            left: 20,
+            right: 20,
+            child: AnimatedOpacity(
               duration: Duration(milliseconds: 150),
-              top: _isTagVisible ? 20 : -100,
-              left: 20,
-              right: 20,
-              child: AnimatedOpacity(
-                duration: Duration(milliseconds: 150),
-                opacity: _isTagVisible ? 1.0 : 0.0,
-                child: TagWidget(groupId: widget.groupId, noteId: widget.noteId),
+              opacity: _isTagVisible ? 1.0 : 0.0,
+              child: TagWidget(
+                groupId: widget.groupId,
+                noteId: widget.noteId,
+                role: widget.role,
               ),
             ),
+          ),
           KeyboardVisibilityBuilder(
             builder: (context, isKeyboardVisible) => Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom,
