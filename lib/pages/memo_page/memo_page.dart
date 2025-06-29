@@ -92,7 +92,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
-      _autoSaveTimer = Timer(Duration(milliseconds: 500), () {
+      _autoSaveTimer = Timer(Duration(milliseconds: 1000), () {
         if (!mounted) return;
         _saveContentAndTitle();
       });
