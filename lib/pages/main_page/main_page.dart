@@ -378,6 +378,16 @@ class _MainPageState extends ConsumerState<MainPage>
                           ),
                           const SizedBox(height: 2),
                           Text(
+                            user?.hashTag ?? '@해시태그',
+                            style: TextStyle(
+                              color: Color(0xFF666666),
+                              fontSize: 12,
+                              fontFamily: 'Pretendard',
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
                             user?.email ?? '이메일',
                             style: TextStyle(
                               color: Color(0xFF666666),
@@ -571,9 +581,9 @@ class _MainPageState extends ConsumerState<MainPage>
       List<SharedGroupWithRole> sharedGroupsWithRole,
       bool isLoading,
       String? error,
-      String? userId,
-      ) {
-    final invitationCount = ref.watch(notificationViewModelProvider).invitationCount;
+      String? userId) {
+    final invitationCount =
+        ref.watch(notificationViewModelProvider).invitationCount;
 
     return Scaffold(
       body: Column(
