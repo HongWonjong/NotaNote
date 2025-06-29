@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/sort_options.dart';
-import 'package:nota_note/models/member.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
 import 'sharing_settings_sheet.dart';
 import 'package:nota_note/viewmodels/sharing_settings_viewmodel.dart';
@@ -17,6 +16,7 @@ class SettingsMenu extends ConsumerStatefulWidget {
   final Function(bool) onGridToggle;
   final String groupId;
   final String groupTitle;
+  final String role; // role 파라미터
 
   const SettingsMenu({
     super.key,
@@ -29,6 +29,7 @@ class SettingsMenu extends ConsumerStatefulWidget {
     required this.onGridToggle,
     required this.groupId,
     required this.groupTitle,
+    required this.role,
   });
 
   @override
@@ -38,23 +39,15 @@ class SettingsMenu extends ConsumerStatefulWidget {
 class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   @override
   Widget build(BuildContext context) {
+    final isOwner = widget.role == 'owner';
+
     return PopupMenuButton<int>(
-      icon: SvgPicture.asset(
-        'assets/icons/DotsThreeCircle.svg',
-        width: 24,
-        height: 24,
-      ),
+      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg', width: 24, height: 24),
       tooltip: '설정 메뉴',
       color: const Color(0xFFF5F5F5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       offset: const Offset(0, 40),
-      constraints: const BoxConstraints(
-        minWidth: 200,
-        maxWidth: 220,
-        maxHeight: 300,
-      ),
+      constraints: const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
       onSelected: (value) {
         switch (value) {
           case 1:
@@ -64,18 +57,20 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
             _showSortOptionsDialog();
             break;
           case 3:
-            _showSharingSettings();
+            if (isOwner) _showSharingSettings();
             break;
           case 4:
-            showRenameGroupBottomSheet(
-              context: context,
-              ref: ref,
-              groupId: widget.groupId,
-              currentTitle: widget.groupTitle,
-            );
+            if (isOwner) {
+              showRenameGroupBottomSheet(
+                context: context,
+                ref: ref,
+                groupId: widget.groupId,
+                currentTitle: widget.groupTitle,
+              );
+            }
             break;
           case 5:
-            widget.onDeleteModeStart();
+            if (isOwner) widget.onDeleteModeStart();
             break;
         }
       },
@@ -106,32 +101,59 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
         ),
         PopupMenuItem(
           value: 3,
+          enabled: isOwner, // owner만 활성화
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/Share.svg', width: 24, height: 24),
+              SvgPicture.asset(
+                'assets/icons/Share.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+              ),
               const SizedBox(width: 12),
-              const Text('공유'),
+              Text(
+                '공유',
+                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+              ),
             ],
           ),
         ),
         PopupMenuItem(
           value: 4,
+          enabled: isOwner, // owner만 활성화
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/PencilSimple.svg', width: 24, height: 24),
+              SvgPicture.asset(
+                'assets/icons/PencilSimple.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+              ),
               const SizedBox(width: 12),
-              const Text('이름변경'),
+              Text(
+                '이름변경',
+                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+              ),
             ],
           ),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 5,
+          enabled: isOwner, // owner만 활성화
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/Delete.svg', width: 24, height: 24, color: Colors.red),
+              SvgPicture.asset(
+                'assets/icons/Delete.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? Colors.red : Colors.grey, // 비활성화 시 회색
+              ),
               const SizedBox(width: 12),
-              const Text('삭제', style: TextStyle(color: Colors.red)),
+              Text(
+                '삭제',
+                style: TextStyle(color: isOwner ? Colors.red : Colors.grey),
+              ),
             ],
           ),
         ),
@@ -160,10 +182,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                     Row(
                       children: [
                         const Spacer(flex: 3),
-                        const Text(
-                          '정렬 기준',
-                          style: TextStyle(fontSize: 24),
-                        ),
+                        const Text('정렬 기준', style: TextStyle(fontSize: 24)),
                         const Spacer(flex: 2),
                         TextButton(
                           onPressed: () {

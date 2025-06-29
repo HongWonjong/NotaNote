@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'popup_menu.dart'; // 수정한 SettingsMenu
-import 'package:nota_note/models/sort_options.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/models/sort_options.dart';
+import 'popup_menu.dart'; // SettingsMenu
 
 class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String groupId;      // 그룹 ID 추가
+  final String groupId;
   final String groupName;
-
   final bool isSearching;
   final bool isDeleteMode;
   final int memoCount;
@@ -14,7 +13,6 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onCancelSearch;
   final VoidCallback onSearchPressed;
   final VoidCallback onCancelDelete;
-
   final bool isGrid;
   final SortOption sortOption;
   final Function(SortOption) onSortChanged;
@@ -23,15 +21,14 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEditGroup;
   final VoidCallback onSharingSettingsToggle;
   final Function(bool) onGridToggle;
-
   final int selectedDeleteCount;
   final VoidCallback? onDeletePressed;
-
-  final Function(String) onSearchChanged;  // 추가: 검색어 변경 콜백
+  final Function(String) onSearchChanged;
+  final String role; // role 추가
 
   const MemoGroupAppBar({
     super.key,
-    required this.groupId,           // 생성자에 추가
+    required this.groupId,
     required this.groupName,
     required this.isSearching,
     required this.isDeleteMode,
@@ -48,9 +45,10 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onEditGroup,
     required this.onSharingSettingsToggle,
     required this.onGridToggle,
-    required this.onSearchChanged,  // 생성자에 포함
+    required this.onSearchChanged,
     this.selectedDeleteCount = 0,
     this.onDeletePressed,
+    required this.role, // role 추가
   });
 
   @override
@@ -61,21 +59,13 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (isSearching) {
       return AppBar(
         backgroundColor: Colors.white,
-        scrolledUnderElevation: 0,  // 스크롤 시 그림자 제거
-        elevation: 0,               // 기본 그림자 제거
+        scrolledUnderElevation: 0,
+        elevation: 0,
         leading: IconButton(
-          icon: SvgPicture.asset(
-            'assets/icons/CaretLeft.svg',
-            width: 24,
-            height: 24,
-            color: Colors.black,
-          ),
+          icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
           onPressed: onCancelSearch,
         ),
-        title: _SearchField(
-          controller: searchController,
-          onChanged: onSearchChanged,
-        ),
+        title: _SearchField(controller: searchController, onChanged: onSearchChanged),
         bottom: _buildCountText(memoCount),
       );
     }
@@ -83,73 +73,56 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(groupName),
       backgroundColor: Colors.white,
-      scrolledUnderElevation: 0, // 스크롤 시 그림자 제거
-      elevation: 0,              // 기본 그림자 제거
+      scrolledUnderElevation: 0,
+      elevation: 0,
       leading: isDeleteMode
           ? TextButton(
-              onPressed: onCancelDelete,
-              child: const Text(
-                '완료',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                ),
-              ),
-            )
+        onPressed: onCancelDelete,
+        child: const Text('완료', style: TextStyle(color: Colors.black, fontSize: 16)),
+      )
           : IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/CaretLeft.svg',
-                width: 24,
-                height: 24,
-                color: Colors.black,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
+        icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
       actions: isDeleteMode
           ? [
-              TextButton(
-                onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
-                child: Text(
-                  '삭제',
-                  style: TextStyle(
-                    color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ]
+        TextButton(
+          onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
+          child: Text(
+            '삭제',
+            style: TextStyle(
+              color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ]
           : [
-              IconButton(
-                icon: SvgPicture.asset(
-                  'assets/icons/MagnifyingGlass.svg',
-                  width: 24,
-                  height: 24,
-                  color: Colors.black,
-                ),
-                onPressed: onSearchPressed,
-              ),
-              SettingsMenu(
-                isGrid: isGrid,
-                sortOption: sortOption,
-                onSortChanged: onSortChanged,
-                onDeleteModeStart: onDeleteModeStart,
-                onRename: onRename,
-                onSharingSettingsToggle: onSharingSettingsToggle,
-                onGridToggle: onGridToggle,
-                groupId: groupId,
-                groupTitle: groupName,
-              ),
-            ],
+        IconButton(
+          icon: SvgPicture.asset('assets/icons/MagnifyingGlass.svg', width: 24, height: 24, color: Colors.black),
+          onPressed: onSearchPressed,
+        ),
+        SettingsMenu(
+          isGrid: isGrid,
+          sortOption: sortOption,
+          onSortChanged: onSortChanged,
+          onDeleteModeStart: onDeleteModeStart,
+          onRename: onRename,
+          onSharingSettingsToggle: onSharingSettingsToggle,
+          onGridToggle: onGridToggle,
+          groupId: groupId,
+          groupTitle: groupName,
+          role: role, // role 전달
+        ),
+      ],
       bottom: _buildCountText(memoCount),
     );
   }
 
   PreferredSizeWidget _buildCountText(int count) {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(32), // 텍스트 + 구분선 높이
+      preferredSize: const Size.fromHeight(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -158,13 +131,7 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.only(left: 16, bottom: 8),
             child: Text('총 $count개', style: const TextStyle(fontSize: 18)),
           ),
-          const Divider(
-            height: 1,
-            thickness: 1,
-            indent: 0,
-            endIndent: 0,
-            color: Color(0x1A000000),
-          ),
+          const Divider(height: 1, thickness: 1, indent: 0, endIndent: 0, color: Color(0x1A000000)),
         ],
       ),
     );
@@ -175,11 +142,7 @@ class _SearchField extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
 
-  const _SearchField({
-    Key? key,
-    required this.controller,
-    required this.onChanged,
-  }) : super(key: key);
+  const _SearchField({required this.controller, required this.onChanged});
 
   @override
   State<_SearchField> createState() => _SearchFieldState();
@@ -206,20 +169,12 @@ class _SearchFieldState extends State<_SearchField> {
   Widget build(BuildContext context) {
     return Container(
       height: 38,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          SvgPicture.asset(
-            'assets/icons/MagnifyingGlass.svg',
-            width: 20,
-            height: 20,
-            color: Colors.grey,
-          ),
+          SvgPicture.asset('assets/icons/MagnifyingGlass.svg', width: 20, height: 20, color: Colors.grey),
           const SizedBox(width: 4),
           Expanded(
             child: TextField(
@@ -243,14 +198,9 @@ class _SearchFieldState extends State<_SearchField> {
                 widget.controller.clear();
                 widget.onChanged('');
               },
-              child: SvgPicture.asset(
-                'assets/icons/Vector.svg',
-                width: 18,
-                height: 18,
-                color: Colors.grey.shade700,
-              ),
+              child: SvgPicture.asset('assets/icons/Vector.svg', width: 18, height: 18, color: Colors.grey.shade700),
             ),
-          ]
+          ],
         ],
       ),
     );
