@@ -31,7 +31,15 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 
 **필드**:
 - **groupId** 🆔: `string` (노트 그룹 고유 ID, Firestore 문서 ID로 사용)
-- **group_name** 📛: `string` (노트 그룹 이름, 텍스트)
+- **creatorId** 👑: `string` (소유자 유저 ID, users 컬렉션의 userId 참조)
+- **name** 📛: `string` (노트 그룹 이름, 텍스트)
+- **permissions**: [
+    {"userId": "user_002", "role": "editor"},
+    {"userId": "user_003", "role": "guest"}
+    {"userId": "user_004", "role": "guest"}
+    {"userId": "user_004", "role": "guest_waiting"}
+    {"userId": "user_004", "role": "editor_waiting"}
+    ]
 - **ownerHashTag** 👑: `string` (소유자 유저 ID, users 컬렉션의 hashTag 참조, 이걸 기반으로 소유자의 메모 그룹을 탐색할 것)
 
 ## 1. 유저 데이터 👤
@@ -47,6 +55,22 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 - **hashTag** 🏷️: `string` (유저 고유 해시태그, 예: @awdaw1122d)
 - **loginProviders** 🔑: `array<string>` (소셜 로그인 제공자 리스트, 예: ["google", "naver", "kakao"])
 - **createdAt** ⏰: `timestamp` (유저 생성 시간)
+
+## 1-1. 유저 초대 데이터 👤
+
+**Firestore 경로**: `users/{userId}/invitations/{invitationId}` 📩
+
+**설명**: 유저별 초대 정보를 저장합니다. 각 초대는 `invitations` 서브컬렉션에 문서로 저장되며, 초대 발신자와 메모 그룹 정보를 포함합니다. 사용자는 초대를 수락/거절할 수 있으며, 상태에 따라 권한이 부여됩니다. 🗂️
+
+**필드**:
+- **invitationId** 🆔: `string` (초대 고유 ID, Firestore 문서 ID로 사용)
+- **groupId** 📁: `string` (메모 그룹 ID, `notegroups/{groupId}` 참조)
+- **inviterName** 👑: `string` (초대한 유저의 닉네임, `users/{inviterId}/displayName` 참조)
+- **inviterHashTag** 🏷️: `string` (초대한 유저의 해시태그, `users/{inviterId}/hashTag` 참조)
+- **role** 🔒: `string` (초대 역할, 예: `editor_waiting`, `guest_waiting`)
+- **invitedAt** ⏰: `timestamp` (초대 생성 시간)
+- **status** 📊: `string` (초대 상태, 예: `pending`, `accepted`, `rejected`)
+
 
 ## 2. 메모장 데이터 📝
 

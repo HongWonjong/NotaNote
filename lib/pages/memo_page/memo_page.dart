@@ -36,6 +36,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   String? _lastDeltaJson;
   bool _isPopupVisible = false;
   bool _isTagVisible = true;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -43,12 +44,45 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(selectedColorProvider.notifier).state = null;
+        ref
+            .read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier)
+            .loadFromFirestore(_controller);
+        ref
+            .read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier)
+            .listenToFirestore(_controller, isEditing: _isEditing);
       }
     });
 
     _focusNode.addListener(() {
+      setState(() {
+        _isEditing = _focusNode.hasFocus;
+      });
       if (_focusNode.hasFocus && !ref.read(recordingBoxVisibilityProvider)) {
         ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+      }
+      ref
+          .read(pageViewModelProvider({
+        'groupId': widget.groupId,
+        'noteId': widget.noteId,
+        'pageId': widget.pageId,
+      }).notifier)
+          .listenToFirestore(_controller, isEditing: _isEditing);
+      if (!_isEditing) {
+        ref
+            .read(pageViewModelProvider({
+          'groupId': widget.groupId,
+          'noteId': widget.noteId,
+          'pageId': widget.pageId,
+        }).notifier)
+            .processPendingSnapshot(_controller);
       }
     });
     _controller.addListener(() {
@@ -58,7 +92,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
-      _autoSaveTimer = Timer(Duration(milliseconds: 1500), () {
+      _autoSaveTimer = Timer(Duration(milliseconds: 1000), () {
         if (!mounted) return;
         _saveContentAndTitle();
       });
@@ -72,13 +106,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
-        ref
-            .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
-            .loadFromFirestore(_controller);
       }
     });
   }

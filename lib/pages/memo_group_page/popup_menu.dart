@@ -1,28 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/models/sort_options.dart';
 import 'package:nota_note/widgets/dialogs/rename_group_dialog.dart';
+import 'sharing_settings_sheet.dart';
+import 'package:nota_note/viewmodels/sharing_settings_viewmodel.dart';
 
-// 멤버 모델
-class Member {
-  String name;
-  String email;
-  String imageUrl;
-  String role;
-  bool isEditable;
-
-  Member({
-    required this.name,
-    required this.email,
-    required this.imageUrl,
-    required this.role,
-    required this.isEditable,
-  });
-}
-
-// SettingsMenu 위젯
 class SettingsMenu extends ConsumerStatefulWidget {
   final bool isGrid;
   final SortOption sortOption;
@@ -33,6 +16,7 @@ class SettingsMenu extends ConsumerStatefulWidget {
   final Function(bool) onGridToggle;
   final String groupId;
   final String groupTitle;
+  final String role; // role 파라미터
 
   const SettingsMenu({
     super.key,
@@ -45,6 +29,7 @@ class SettingsMenu extends ConsumerStatefulWidget {
     required this.onGridToggle,
     required this.groupId,
     required this.groupTitle,
+    required this.role,
   });
 
   @override
@@ -52,119 +37,129 @@ class SettingsMenu extends ConsumerStatefulWidget {
 }
 
 class _SettingsMenuState extends ConsumerState<SettingsMenu> {
-  final Map<String, String> roleDisplayMap = {
-    '소유자': '소유자',
-    '뷰어': '읽기 전용',
-    '에디터': '편집 전용',
-  };
+  @override
+  Widget build(BuildContext context) {
+    final isOwner = widget.role == 'owner';
 
-  final Map<String, String> displayRoleToInternal = {
-    '읽기 전용': '뷰어',
-    '편집 전용': '에디터',
-  };
-
- @override
-Widget build(BuildContext context) {
-  return PopupMenuButton<int>(
-    icon: SvgPicture.asset(
-      'assets/icons/DotsThreeCircle.svg',
-      width: 24,
-      height: 24,
-    ),
-    tooltip: '설정 메뉴',
-    color: const Color(0xFFF5F5F5),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
-    offset: const Offset(0, 40),
-    constraints: const BoxConstraints(
-      minWidth: 200,
-      maxWidth: 220,
-      maxHeight: 300,
-    ),
-    onSelected: (value) {
-      switch (value) {
-        case 1:
-          widget.onGridToggle(!widget.isGrid);
-          break;
-        case 2:
-          _showSortOptionsDialog();
-          break;
-        case 3:
-          _showSharingSettings();
-          break;
-        case 4:
-          showRenameGroupBottomSheet(
-            context: context,
-            ref: ref,
-            groupId: widget.groupId,
-            currentTitle: widget.groupTitle,
-          );
-          break;
-        case 5:
-          widget.onDeleteModeStart();
-          break;
-      }
-    },
-    itemBuilder: (context) => [
-      PopupMenuItem(
-        value: 1,
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              widget.isGrid ? 'assets/icons/ListDashes.svg' : 'assets/icons/GridFour.svg',
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 12),
-            Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
-          ],
+    return PopupMenuButton<int>(
+      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg', width: 24, height: 24),
+      tooltip: '설정 메뉴',
+      color: const Color(0xFFF5F5F5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      offset: const Offset(0, 40),
+      constraints: const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
+      onSelected: (value) {
+        switch (value) {
+          case 1:
+            widget.onGridToggle(!widget.isGrid);
+            break;
+          case 2:
+            _showSortOptionsDialog();
+            break;
+          case 3:
+            if (isOwner) _showSharingSettings();
+            break;
+          case 4:
+            if (isOwner) {
+              showRenameGroupBottomSheet(
+                context: context,
+                ref: ref,
+                groupId: widget.groupId,
+                currentTitle: widget.groupTitle,
+              );
+            }
+            break;
+          case 5:
+            if (isOwner) widget.onDeleteModeStart();
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 1,
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                widget.isGrid ? 'assets/icons/ListDashes.svg' : 'assets/icons/GridFour.svg',
+                width: 24,
+                height: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(widget.isGrid ? '목록으로 보기' : '그리드로 보기'),
+            ],
+          ),
         ),
-      ),
-      PopupMenuItem(
-        value: 2,
-        child: Row(
-          children: [
-            SvgPicture.asset('assets/icons/ArrowsDownUp.svg', width: 24, height: 24),
-            const SizedBox(width: 12),
-            const Text('정렬'),
-          ],
+        PopupMenuItem(
+          value: 2,
+          child: Row(
+            children: [
+              SvgPicture.asset('assets/icons/ArrowsDownUp.svg', width: 24, height: 24),
+              const SizedBox(width: 12),
+              const Text('정렬'),
+            ],
+          ),
         ),
-      ),
-      PopupMenuItem(
-        value: 3,
-        child: Row(
-          children: [
-            SvgPicture.asset('assets/icons/Share.svg', width: 24, height: 24),
-            const SizedBox(width: 12),
-            const Text('공유'),
-          ],
+        PopupMenuItem(
+          value: 3,
+          enabled: isOwner, // owner만 활성화
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/Share.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '공유',
+                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+              ),
+            ],
+          ),
         ),
-      ),
-      PopupMenuItem(
-        value: 4,
-        child: Row(
-          children: [
-            SvgPicture.asset('assets/icons/PencilSimple.svg', width: 24, height: 24),
-            const SizedBox(width: 12),
-            const Text('이름변경'),
-          ],
+        PopupMenuItem(
+          value: 4,
+          enabled: isOwner, // owner만 활성화
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/PencilSimple.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '이름변경',
+                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+              ),
+            ],
+          ),
         ),
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem(
-        value: 5,
-        child: Row(
-          children: [
-            SvgPicture.asset('assets/icons/Delete.svg', width: 24, height: 24, color: Colors.red),
-            const SizedBox(width: 12),
-            const Text('삭제', style: TextStyle(color: Colors.red)),
-          ],
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 5,
+          enabled: isOwner, // owner만 활성화
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/Delete.svg',
+                width: 24,
+                height: 24,
+                color: isOwner ? Colors.red : Colors.grey, // 비활성화 시 회색
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '삭제',
+                style: TextStyle(color: isOwner ? Colors.red : Colors.grey),
+              ),
+            ],
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   void _showSortOptionsDialog() {
     SortOption tempSelectedOption = widget.sortOption;
@@ -187,25 +182,22 @@ Widget build(BuildContext context) {
                     Row(
                       children: [
                         const Spacer(flex: 3),
-                        const Text(
-                          '정렬 기준',
-                          style: TextStyle(fontSize: 24),
-                        ),
+                        const Text('정렬 기준', style: TextStyle(fontSize: 24)),
                         const Spacer(flex: 2),
                         TextButton(
-  onPressed: () {
-    widget.onSortChanged(tempSelectedOption);
-    Navigator.pop(context);
-  },
-  child: const Text(
-    '완료',
-    style: TextStyle(
-      color: Color(0xFF61CFB2),
-      fontSize: 18,
-      fontWeight: FontWeight.w500,
-    ),
-  ),
-),
+                          onPressed: () {
+                            widget.onSortChanged(tempSelectedOption);
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            '완료',
+                            style: TextStyle(
+                              color: Color(0xFF61CFB2),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -239,11 +231,11 @@ Widget build(BuildContext context) {
                         ),
                         trailing: isSelected
                             ? SvgPicture.asset(
-                                'assets/icons/Check.svg',
-                                width: 20,
-                                height: 20,
-                                colorFilter: const ColorFilter.mode(Color(0xFF61CFB2), BlendMode.srcIn),
-                              )
+                          'assets/icons/Check.svg',
+                          width: 20,
+                          height: 20,
+                          colorFilter: const ColorFilter.mode(Color(0xFF61CFB2), BlendMode.srcIn),
+                        )
                             : null,
                         onTap: () {
                           setState(() {
@@ -262,180 +254,26 @@ Widget build(BuildContext context) {
     );
   }
 
-  void _showSharingSettings() {
-    List<Member> members = [
-      Member(
-        name: '홍길동',
-        email: 'owner@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=3',
-        role: '소유자',
-        isEditable: false,
-      ),
-      Member(
-        name: '김영희',
-        email: 'viewer@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=5',
-        role: '뷰어',
-        isEditable: true,
-      ),
-      Member(
-        name: '박철수',
-        email: 'editor@example.com',
-        imageUrl: 'https://i.pravatar.cc/150?img=8',
-        role: '에디터',
-        isEditable: true,
-      ),
-    ];
+  void _showSharingSettings() async {
+    final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+    final members = await viewModel.getMembers();
 
-    int selectedMemberIndex = 1;
+    if (!mounted) return;
 
-  showModalBottomSheet(
-  context: context,
-  isScrollControlled: true,
-  backgroundColor: Colors.white,
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  ),
-  builder: (context) {
-    return StatefulBuilder(builder: (context, setState) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
-        child: SizedBox(
-          height: 520,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Spacer(flex: 3),
-                  const Text(
-                    '공유',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  const Spacer(flex: 2),
-                  TextButton(
-  onPressed: () => Navigator.pop(context),
-  child: const Text(
-    '완료',
-    style: TextStyle(
-      color: Color(0xFF61CFB2),
-      fontSize: 18,
-      fontWeight: FontWeight.w500,
-    ),
-  ),
-),
-                ],
-              ),
-              const SizedBox(height: 22),
-              const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: members.length,
-                  itemBuilder: (context, index) {
-                    final member = members[index];
-                    return GestureDetector(
-                      onTap: member.isEditable
-                          ? () => setState(() {
-                                selectedMemberIndex = index;
-                              })
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                        child: _buildMemberTile(
-                          imageUrl: member.imageUrl,
-                          name: member.name,
-                          email: member.email,
-                          role: member.role,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const Divider(),
-              const SizedBox(height: 16),
-              if (members[selectedMemberIndex].isEditable) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '권한 설정',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    DropdownButton<String>(
-                      value: roleDisplayMap[members[selectedMemberIndex].role] ?? '읽기 전용',
-                      items: const [
-                        DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
-                        DropdownMenuItem(value: '편집 전용', child: Text('편집 전용')),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          members[selectedMemberIndex].role = displayRoleToInternal[value] ?? '뷰어';
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ] else
-                const Text('권한 설정이 불가능한 멤버입니다.'),
-              const SizedBox(height: 24),
-              const SizedBox(height: 12),
-              const SizedBox(height: 12),
-              GestureDetector(
-  onTap: () {
-    Clipboard.setData(const ClipboardData(text: 'https://nota.page/abc123'));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('링크가 복사되었습니다.')),
-    );
-  },
-  child: Center(
-    child: SvgPicture.asset(
-      'assets/icons/Button.svg',
-      width: 250,
-      height: 72,
-      fit: BoxFit.contain,
-    ),
-  ),
-)
-            ],
-          ),
-        ),
-      );
-    });
-  },
-);
-  }
-
-  Widget _buildMemberTile({
-    required String imageUrl,
-    required String name,
-    required String email,
-    required String role,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundImage: NetworkImage(imageUrl),
-          radius: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(email, style: const TextStyle(color: Colors.grey)),
-            ],
-          ),
-        ),
-        Text(
-          role,
-          style: const TextStyle(color: Colors.grey),
-        ),
-      ],
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SharingSettingsSheet(
+          groupId: widget.groupId,
+          members: members,
+          initialSelectedIndex: members.isNotEmpty ? 1 : 0,
+        );
+      },
     );
   }
 }
