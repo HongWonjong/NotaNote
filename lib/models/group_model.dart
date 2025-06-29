@@ -49,6 +49,7 @@ class GroupModel {
       'noteIds': noteIds,
       'userIds': userIds,
       'creatorId': creatorId,
+      'permissions': [], // Firestore 문서에 permissions 필드를 포함
     };
   }
 }
