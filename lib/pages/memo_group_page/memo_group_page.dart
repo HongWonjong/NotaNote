@@ -278,6 +278,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                 groupId: memo.groupId,
                 noteId: memo.noteId,
                 pageId: '1',
+                role: widget.role, // role 전달
               ),
             ),
           );
@@ -579,6 +580,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                             groupId: widget.groupId,
                             noteId: newNoteId,
                             pageId: '1',
+                            role: widget.role, // role 전달
                           ),
                         ),
                       );
