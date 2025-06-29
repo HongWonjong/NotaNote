@@ -22,16 +22,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:nota_note/viewmodels/notification_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
+import 'package:nota_note/models/role.dart';
 
-// 역할 정보를 위한 Enum 클래스
-enum Role {
-  owner('owner'),
-  editor('editor'),
-  guest('guest');
-
-  final String value;
-  const Role(this.value);
-}
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
