@@ -302,32 +302,43 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('휴지통에 있는 메모를'),
-        content: Text('영구적으로 삭제하겠습니까?'),
+        content:
+            Text('휴지통에 있는 메모를\n영구적으로 삭제하겠습니까?', textAlign: TextAlign.center),
+        contentPadding: EdgeInsets.fromLTRB(24, 20, 24, 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actionsPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('취소'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final memoViewModel =
-                  ref.read(memoViewModelProvider(widget.groupId));
-              await memoViewModel
-                  .deleteMemosPermanently(selectedNoteIds.toList());
-              setState(() => selectedNoteIds.clear());
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('선택한 메모가 영구적으로 삭제되었습니다'),
-                  duration: Duration(seconds: 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('취소', style: TextStyle(color: Colors.black)),
                 ),
-              );
-            },
-            child: Text(
-              '비우기',
-              style: TextStyle(color: Colors.red),
-            ),
+              ),
+              Expanded(
+                child: TextButton(
+                  onPressed: () async {
+                    final memoViewModel =
+                        ref.read(memoViewModelProvider(widget.groupId));
+                    await memoViewModel
+                        .deleteMemosPermanently(selectedNoteIds.toList());
+                    setState(() => selectedNoteIds.clear());
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('선택한 메모가 영구적으로 삭제되었습니다'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Text('비우기', style: TextStyle(color: Colors.red)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
