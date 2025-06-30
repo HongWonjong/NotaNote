@@ -5,16 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
+import 'package:nota_note/pages/memo_page/widgets/transcribe_dialog.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
-import 'widgets/color_picker_widget.dart';
-import 'widgets/highlight_picker_widget.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/popup_menu_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
+
+// selectedColorProvider 정의가 없으므로 추가 (필요 시 별도 파일로 분리)
+final selectedColorProvider = StateProvider<Color?>((ref) => null);
 
 class MemoPage extends ConsumerStatefulWidget {
   final String groupId;
@@ -47,7 +50,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
-    // role에 따라 QuillController의 readOnly 설정
     _controller.readOnly = widget.role == 'guest';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -106,6 +108,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         _saveContentAndTitle();
       });
       _adjustScrollForCursor();
+      setState(() {});
     });
     _scrollController.addListener(() {
       setState(() {
@@ -149,8 +152,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             if (line.isNotEmpty) {
               if (lineCount == 0) {
                 firstText = line;
-                if (firstText.length > 50)
-                  firstText = firstText.substring(0, 50);
+                if (firstText.length > 50) firstText = firstText.substring(0, 50);
               } else if (lineCount >= 1 && secondText == null) {
                 if (line.trim().isNotEmpty) {
                   secondText = line;
@@ -168,8 +170,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       if (mounted) {
         await ref
             .read(memoViewModelProvider(widget.groupId))
-            .updateMemoTitleAndContent(
-            widget.noteId, firstText, secondText ?? '');
+            .updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
       }
     } catch (e) {
       debugPrint('Save failed: $e');
@@ -188,8 +189,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     if (cursorPosition < 0) return;
 
     final editorKey = GlobalKey();
-    final renderObject =
-    (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
     final cursorHeight = 20.0;
@@ -200,8 +200,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       if (_scrollController.hasClients) {
         final offset = _scrollController.offset;
         final maxScroll = _scrollController.position.maxScrollExtent;
-        final newOffset =
-            offset + cursorHeight + toolbarHeight + keyboardHeight;
+        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
         if (newOffset <= maxScroll) {
           _scrollController.animateTo(
             newOffset,
@@ -211,6 +210,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         }
       }
     });
+  }
+
+  void _showTranscribeDialog(String recordingPath) {
+    showDialog(
+      context: context,
+      builder: (context) => TranscribeDialog(
+        recordingPath: recordingPath,
+        controller: _controller,
+        recordingViewModel: ref.read(recordingViewModelProvider.notifier),
+      ),
+    );
   }
 
   @override
@@ -240,7 +250,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }));
     final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
-    // Guest일 경우 툴바, 더보기 버튼 비활성화
     final showToolbar = widget.role != 'guest';
     final showPopupMenu = widget.role != 'guest';
 
@@ -298,6 +307,43 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ),
         actions: [
+          if (showToolbar)
+            IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/Undo.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  _controller.hasUndo ? Colors.black : Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onPressed: _controller.hasUndo
+                  ? () {
+                _controller.undo();
+                setState(() {});
+              }
+                  : null,
+            ),
+          if (showToolbar)
+            IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/Redo.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  _controller.hasRedo ? Colors.black : Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onPressed: _controller.hasRedo
+                  ? () {
+                _controller.redo();
+                setState(() {});
+              }
+                  : null,
+            ),
+          SizedBox(width: 10),
           if (showPopupMenu)
             Padding(
               padding: EdgeInsets.only(right: 20),
@@ -384,6 +430,14 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       RecordingControllerBox(
                         controller: _controller,
                         focusNode: _focusNode,
+                        onTranscribeTapped: () {
+                          final recordingState =
+                          ref.read(recordingViewModelProvider);
+                          if (recordingState.recordings.isNotEmpty) {
+                            _showTranscribeDialog(
+                                recordingState.recordings.first.path);
+                          }
+                        },
                       ),
                     SizedBox(height: 10),
                     if (isKeyboardVisible && showToolbar)
