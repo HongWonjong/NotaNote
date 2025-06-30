@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
+import 'package:nota_note/pages/loading_page/loading_page.dart';
 
 class TranscribeDialog extends ConsumerStatefulWidget {
   final String recordingPath;
@@ -344,23 +345,22 @@ class _TranscribeDialogState extends ConsumerState<TranscribeDialog> {
                 ),
               ),
               child: TextButton(
-                onPressed: () async {
-                  if (selectedMode == 'original') {
-                    await widget.recordingViewModel.transcribeRecording(
-                      widget.recordingPath,
-                      selectedLanguage,
-                      widget.controller,
-                    );
-                  } else {
-                    await widget.recordingViewModel.summarizeRecording(
-                      widget.recordingPath,
-                      selectedLanguage,
-                      widget.controller,
-                    );
-                  }
-                  // 다이얼로그 닫기 전에 포커스 해제 (이전 요청 반영)
+                onPressed: () {
+                  // 키보드 포커스 해제
                   FocusScope.of(context).unfocus();
+                  // 다이얼로그 닫고 LoadingPage로 이동
                   Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => LoadingPage(
+                        recordingPath: widget.recordingPath,
+                        language: selectedLanguage,
+                        mode: selectedMode,
+                        controller: widget.controller,
+                        recordingViewModel: widget.recordingViewModel,
+                      ),
+                    ),
+                  );
                 },
                 child: Text(
                   '변환하기',
