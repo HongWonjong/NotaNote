@@ -591,9 +591,13 @@ class _MainPageState extends ConsumerState<MainPage>
           AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: IconButton(
+            leading: Padding(
+              padding: EdgeInsets.only(left: 20),
+              child: IconButton(
                 onPressed: _menuController.toggleMenu,
-                icon: SvgPicture.asset('assets/icons/List.svg')),
+                icon: SvgPicture.asset('assets/icons/List.svg'),
+              ),
+            ),
             centerTitle: true,
             actions: [
               _isSearching
@@ -623,6 +627,9 @@ class _MainPageState extends ConsumerState<MainPage>
               ),
               Stack(
                 children: [
+                  Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child:
                   IconButton(
                     onPressed: () {
                       Navigator.push(
@@ -638,6 +645,7 @@ class _MainPageState extends ConsumerState<MainPage>
                       colorFilter: const ColorFilter.mode(
                           Color(0xFF616161), BlendMode.srcIn),
                     ),
+                  ),
                   ),
                   if (invitationCount > 0)
                     Positioned(
@@ -704,9 +712,9 @@ class _MainPageState extends ConsumerState<MainPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '내 그룹 (총 ${(_isSearching
+                            '    총 ${(_isSearching
                                 ? ref.watch(groupViewModelProvider).filteredSharedGroupsWithRole.length + ref.watch(groupViewModelProvider).filteredOwnedGroups.length
-                                : sharedGroupsWithRole.length + ownedGroups.length)}개)',
+                                : sharedGroupsWithRole.length + ownedGroups.length)}개',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
