@@ -7,8 +7,9 @@ final onBoardingProvider = StateNotifierProvider<OnBoardingNotifier, bool>((ref)
 });
 
 final onBoardingStatusFutureProvider = FutureProvider<bool>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getBool('hasCompletedOnBoarding') ?? false;
+  // final prefs = await SharedPreferences.getInstance();
+  // return prefs.getBool('hasCompletedOnBoarding') ?? false;
+  return false; // ✅ 개발 중 온보딩 페이지 강제로 보기
 });
 
 class OnBoardingNotifier extends StateNotifier<bool> {
