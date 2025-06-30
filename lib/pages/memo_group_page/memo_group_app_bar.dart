@@ -61,10 +61,12 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
         backgroundColor: Colors.white,
         scrolledUnderElevation: 0,
         elevation: 0,
-        leading: IconButton(
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: IconButton(
           icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
           onPressed: onCancelSearch,
-        ),
+        ),),
         title: _SearchField(controller: searchController, onChanged: onSearchChanged),
         bottom: _buildCountText(memoCount),
       );
@@ -80,10 +82,12 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
         onPressed: onCancelDelete,
         child: const Text('완료', style: TextStyle(color: Colors.black, fontSize: 16)),
       )
-          : IconButton(
+          : Padding(
+      padding: EdgeInsets.only(left: 20),
+    child: IconButton(
         icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
         onPressed: () => Navigator.pop(context),
-      ),
+      ),),
       actions: isDeleteMode
           ? [
         TextButton(
