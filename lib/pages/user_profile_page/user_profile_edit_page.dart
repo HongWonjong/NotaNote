@@ -44,7 +44,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          leading: const BackButton(color: Colors.grey),
+          leading: Padding(padding: EdgeInsets.only(left: 20),
+          child: const BackButton(color: Colors.grey),
+          ),
           title: Text(
             '프로필',
             style:
@@ -55,7 +57,8 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.grey[700]),
           actions: [
-            TextButton(
+            Padding(padding: EdgeInsets.only(right: 20),
+            child: TextButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 // 프로필 업데이트 함수 호출
@@ -73,6 +76,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                 style: PretendardTextStyles.bodyM
                     .copyWith(color: AppColors.primary300Main),
               ),
+            ),
             ),
           ],
         ),

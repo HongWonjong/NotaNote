@@ -42,8 +42,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     final isOwnerOrEditor = widget.role == 'owner' || widget.role == 'editor';
 
     return PopupMenuButton<int>(
-      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg',
-          width: 24, height: 24),
+      icon: Padding(
+        padding: EdgeInsets.only(right: 20),
+        child: SvgPicture.asset('assets/icons/DotsThreeCircle.svg',
+            width: 24, height: 24),
+      ),
       tooltip: '설정 메뉴',
       color: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -118,7 +121,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
               const SizedBox(width: 12),
               Text(
                 '공유',
-                style: TextStyle(color: widget.role == 'owner' ? Colors.black : Colors.grey),
+                style: TextStyle(
+                    color: widget.role == 'owner' ? Colors.black : Colors.grey),
               ),
             ],
           ),
@@ -137,7 +141,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
               const SizedBox(width: 12),
               Text(
                 '이름변경',
-                style: TextStyle(color: widget.role == 'owner' ? Colors.black : Colors.grey),
+                style: TextStyle(
+                    color: widget.role == 'owner' ? Colors.black : Colors.grey),
               ),
             ],
           ),
@@ -157,7 +162,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
               const SizedBox(width: 12),
               Text(
                 '삭제',
-                style: TextStyle(color: isOwnerOrEditor ? Colors.red : Colors.grey),
+                style: TextStyle(
+                    color: isOwnerOrEditor ? Colors.red : Colors.grey),
               ),
             ],
           ),

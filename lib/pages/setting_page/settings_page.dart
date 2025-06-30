@@ -26,7 +26,20 @@ class SettingsPage extends ConsumerWidget {
         ),
         centerTitle: true,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.grey[700]), // 뒤로가기 아이콘 색상
+        iconTheme: IconThemeData(color: Colors.grey[700]),
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20), // 원하는 패딩 값
+          child: IconButton(
+            icon: SvgPicture.asset(
+            'assets/icons/Arrow.svg',
+            width: 24,
+            height: 24,
+          ),
+            onPressed: () {
+              Navigator.pop(context); // 뒤로가기 동작
+            },
+          ),
+        ),
       ),
       body: Column(
         children: [

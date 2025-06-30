@@ -30,7 +30,10 @@ class UserProfilePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(color: Colors.grey),
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: const BackButton(color: Colors.grey),
+        ),
         title: Text('프로필',
             style: PretendardTextStyles.titleS.copyWith(
               color: AppColors.gray900,
@@ -43,6 +46,30 @@ class UserProfilePage extends ConsumerWidget {
         ),
         actions: [
           // 프로필 수정 버튼
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: TextButton(
+              onPressed: () async {
+                userAsync.whenOrNull(
+                  data: (user) async {
+                    if (user != null) {
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => UserProfileEditPage(user: user)),
+                      );
+                      if (changed == true) {
+                        ref.invalidate(userProfileProvider(userId));
+                      }
+                    }
+                  },
+                );
+              },
+              child: Text('수정',
+                  style: PretendardTextStyles.bodyM
+                      .copyWith(color: Colors.grey[700])),
+            ),
+          ),
           TextButton(
             onPressed: () async {
               userAsync.whenOrNull(
