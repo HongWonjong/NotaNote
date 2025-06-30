@@ -45,80 +45,99 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('총 ${selectedNoteIds.length}개',
-                    style: PretendardTextStyles.bodyM),
-                if (isEditMode)
-                  GestureDetector(
-                    onTap: () {
-                      _showDeleteConfirmDialog(context);
-                    },
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFFFEEEE),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icons/trash_red_icon.svg',
-                            width: 16,
-                            height: 16,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '비우기',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+      body: StreamBuilder<List<Memo>>(
+        stream: memoViewModel.deletedMemosStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
+          }
+
+          final memos = snapshot.data ?? [];
+
+          if (memos.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.delete_outline, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('휴지통이 비어있습니다', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('총 ${memos.length}개',
+                        style: PretendardTextStyles.bodyM),
+                    isEditMode
+                        ? TextButton(
+                            onPressed: () {
+                              setState(() {
+                                if (selectedNoteIds.length == memos.length) {
+                                  selectedNoteIds.clear();
+                                } else {
+                                  selectedNoteIds =
+                                      memos.map((m) => m.noteId).toSet();
+                                }
+                              });
+                            },
+                            child: Text('전체 선택',
+                                style: TextStyle(color: Colors.black)),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              if (memos.isNotEmpty) {
+                                _showDeleteConfirmDialog(context);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('휴지통이 비어있습니다')),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFFFEEEE),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icons/trash_red_icon.svg',
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    '비우기',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<Memo>>(
-              stream: memoViewModel.deletedMemosStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                if (snapshot.hasError) {
-                  return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
-                }
-
-                final memos = snapshot.data ?? [];
-
-                if (memos.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.delete_outline,
-                            size: 48, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('휴지통이 비어있습니다',
-                            style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
                   itemCount: memos.length,
                   itemBuilder: (context, index) {
                     final memo = memos[index];
@@ -228,11 +247,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                       ),
                     );
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: isEditMode
           ? Container(
