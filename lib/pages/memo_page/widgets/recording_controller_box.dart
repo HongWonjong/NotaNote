@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/pages/recoding_conversion_page/record_transcribe_flow.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -277,6 +278,52 @@ class _RecordingControllerBoxState
           ),
         ),
         if (recordingState.recordings.isNotEmpty) ...[
+          // _buildMenuItem(
+          //   context,
+          //   svgPath: 'assets/icons/Edit.svg',
+          //   label: '텍스트로 변환',
+          //   onTap: () async {
+          //     _toggleMenu(context);
+
+          //     if (widget.controller != null &&
+          //         recordingState.recordings.isNotEmpty) {
+          //       final recording = recordingState.recordings.first;
+
+          //       // 1. 설정 다이얼로그 열기
+          //       final settings = await showTranscribeSettingsDialog(context);
+          //       if (settings == null) return;
+          //       final String language = settings['language'];
+          //       final String mode = settings['mode'];
+
+          //       // 2. 광고 보기 (있다면)
+          //       await showRewardedAd(context);
+
+          //       // 3. 변환 중 로딩창
+          //       showTranscribingDialog(context);
+
+          //       // 4. 실제 변환
+          //       if (mode == 'origin') {
+          //         await recordingViewModel.transcribeRecording(
+          //           recording.path,
+          //           language,
+          //           widget.controller!,
+          //         );
+          //       } else if (mode == 'summary') {
+          //         await recordingViewModel.summarizeRecording(
+          //           recording.path,
+          //           widget.controller!,
+          //         );
+          //       }
+
+          //       // 5. 로딩창 닫기
+          //       if (Navigator.of(context).canPop()) {
+          //         Navigator.of(context).pop();
+          //       }
+          //       setState(() {});
+          //     }
+          //   },
+          // ),
+
           _buildMenuItem(
             context,
             svgPath: 'assets/icons/Edit.svg',
