@@ -14,9 +14,11 @@ import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/popup_menu_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
+import 'package:nota_note/theme/colors.dart';
 import 'dart:async';
 
-// selectedColorProvider 정의가 없으므로 추가 (필요 시 별도 파일로 분리)
+// selectedColorProvider 정의
 final selectedColorProvider = StateProvider<Color?>((ref) => null);
 
 class MemoPage extends ConsumerStatefulWidget {
@@ -96,6 +98,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             .processPendingSnapshot(_controller);
       }
     });
+
     _controller.addListener(() {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
@@ -110,11 +113,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       _adjustScrollForCursor();
       setState(() {});
     });
+
     _scrollController.addListener(() {
       setState(() {
         _isTagVisible = _scrollController.offset <= 0;
       });
     });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
@@ -180,6 +185,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   void _togglePopupMenu() {
     setState(() {
       _isPopupVisible = !_isPopupVisible;
+    });
+  }
+
+  void _dismissKeyboard() {
+    _focusNode.unfocus();
+    setState(() {
+      _isEditing = false;
     });
   }
 
@@ -307,55 +319,71 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ),
         actions: [
-          if (showToolbar)
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/Undo.svg',
-                width: 24,
-                height: 24,
-                colorFilter: ColorFilter.mode(
-                  _controller.hasUndo ? Colors.black : Colors.grey,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _controller.hasUndo
-                  ? () {
-                _controller.undo();
-                setState(() {});
-              }
-                  : null,
+          KeyboardVisibilityBuilder(
+            builder: (context, isKeyboardVisible) => Row(
+              children: [
+                if (showToolbar && isKeyboardVisible)
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/icons/Undo.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        _controller.hasUndo ? AppColors.gray700 : Colors.grey,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    onPressed: _controller.hasUndo
+                        ? () {
+                      _controller.undo();
+                      setState(() {});
+                    }
+                        : null,
+                  ),
+                if (showToolbar && isKeyboardVisible)
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/icons/Redo.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        _controller.hasRedo ? AppColors.gray700 : Colors.grey,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    onPressed: _controller.hasRedo
+                        ? () {
+                      _controller.redo();
+                      setState(() {});
+                    }
+                        : null,
+                  ),
+                SizedBox(width: 10),
+                if (showPopupMenu)
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: isKeyboardVisible
+                        ? TextButton(
+                      onPressed: _dismissKeyboard,
+                      child: Text(
+                        '완료',
+                        style: PretendardTextStyles.bodyM.copyWith(
+                          color: AppColors.gray700
+                        )
+                      ),
+                    )
+                        : IconButton(
+                      icon: SvgPicture.asset(
+                        'assets/icons/DotCircle.svg',
+                        width: 24,
+                        height: 24,
+                      ),
+                      onPressed: _togglePopupMenu,
+                    ),
+                  ),
+              ],
             ),
-          if (showToolbar)
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/Redo.svg',
-                width: 24,
-                height: 24,
-                colorFilter: ColorFilter.mode(
-                  _controller.hasRedo ? Colors.black : Colors.grey,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _controller.hasRedo
-                  ? () {
-                _controller.redo();
-                setState(() {});
-              }
-                  : null,
-            ),
-          SizedBox(width: 10),
-          if (showPopupMenu)
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: IconButton(
-                icon: SvgPicture.asset(
-                  'assets/icons/DotCircle.svg',
-                  width: 24,
-                  height: 24,
-                ),
-                onPressed: _togglePopupMenu,
-              ),
-            ),
+          ),
         ],
       ),
       body: Stack(
