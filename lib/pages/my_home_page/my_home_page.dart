@@ -52,6 +52,7 @@ class MyHomePage extends StatelessWidget {
                       builder: (context) => const MemoGroupPage(
                             groupId: 'group1',
                             groupName: '그룹1',
+                        role: "owner",
                           )),
                 );
               },
@@ -67,6 +68,7 @@ class MyHomePage extends StatelessWidget {
                       groupId: 'group1',
                       noteId: 'note1',
                       pageId: 'page1',
+                      role: "owner",
                     ),
                   ),
                 );
