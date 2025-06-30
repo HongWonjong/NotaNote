@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/memo.dart';
 import 'package:uuid/uuid.dart';
 
-final memoViewModelProvider =
-Provider.family<MemoViewModel, String>((ref, groupId) => MemoViewModel(ref, groupId));
+final memoViewModelProvider = Provider.family<MemoViewModel, String>(
+    (ref, groupId) => MemoViewModel(ref, groupId));
 
 class MemoViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,10 +18,23 @@ class MemoViewModel {
         .collection('notegroups')
         .doc(_groupId)
         .collection('notes')
+        .where('isDeleted', isEqualTo: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => Memo.fromFirestore(doc, _groupId))
-        .toList());
+            .map((doc) => Memo.fromFirestore(doc, _groupId))
+            .toList());
+  }
+
+  Stream<List<Memo>> get deletedMemosStream {
+    return _firestore
+        .collection('notegroups')
+        .doc(_groupId)
+        .collection('notes')
+        .where('isDeleted', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Memo.fromFirestore(doc, _groupId))
+            .toList());
   }
 
   Future<String?> addMemo() async {
@@ -40,6 +53,7 @@ class MemoViewModel {
         'createdAt': Timestamp.fromDate(now),
         'updatedAt': Timestamp.fromDate(now),
         'pageId': '1',
+        'isDeleted': false,
       });
 
       return noteId;
@@ -48,7 +62,8 @@ class MemoViewModel {
     }
   }
 
-  Future<void> updateMemoTitleAndContent(String noteId, String title, String content) async {
+  Future<void> updateMemoTitleAndContent(
+      String noteId, String title, String content) async {
     try {
       final docRef = _firestore
           .collection('notegroups')
@@ -67,6 +82,54 @@ class MemoViewModel {
 
   Future<void> deleteMemos(List<String> noteIds) async {
     try {
+      await softDeleteMemos(noteIds);
+    } catch (e) {
+      throw Exception("메모 삭제 중 오류가 발생했습니다: $e");
+    }
+  }
+
+  Future<void> softDeleteMemos(List<String> noteIds) async {
+    try {
+      final batch = _firestore.batch();
+      for (var noteId in noteIds) {
+        final docRef = _firestore
+            .collection('notegroups')
+            .doc(_groupId)
+            .collection('notes')
+            .doc(noteId);
+        batch.update(docRef, {
+          'isDeleted': true,
+          'updatedAt': Timestamp.fromDate(DateTime.now())
+        });
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception("메모 휴지통 이동 중 오류가 발생했습니다: $e");
+    }
+  }
+
+  Future<void> restoreMemos(List<String> noteIds) async {
+    try {
+      final batch = _firestore.batch();
+      for (var noteId in noteIds) {
+        final docRef = _firestore
+            .collection('notegroups')
+            .doc(_groupId)
+            .collection('notes')
+            .doc(noteId);
+        batch.update(docRef, {
+          'isDeleted': false,
+          'updatedAt': Timestamp.fromDate(DateTime.now())
+        });
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception("메모 복구 중 오류가 발생했습니다: $e");
+    }
+  }
+
+  Future<void> deleteMemosPermanently(List<String> noteIds) async {
+    try {
       final batch = _firestore.batch();
       for (var noteId in noteIds) {
         final docRef = _firestore
@@ -78,7 +141,7 @@ class MemoViewModel {
       }
       await batch.commit();
     } catch (e) {
-      throw Exception("메모 삭제 중 오류가 발생했습니다: $e");
+      throw Exception("메모 영구 삭제 중 오류가 발생했습니다: $e");
     }
   }
 }
