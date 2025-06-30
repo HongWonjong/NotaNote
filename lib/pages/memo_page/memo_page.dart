@@ -47,7 +47,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
-    // role에 따라 QuillController의 readOnly 설정
     _controller.readOnly = widget.role == 'guest';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -106,6 +105,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         _saveContentAndTitle();
       });
       _adjustScrollForCursor();
+      setState(() {}); // Undo/Redo 버튼 상태 갱신을 위해
     });
     _scrollController.addListener(() {
       setState(() {
@@ -240,7 +240,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }));
     final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
-    // Guest일 경우 툴바, 더보기 버튼 비활성화
     final showToolbar = widget.role != 'guest';
     final showPopupMenu = widget.role != 'guest';
 
@@ -298,6 +297,43 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ),
         actions: [
+          if (showToolbar)
+            IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/Undo.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  _controller.hasUndo ? Colors.black : Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onPressed: _controller.hasUndo
+                  ? () {
+                _controller.undo();
+                setState(() {});
+              }
+                  : null,
+            ),
+          if (showToolbar)
+            IconButton(
+              icon: SvgPicture.asset(
+                'assets/icons/Redo.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  _controller.hasRedo ? Colors.black : Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onPressed: _controller.hasRedo
+                  ? () {
+                _controller.redo();
+                setState(() {});
+              }
+                  : null,
+            ),
+          SizedBox(width: 10,),
           if (showPopupMenu)
             Padding(
               padding: EdgeInsets.only(right: 20),
