@@ -90,138 +90,183 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
               ],
             ),
             const SizedBox(height: 22),
-            const Text('멤버', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            const Text('멤버',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 20),
             Expanded(
               child: members.isEmpty
                   ? const Center(child: Text('소유자 정보가 없습니다.'))
                   : ListView.builder(
-                physics: const ClampingScrollPhysics(),
-                itemCount: members.length,
-                itemBuilder: (context, index) {
-                  final member = members[index];
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (member.role == 'owner') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('소유자는 선택할 수 없습니다.')),
-                        );
-                        return;
-                      }
-                      print('Tapped member: ${member.name}, index: $index, role: ${member.role}');
-                      setState(() {
-                        selectedMemberIndex = index;
-                        print('Updated selectedMemberIndex: $selectedMemberIndex');
-                      });
-                    },
-                    child: Container(
-                      key: ValueKey(member.hashTag),
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                      color: selectedMemberIndex == index ? Colors.grey.shade100 : null,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildMemberTile(
-                              imageUrl: member.imageUrl,
-                              name: member.name,
-                              hashTag: member.hashTag,
-                              role: member.role,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: members.length,
+                      itemBuilder: (context, index) {
+                        final member = members[index];
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            if (member.role == 'owner') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('소유자는 선택할 수 없습니다.')),
+                              );
+                              return;
+                            }
+                            print(
+                                'Tapped member: ${member.name}, index: $index, role: ${member.role}');
+                            setState(() {
+                              selectedMemberIndex = index;
+                              print(
+                                  'Updated selectedMemberIndex: $selectedMemberIndex');
+                            });
+                          },
+                          child: Container(
+                            key: ValueKey(member.hashTag),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 8),
+                            color: selectedMemberIndex == index
+                                ? Colors.grey.shade100
+                                : null,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _buildMemberTile(
+                                    imageUrl: member.imageUrl,
+                                    name: member.name,
+                                    hashTag: member.hashTag,
+                                    role: member.role,
+                                  ),
+                                ),
+                                if (member.role.contains('waiting'))
+                                  SizedBox(
+                                    width: 48,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.red),
+                                      onPressed: () async {
+                                        final viewModel =
+                                            SharingSettingsViewModel(
+                                                groupId: widget.groupId);
+                                        final userId =
+                                            await _getUserIdFromHashTag(
+                                                member.hashTag);
+                                        if (userId != null) {
+                                          final success = await viewModel
+                                              .cancelInvitation(userId);
+                                          if (success) {
+                                            setState(() {
+                                              members.removeAt(index);
+                                              selectedMemberIndex = members
+                                                      .isNotEmpty
+                                                  ? selectedMemberIndex.clamp(
+                                                      0, members.length - 1)
+                                                  : 0;
+                                            });
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content:
+                                                      Text('초대가 취소되었습니다.')),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content:
+                                                      Text('초대 취소에 실패했습니다.')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  )
+                                else if (member.role == 'editor' ||
+                                    member.role == 'guest')
+                                  SizedBox(
+                                    width: 48,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.redAccent),
+                                      onPressed: () async {
+                                        // 확인 다이얼로그 표시
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('멤버 탈퇴'),
+                                            content: Text(
+                                                '${member.name}을(를) 그룹에서 탈퇴시키겠습니까?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, false),
+                                                child: const Text('취소'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, true),
+                                                child: const Text('탈퇴',
+                                                    style: TextStyle(
+                                                        color: Colors.red)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true) {
+                                          final viewModel =
+                                              SharingSettingsViewModel(
+                                                  groupId: widget.groupId);
+                                          final userId =
+                                              await _getUserIdFromHashTag(
+                                                  member.hashTag);
+                                          if (userId != null) {
+                                            final success = await viewModel
+                                                .removeMember(userId);
+                                            if (success) {
+                                              setState(() {
+                                                members.removeAt(index);
+                                                selectedMemberIndex = members
+                                                        .isNotEmpty
+                                                    ? selectedMemberIndex.clamp(
+                                                        0, members.length - 1)
+                                                    : 0;
+                                              });
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content:
+                                                        Text('멤버가 탈퇴되었습니다.')),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content:
+                                                        Text('멤버 탈퇴에 실패했습니다.')),
+                                              );
+                                            }
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content:
+                                                      Text('사용자를 찾을 수 없습니다.')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          if (member.role.contains('waiting'))
-                            SizedBox(
-                              width: 48,
-                              child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.red),
-                                onPressed: () async {
-                                  final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                                  final userId = await _getUserIdFromHashTag(member.hashTag);
-                                  if (userId != null) {
-                                    final success = await viewModel.cancelInvitation(userId);
-                                    if (success) {
-                                      setState(() {
-                                        members.removeAt(index);
-                                        selectedMemberIndex = members.isNotEmpty
-                                            ? selectedMemberIndex.clamp(0, members.length - 1)
-                                            : 0;
-                                      });
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('초대가 취소되었습니다.')),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('초대 취소에 실패했습니다.')),
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            )
-                          else if (member.role == 'editor' || member.role == 'guest')
-                            SizedBox(
-                              width: 48,
-                              child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.redAccent),
-                                onPressed: () async {
-                                  // 확인 다이얼로그 표시
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('멤버 탈퇴'),
-                                      content: Text('${member.name}을(를) 그룹에서 탈퇴시키겠습니까?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
-                                          child: const Text('취소'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          child: const Text('탈퇴', style: TextStyle(color: Colors.red)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (confirm == true) {
-                                    final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                                    final userId = await _getUserIdFromHashTag(member.hashTag);
-                                    if (userId != null) {
-                                      final success = await viewModel.removeMember(userId);
-                                      if (success) {
-                                        setState(() {
-                                          members.removeAt(index);
-                                          selectedMemberIndex = members.isNotEmpty
-                                              ? selectedMemberIndex.clamp(0, members.length - 1)
-                                              : 0;
-                                        });
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('멤버가 탈퇴되었습니다.')),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('멤버 탈퇴에 실패했습니다.')),
-                                        );
-                                      }
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('사용자를 찾을 수 없습니다.')),
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const Divider(),
             const SizedBox(height: 16),
-            if (members.isNotEmpty && members[selectedMemberIndex].role != 'owner') ...[
+            if (members.isNotEmpty &&
+                members[selectedMemberIndex].role != 'owner') ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -230,9 +275,13 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                   DropdownButton<String>(
-                    value: roleDisplayMap[members[selectedMemberIndex].role.contains('waiting')
-                        ? displayRoleToInternal[roleDisplayMap[members[selectedMemberIndex].role]] ?? 'guest'
-                        : members[selectedMemberIndex].role] ??
+                    value: roleDisplayMap[members[selectedMemberIndex]
+                                .role
+                                .contains('waiting')
+                            ? displayRoleToInternal[roleDisplayMap[
+                                    members[selectedMemberIndex].role]] ??
+                                'guest'
+                            : members[selectedMemberIndex].role] ??
                         '읽기 전용',
                     items: const [
                       DropdownMenuItem(value: '읽기 전용', child: Text('읽기 전용')),
@@ -241,10 +290,13 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     onChanged: (value) async {
                       if (value == null) return;
                       final newRole = displayRoleToInternal[value] ?? 'guest';
-                      final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                      final userId = await _getUserIdFromHashTag(members[selectedMemberIndex].hashTag);
+                      final viewModel =
+                          SharingSettingsViewModel(groupId: widget.groupId);
+                      final userId = await _getUserIdFromHashTag(
+                          members[selectedMemberIndex].hashTag);
                       if (userId != null) {
-                        final success = await viewModel.updateMemberRole(userId, newRole);
+                        final success =
+                            await viewModel.updateMemberRole(userId, newRole);
                         if (success) {
                           setState(() {
                             members[selectedMemberIndex] = Member(
@@ -274,7 +326,8 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
               ),
               const SizedBox(height: 16),
             ],
-            const Text('멤버 초대', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            const Text('멤버 초대',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 8),
             TextField(
               controller: _hashTagController,
@@ -325,8 +378,10 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     );
                     return;
                   }
-                  final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                  final success = await viewModel.inviteMember(hashTag, _selectedInviteRole, currentUserId);
+                  final viewModel =
+                      SharingSettingsViewModel(groupId: widget.groupId);
+                  final success = await viewModel.inviteMember(
+                      hashTag, _selectedInviteRole, currentUserId);
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('초대가 완료되었습니다.')),
@@ -340,7 +395,8 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                     });
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('초대 실패: 사용자를 찾을 수 없거나 이미 초대된 사용자입니다.')),
+                      const SnackBar(
+                          content: Text('초대 실패: 사용자를 찾을 수 없거나 이미 초대된 사용자입니다.')),
                     );
                   }
                 },

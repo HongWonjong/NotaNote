@@ -90,13 +90,15 @@ class NotificationPage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
+                    border:
+                        Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 4), // 아이콘을 위로 올리는 패딩
+                        padding:
+                            const EdgeInsets.only(top: 4), // 아이콘을 위로 올리는 패딩
                         child: SizedBox(
                           width: 24,
                           height: 24,

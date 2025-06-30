@@ -64,10 +64,13 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
         leading: Padding(
           padding: EdgeInsets.only(left: 20),
           child: IconButton(
-          icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
-          onPressed: onCancelSearch,
-        ),),
-        title: _SearchField(controller: searchController, onChanged: onSearchChanged),
+            icon: SvgPicture.asset('assets/icons/CaretLeft.svg',
+                width: 24, height: 24, color: Colors.black),
+            onPressed: onCancelSearch,
+          ),
+        ),
+        title: _SearchField(
+            controller: searchController, onChanged: onSearchChanged),
         bottom: _buildCountText(memoCount),
       );
     }
@@ -79,47 +82,51 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       leading: isDeleteMode
           ? TextButton(
-        onPressed: onCancelDelete,
-        child: const Text('완료', style: TextStyle(color: Colors.black, fontSize: 16)),
-      )
+              onPressed: onCancelDelete,
+              child: const Text('완료',
+                  style: TextStyle(color: Colors.black, fontSize: 16)),
+            )
           : Padding(
-      padding: EdgeInsets.only(left: 20),
-    child: IconButton(
-        icon: SvgPicture.asset('assets/icons/CaretLeft.svg', width: 24, height: 24, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
-      ),),
+              padding: EdgeInsets.only(left: 20),
+              child: IconButton(
+                icon: SvgPicture.asset('assets/icons/CaretLeft.svg',
+                    width: 24, height: 24, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
       actions: isDeleteMode
           ? [
-        TextButton(
-          onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
-          child: Text(
-            '삭제',
-            style: TextStyle(
-              color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ]
+              TextButton(
+                onPressed: selectedDeleteCount > 0 ? onDeletePressed : null,
+                child: Text(
+                  '삭제',
+                  style: TextStyle(
+                    color: selectedDeleteCount > 0 ? Colors.red : Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ]
           : [
-        IconButton(
-          icon: SvgPicture.asset('assets/icons/MagnifyingGlass.svg', width: 24, height: 24, color: Colors.black),
-          onPressed: onSearchPressed,
-        ),
-        SettingsMenu(
-          isGrid: isGrid,
-          sortOption: sortOption,
-          onSortChanged: onSortChanged,
-          onDeleteModeStart: onDeleteModeStart,
-          onRename: onRename,
-          onSharingSettingsToggle: onSharingSettingsToggle,
-          onGridToggle: onGridToggle,
-          groupId: groupId,
-          groupTitle: groupName,
-          role: role, // role 전달
-        ),
-      ],
+              IconButton(
+                icon: SvgPicture.asset('assets/icons/MagnifyingGlass.svg',
+                    width: 24, height: 24, color: Colors.black),
+                onPressed: onSearchPressed,
+              ),
+              SettingsMenu(
+                isGrid: isGrid,
+                sortOption: sortOption,
+                onSortChanged: onSortChanged,
+                onDeleteModeStart: onDeleteModeStart,
+                onRename: onRename,
+                onSharingSettingsToggle: onSharingSettingsToggle,
+                onGridToggle: onGridToggle,
+                groupId: groupId,
+                groupTitle: groupName,
+                role: role, // role 전달
+              ),
+            ],
       bottom: _buildCountText(memoCount),
     );
   }
@@ -135,7 +142,12 @@ class MemoGroupAppBar extends StatelessWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.only(left: 16, bottom: 8),
             child: Text('총 $count개', style: const TextStyle(fontSize: 18)),
           ),
-          const Divider(height: 1, thickness: 1, indent: 0, endIndent: 0, color: Color(0x1A000000)),
+          const Divider(
+              height: 1,
+              thickness: 1,
+              indent: 0,
+              endIndent: 0,
+              color: Color(0x1A000000)),
         ],
       ),
     );
@@ -173,12 +185,14 @@ class _SearchFieldState extends State<_SearchField> {
   Widget build(BuildContext context) {
     return Container(
       height: 38,
-      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          SvgPicture.asset('assets/icons/MagnifyingGlass.svg', width: 20, height: 20, color: Colors.grey),
+          SvgPicture.asset('assets/icons/MagnifyingGlass.svg',
+              width: 20, height: 20, color: Colors.grey),
           const SizedBox(width: 4),
           Expanded(
             child: TextField(
@@ -202,7 +216,8 @@ class _SearchFieldState extends State<_SearchField> {
                 widget.controller.clear();
                 widget.onChanged('');
               },
-              child: SvgPicture.asset('assets/icons/Vector.svg', width: 18, height: 18, color: Colors.grey.shade700),
+              child: SvgPicture.asset('assets/icons/Vector.svg',
+                  width: 18, height: 18, color: Colors.grey.shade700),
             ),
           ],
         ],

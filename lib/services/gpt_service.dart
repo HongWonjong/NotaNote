@@ -25,7 +25,8 @@ class GptService {
           'messages': [
             {
               'role': 'system',
-              'content': 'You are an expert at formatting text. Take the following text and return it exactly as provided, without changing any words, punctuation, or content. Only add appropriate spacing and line breaks to make it more readable in Markdown format. Do not use headers, lists, or any other Markdown features unless they are explicitly present in the original text.'
+              'content':
+                  'You are an expert at formatting text. Take the following text and return it exactly as provided, without changing any words, punctuation, or content. Only add appropriate spacing and line breaks to make it more readable in Markdown format. Do not use headers, lists, or any other Markdown features unless they are explicitly present in the original text.'
             },
             {'role': 'user', 'content': text},
           ],
@@ -46,7 +47,8 @@ class GptService {
     }
   }
 
-  Future<String?> summarizeToMarkdown(String text, {required String language}) async {
+  Future<String?> summarizeToMarkdown(String text,
+      {required String language}) async {
     if (apiKey.isEmpty) {
       print('에러: OPENAI_GPT_API_KEY가 .env 파일에 설정되지 않았습니다.');
       return null;
@@ -55,8 +57,8 @@ class GptService {
     String languageInstruction = language == 'ko'
         ? 'Respond in Korean.'
         : language == 'en'
-        ? 'Respond in English.'
-        : 'Respond in the same language as the input text.';
+            ? 'Respond in English.'
+            : 'Respond in the same language as the input text.';
 
     try {
       final response = await http.post(
@@ -71,7 +73,7 @@ class GptService {
             {
               'role': 'system',
               'content':
-              'You are an expert at summarizing text concisely. Summarize the following text into a brief, well-structured Markdown format, highlighting key points using headers, bullet points, or other Markdown elements. $languageInstruction'
+                  'You are an expert at summarizing text concisely. Summarize the following text into a brief, well-structured Markdown format, highlighting key points using headers, bullet points, or other Markdown elements. $languageInstruction'
             },
             {'role': 'user', 'content': text},
           ],

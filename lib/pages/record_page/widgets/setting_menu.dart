@@ -12,12 +12,16 @@ class SettingsMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RenderBox? renderBox = iconKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        iconKey.currentContext?.findRenderObject() as RenderBox?;
     final Offset? iconPosition = renderBox?.localToGlobal(Offset.zero);
     final Size? iconSize = renderBox?.size;
 
     double top = (iconPosition?.dy ?? 0) + (iconSize?.height ?? 0) - 100;
-    double right = MediaQuery.of(context).size.width - (iconPosition?.dx ?? 0) - (iconSize?.width ?? 0) + 20;
+    double right = MediaQuery.of(context).size.width -
+        (iconPosition?.dx ?? 0) -
+        (iconSize?.width ?? 0) +
+        20;
 
     return GestureDetector(
       onTap: onClose,

@@ -16,15 +16,23 @@ class PinViewModel extends StateNotifier<bool> {
         .doc(noteId)
         .snapshots()
         .map((doc) {
-      if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
+      if (doc.exists &&
+          doc.data() is Map &&
+          (doc.data() as Map).containsKey('isPinned')) {
         final isPinned = doc['isPinned'] as bool;
         Future.microtask(() {
-          ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = isPinned;
+          ref
+              .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                  .notifier)
+              .state = isPinned;
         });
         return isPinned;
       }
       Future.microtask(() {
-        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+        ref
+            .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                .notifier)
+            .state = false;
       });
       return false;
     });
@@ -39,12 +47,20 @@ class PinViewModel extends StateNotifier<bool> {
           .doc(noteId)
           .get();
 
-      if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
+      if (doc.exists &&
+          doc.data() is Map &&
+          (doc.data() as Map).containsKey('isPinned')) {
         state = doc['isPinned'] as bool;
-        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = state;
+        ref
+            .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                .notifier)
+            .state = state;
       } else {
         state = false;
-        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+        ref
+            .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                .notifier)
+            .state = false;
         await FirebaseFirestore.instance
             .collection('notegroups')
             .doc(groupId)
@@ -54,7 +70,10 @@ class PinViewModel extends StateNotifier<bool> {
       }
     } catch (e) {
       state = false;
-      ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+      ref
+          .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+              .notifier)
+          .state = false;
     }
   }
 
@@ -68,7 +87,9 @@ class PinViewModel extends StateNotifier<bool> {
           .get();
 
       bool currentStatus = false;
-      if (doc.exists && doc.data() is Map && (doc.data() as Map).containsKey('isPinned')) {
+      if (doc.exists &&
+          doc.data() is Map &&
+          (doc.data() as Map).containsKey('isPinned')) {
         currentStatus = doc['isPinned'] as bool;
       }
 
@@ -78,25 +99,36 @@ class PinViewModel extends StateNotifier<bool> {
           .doc(groupId)
           .collection('notes')
           .doc(noteId)
-          .set({'isPinned': newStatus, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+          .set({
+        'isPinned': newStatus,
+        'updatedAt': FieldValue.serverTimestamp()
+      }, SetOptions(merge: true));
 
       state = newStatus;
       Future.microtask(() {
-        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = newStatus;
+        ref
+            .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                .notifier)
+            .state = newStatus;
       });
     } catch (e) {
       state = false;
       Future.microtask(() {
-        ref.read(pinStatusProvider({'groupId': groupId, 'noteId': noteId}).notifier).state = false;
+        ref
+            .read(pinStatusProvider({'groupId': groupId, 'noteId': noteId})
+                .notifier)
+            .state = false;
       });
       print('Error toggling pin status: $e');
     }
   }
 }
 
-final pinViewModelProvider = StateNotifierProvider.family<PinViewModel, bool, Map<String, String>>(
-      (ref, params) => PinViewModel(params['groupId']!, params['noteId']!, ref),
+final pinViewModelProvider =
+    StateNotifierProvider.family<PinViewModel, bool, Map<String, String>>(
+  (ref, params) => PinViewModel(params['groupId']!, params['noteId']!, ref),
 );
-final pinStatusProvider = StateProvider.family<bool, Map<String, String>>((ref, params) {
+final pinStatusProvider =
+    StateProvider.family<bool, Map<String, String>>((ref, params) {
   return false;
 });

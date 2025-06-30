@@ -83,7 +83,8 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                 alignment: Alignment.topRight,
                 child: TextButton(
                   onPressed: _skipToLast,
-                  child: const Text('건너뛰기', style: TextStyle(color: Colors.grey)),
+                  child:
+                      const Text('건너뛰기', style: TextStyle(color: Colors.grey)),
                 ),
               ),
               Expanded(
@@ -126,7 +127,8 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                             ),
                             alignment: Alignment.center,
                             child: content['image'] != null
-                                ? Image.asset(content['image']!, fit: BoxFit.contain)
+                                ? Image.asset(content['image']!,
+                                    fit: BoxFit.contain)
                                 : const Text('이미지 없음'),
                           ),
                         ),
@@ -156,9 +158,10 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
               ElevatedButton(
                 onPressed: _onNext,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _currentStep == _onBoardingContents.length - 1
-                      ? themeColor
-                      : Colors.black,
+                  backgroundColor:
+                      _currentStep == _onBoardingContents.length - 1
+                          ? themeColor
+                          : Colors.black,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 48),
                   shape: RoundedRectangleBorder(
@@ -166,7 +169,9 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                   ),
                 ),
                 child: Text(
-                  _currentStep == _onBoardingContents.length - 1 ? '시작하기' : '다음',
+                  _currentStep == _onBoardingContents.length - 1
+                      ? '시작하기'
+                      : '다음',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),

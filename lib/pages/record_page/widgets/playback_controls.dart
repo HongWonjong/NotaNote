@@ -8,7 +8,10 @@ class PlaybackControls extends ConsumerStatefulWidget {
   final Duration position;
   final Duration duration;
 
-  PlaybackControls({required this.recording, required this.position, required this.duration});
+  PlaybackControls(
+      {required this.recording,
+      required this.position,
+      required this.duration});
 
   @override
   _PlaybackControlsState createState() => _PlaybackControlsState();
@@ -20,7 +23,9 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
     super.initState();
     final viewModel = ref.read(recordingViewModelProvider.notifier);
     final state = ref.read(recordingViewModelProvider);
-    if (state.currentlyPlayingPath == widget.recording.path && !state.isPaused && !state.isCompleted) {
+    if (state.currentlyPlayingPath == widget.recording.path &&
+        !state.isPaused &&
+        !state.isCompleted) {
       viewModel.playRecording(widget.recording.path, resumeIfPaused: true);
     }
   }
@@ -30,10 +35,13 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
     final viewModel = ref.watch(recordingViewModelProvider.notifier);
     final state = ref.watch(recordingViewModelProvider);
     final remaining = widget.duration - widget.position;
-    final isPlaying = state.isPlaying && state.currentlyPlayingPath == widget.recording.path;
-    final showPlayIcon = !isPlaying || state.isCompleted || state.currentlyPlayingPath == null;
+    final isPlaying =
+        state.isPlaying && state.currentlyPlayingPath == widget.recording.path;
+    final showPlayIcon =
+        !isPlaying || state.isCompleted || state.currentlyPlayingPath == null;
 
-    print('PlaybackControls build: path=${widget.recording.path}, isPlaying=$isPlaying, '
+    print(
+        'PlaybackControls build: path=${widget.recording.path}, isPlaying=$isPlaying, '
         'showPlayIcon=$showPlayIcon, position=${widget.position}, duration=${widget.duration}, '
         'remaining=$remaining, isCompleted=${state.isCompleted}');
 
@@ -65,7 +73,8 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
                   clipBehavior: Clip.antiAlias,
                   decoration: ShapeDecoration(
                     color: Color(0xFF4C4C4C),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(2)),
                   ),
                   child: Stack(
                     children: [
@@ -74,7 +83,9 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
                         top: 0,
                         child: Container(
                           width: widget.duration.inSeconds > 0
-                              ? MediaQuery.of(context).size.width * (widget.position.inSeconds / widget.duration.inSeconds)
+                              ? MediaQuery.of(context).size.width *
+                                  (widget.position.inSeconds /
+                                      widget.duration.inSeconds)
                               : 0,
                           height: 4,
                           decoration: ShapeDecoration(
@@ -118,26 +129,33 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
                   height: 18,
                 ),
                 onPressed: () {
-                  final newPosition = widget.position - const Duration(seconds: 10);
-                  viewModel.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
+                  final newPosition =
+                      widget.position - const Duration(seconds: 10);
+                  viewModel.seekTo(newPosition > Duration.zero
+                      ? newPosition
+                      : Duration.zero);
                 },
               ),
               const SizedBox(width: 48),
               IconButton(
                 padding: EdgeInsets.zero,
                 icon: SvgPicture.asset(
-                  showPlayIcon ? 'assets/icons/RecordPlay.svg' : 'assets/icons/Pause.svg',
+                  showPlayIcon
+                      ? 'assets/icons/RecordPlay.svg'
+                      : 'assets/icons/Pause.svg',
                   color: Color(0xFF4C4C4C),
                   width: 18,
                   height: 18,
                 ),
                 onPressed: () {
-                  print('Play/Pause button pressed: path=${widget.recording.path}, isPlaying=$isPlaying, '
+                  print(
+                      'Play/Pause button pressed: path=${widget.recording.path}, isPlaying=$isPlaying, '
                       'showPlayIcon=$showPlayIcon, isCompleted=${state.isCompleted}');
                   if (isPlaying) {
                     viewModel.pausePlayback();
                   } else {
-                    viewModel.playRecording(widget.recording.path, resumeIfPaused: true);
+                    viewModel.playRecording(widget.recording.path,
+                        resumeIfPaused: true);
                   }
                 },
               ),
@@ -151,8 +169,11 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
                   height: 18,
                 ),
                 onPressed: () {
-                  final newPosition = widget.position + const Duration(seconds: 10);
-                  viewModel.seekTo(newPosition < widget.duration ? newPosition : widget.duration);
+                  final newPosition =
+                      widget.position + const Duration(seconds: 10);
+                  viewModel.seekTo(newPosition < widget.duration
+                      ? newPosition
+                      : widget.duration);
                 },
               ),
             ],

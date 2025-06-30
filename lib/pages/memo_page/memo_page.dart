@@ -59,17 +59,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         ref.read(selectedColorProvider.notifier).state = null;
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .loadFromFirestore(_controller);
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .listenToFirestore(_controller, isEditing: _isEditing);
       }
     });
@@ -83,18 +83,18 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       }
       ref
           .read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier)
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
           .listenToFirestore(_controller, isEditing: _isEditing);
       if (!_isEditing) {
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .processPendingSnapshot(_controller);
       }
     });
@@ -103,7 +103,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
       final currentDeltaJson =
-      _controller.document.toDelta().toJson().toString();
+          _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1000), () {
@@ -139,10 +139,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       }
       await ref
           .read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier)
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
           .saveToFirestore(_controller);
       _lastDeltaJson = deltaJson.toString();
 
@@ -157,7 +157,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
             if (line.isNotEmpty) {
               if (lineCount == 0) {
                 firstText = line;
-                if (firstText.length > 50) firstText = firstText.substring(0, 50);
+                if (firstText.length > 50)
+                  firstText = firstText.substring(0, 50);
               } else if (lineCount >= 1 && secondText == null) {
                 if (line.trim().isNotEmpty) {
                   secondText = line;
@@ -175,7 +176,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       if (mounted) {
         await ref
             .read(memoViewModelProvider(widget.groupId))
-            .updateMemoTitleAndContent(widget.noteId, firstText, secondText ?? '');
+            .updateMemoTitleAndContent(
+                widget.noteId, firstText, secondText ?? '');
       }
     } catch (e) {
       debugPrint('Save failed: $e');
@@ -201,7 +203,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     if (cursorPosition < 0) return;
 
     final editorKey = GlobalKey();
-    final renderObject = (editorKey.currentContext?.findRenderObject() as RenderBox?);
+    final renderObject =
+        (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
     final cursorHeight = 20.0;
@@ -212,7 +215,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       if (_scrollController.hasClients) {
         final offset = _scrollController.offset;
         final maxScroll = _scrollController.position.maxScrollExtent;
-        final newOffset = offset + cursorHeight + toolbarHeight + keyboardHeight;
+        final newOffset =
+            offset + cursorHeight + toolbarHeight + keyboardHeight;
         if (newOffset <= maxScroll) {
           _scrollController.animateTo(
             newOffset,
@@ -335,9 +339,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     ),
                     onPressed: _controller.hasUndo
                         ? () {
-                      _controller.undo();
-                      setState(() {});
-                    }
+                            _controller.undo();
+                            setState(() {});
+                          }
                         : null,
                   ),
                 if (showToolbar && isKeyboardVisible)
@@ -353,9 +357,9 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     ),
                     onPressed: _controller.hasRedo
                         ? () {
-                      _controller.redo();
-                      setState(() {});
-                    }
+                            _controller.redo();
+                            setState(() {});
+                          }
                         : null,
                   ),
                 SizedBox(width: 10),
@@ -364,22 +368,19 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                     padding: EdgeInsets.only(right: 20),
                     child: isKeyboardVisible
                         ? TextButton(
-                      onPressed: _dismissKeyboard,
-                      child: Text(
-                        '완료',
-                        style: PretendardTextStyles.bodyM.copyWith(
-                          color: AppColors.gray700
-                        )
-                      ),
-                    )
+                            onPressed: _dismissKeyboard,
+                            child: Text('완료',
+                                style: PretendardTextStyles.bodyM
+                                    .copyWith(color: AppColors.gray700)),
+                          )
                         : IconButton(
-                      icon: SvgPicture.asset(
-                        'assets/icons/DotCircle.svg',
-                        width: 24,
-                        height: 24,
-                      ),
-                      onPressed: _togglePopupMenu,
-                    ),
+                            icon: SvgPicture.asset(
+                              'assets/icons/DotCircle.svg',
+                              width: 24,
+                              height: 24,
+                            ),
+                            onPressed: _togglePopupMenu,
+                          ),
                   ),
               ],
             ),
@@ -400,7 +401,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(
-                          bottom: isKeyboardVisible && showToolbar ? 55.0 : 0.0),
+                          bottom:
+                              isKeyboardVisible && showToolbar ? 55.0 : 0.0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -460,7 +462,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                         focusNode: _focusNode,
                         onTranscribeTapped: () {
                           final recordingState =
-                          ref.read(recordingViewModelProvider);
+                              ref.read(recordingViewModelProvider);
                           if (recordingState.recordings.isNotEmpty) {
                             _showTranscribeDialog(
                                 recordingState.recordings.first.path);

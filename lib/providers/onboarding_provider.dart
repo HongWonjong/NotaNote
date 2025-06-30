@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-final onBoardingProvider = StateNotifierProvider<OnBoardingNotifier, bool>((ref) {
+final onBoardingProvider =
+    StateNotifierProvider<OnBoardingNotifier, bool>((ref) {
   return OnBoardingNotifier();
 });
 
