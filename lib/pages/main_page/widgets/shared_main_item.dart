@@ -95,7 +95,7 @@ class SharedMainItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 SvgPicture.asset(
-                  'assets/icons/User.svg', // Replace with actual share icon path
+                  'assets/icons/Users.svg', // Replace with actual share icon path
                   width: 16,
                   height: 16,
                   colorFilter: const ColorFilter.mode(
