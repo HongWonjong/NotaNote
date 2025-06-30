@@ -42,12 +42,14 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     final isOwner = widget.role == 'owner';
 
     return PopupMenuButton<int>(
-      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg', width: 24, height: 24),
+      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg',
+          width: 24, height: 24),
       tooltip: '설정 메뉴',
       color: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       offset: const Offset(0, 40),
-      constraints: const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
+      constraints:
+          const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
       onSelected: (value) {
         switch (value) {
           case 1:
@@ -80,7 +82,9 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
           child: Row(
             children: [
               SvgPicture.asset(
-                widget.isGrid ? 'assets/icons/ListDashes.svg' : 'assets/icons/GridFour.svg',
+                widget.isGrid
+                    ? 'assets/icons/ListDashes.svg'
+                    : 'assets/icons/GridFour.svg',
                 width: 24,
                 height: 24,
               ),
@@ -93,7 +97,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
           value: 2,
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/ArrowsDownUp.svg', width: 24, height: 24),
+              SvgPicture.asset('assets/icons/ArrowsDownUp.svg',
+                  width: 24, height: 24),
               const SizedBox(width: 12),
               const Text('정렬'),
             ],
@@ -225,17 +230,22 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                         title: Text(
                           label,
                           style: TextStyle(
-                            color: isSelected ? const Color(0xFF61CFB2) : Colors.black,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? const Color(0xFF61CFB2)
+                                : Colors.black,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                         trailing: isSelected
                             ? SvgPicture.asset(
-                          'assets/icons/Check.svg',
-                          width: 20,
-                          height: 20,
-                          colorFilter: const ColorFilter.mode(Color(0xFF61CFB2), BlendMode.srcIn),
-                        )
+                                'assets/icons/Check.svg',
+                                width: 20,
+                                height: 20,
+                                colorFilter: const ColorFilter.mode(
+                                    Color(0xFF61CFB2), BlendMode.srcIn),
+                              )
                             : null,
                         onTap: () {
                           setState(() {

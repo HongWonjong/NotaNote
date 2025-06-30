@@ -141,4 +141,3 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
-//VersionTextWidget()

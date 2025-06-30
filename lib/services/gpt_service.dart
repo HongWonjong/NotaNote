@@ -25,7 +25,8 @@ class GptService {
           'messages': [
             {
               'role': 'system',
-              'content': 'You are an expert at formatting text. Take the following text and return it exactly as provided, without changing any words, punctuation, or content. Only add appropriate spacing and line breaks to make it more readable in Markdown format. Do not use headers, lists, or any other Markdown features unless they are explicitly present in the original text.'
+              'content':
+                  'You are an expert at formatting text. Take the following text and return it exactly as provided, without changing any words, punctuation, or content. Only add appropriate spacing and line breaks to make it more readable in Markdown format. Do not use headers, lists, or any other Markdown features unless they are explicitly present in the original text.'
             },
             {'role': 'user', 'content': text},
           ],
@@ -64,7 +65,8 @@ class GptService {
           'messages': [
             {
               'role': 'system',
-              'content': 'You are an expert at summarizing text concisely. Summarize the following text into a brief, well-structured Markdown format, highlighting key points using headers, bullet points, or other Markdown elements.'
+              'content':
+                  'You are an expert at summarizing text concisely. Summarize the following text into a brief, well-structured Markdown format, highlighting key points using headers, bullet points, or other Markdown elements.'
             },
             {'role': 'user', 'content': text},
           ],

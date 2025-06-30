@@ -12,7 +12,8 @@ class RecordingFirebaseService {
     return filePath.split('/').last;
   }
 
-  Future<void> insertRecordingMetadata(String userId, RecordingInfo recording) async {
+  Future<void> insertRecordingMetadata(
+      String userId, RecordingInfo recording) async {
     try {
       await _firestore
           .collection('users')
@@ -65,7 +66,8 @@ class RecordingFirebaseService {
     } catch (e) {
       print('Insert recording failed: $e');
       try {
-        final storagePath = 'recordings/$userId/${_getFileName(recording.path)}';
+        final storagePath =
+            'recordings/$userId/${_getFileName(recording.path)}';
         await _storage.ref(storagePath).delete();
       } catch (deleteError) {
         print('Failed to clean up Storage: $deleteError');
@@ -95,7 +97,8 @@ class RecordingFirebaseService {
     }
   }
 
-  Future<List<RecordingInfo>> getRecordingsSince(String userId, DateTime? lastSyncedAt) async {
+  Future<List<RecordingInfo>> getRecordingsSince(
+      String userId, DateTime? lastSyncedAt) async {
     try {
       final query = _firestore
           .collection('users')
@@ -103,7 +106,9 @@ class RecordingFirebaseService {
           .collection('recordings')
           .orderBy('createdAt', descending: true);
       final snapshot = lastSyncedAt != null
-          ? await query.where('createdAt', isGreaterThan: lastSyncedAt.toIso8601String()).get()
+          ? await query
+              .where('createdAt', isGreaterThan: lastSyncedAt.toIso8601String())
+              .get()
           : await query.get();
       return snapshot.docs.map((doc) {
         final data = doc.data();
@@ -119,7 +124,8 @@ class RecordingFirebaseService {
     }
   }
 
-  Future<RecordingInfo?> getRecordingByPath(String userId, String filePath) async {
+  Future<RecordingInfo?> getRecordingByPath(
+      String userId, String filePath) async {
     try {
       final doc = await _firestore
           .collection('users')
@@ -176,7 +182,9 @@ class RecordingFirebaseService {
           .collection('recordings')
           .doc(_getFileName(filePath))
           .delete();
-      await _storage.ref('recordings/$userId/${_getFileName(filePath)}').delete();
+      await _storage
+          .ref('recordings/$userId/${_getFileName(filePath)}')
+          .delete();
       print('Deleted recording from Firebase: $filePath');
     } catch (e) {
       print('Delete recording failed: $e');
@@ -193,7 +201,9 @@ class RecordingFirebaseService {
       final batch = _firestore.batch();
       for (var doc in snapshot.docs) {
         batch.delete(doc.reference);
-        await _storage.ref('recordings/$userId/${_getFileName(doc['path'])}').delete();
+        await _storage
+            .ref('recordings/$userId/${_getFileName(doc['path'])}')
+            .delete();
       }
       await batch.commit();
       print('Deleted all recordings from Firebase for user: $userId');
@@ -204,7 +214,9 @@ class RecordingFirebaseService {
 
   Future<String?> getDownloadUrl(String userId, String filePath) async {
     try {
-      return await _storage.ref('recordings/$userId/${_getFileName(filePath)}').getDownloadURL();
+      return await _storage
+          .ref('recordings/$userId/${_getFileName(filePath)}')
+          .getDownloadURL();
     } catch (e) {
       print('Get download URL failed: $e');
       return null;
@@ -213,7 +225,8 @@ class RecordingFirebaseService {
 
   Future<String?> downloadRecording(String userId, String filePath) async {
     try {
-      final storageRef = _storage.ref('recordings/$userId/${_getFileName(filePath)}');
+      final storageRef =
+          _storage.ref('recordings/$userId/${_getFileName(filePath)}');
       final downloadUrl = await storageRef.getDownloadURL();
       final directory = await getApplicationDocumentsDirectory();
       final localPath = '${directory.path}/${_getFileName(filePath)}';

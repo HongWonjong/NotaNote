@@ -34,12 +34,15 @@ class BottomSheetMenu extends ConsumerWidget {
             height: 4,
             decoration: ShapeDecoration(
               color: Color(0xFF4C4C4C),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4)),
             ),
           ),
           GestureDetector(
             onTap: () async {
-              await ref.read(recordingViewModelProvider.notifier).downloadRecording(recording.path);
+              await ref
+                  .read(recordingViewModelProvider.notifier)
+                  .downloadRecording(recording.path);
               Navigator.pop(context);
             },
             child: Container(
@@ -76,7 +79,9 @@ class BottomSheetMenu extends ConsumerWidget {
           GestureDetector(
             onTap: () async {
               if (controller != null) {
-                await ref.read(recordingViewModelProvider.notifier).transcribeRecording(recording.path, 'ko', controller!);
+                await ref
+                    .read(recordingViewModelProvider.notifier)
+                    .transcribeRecording(recording.path, 'ko', controller!);
                 Navigator.pop(context);
               }
             },
@@ -129,7 +134,8 @@ class BottomSheetMenu extends ConsumerWidget {
                         child: Text('취소'),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, controller.text),
+                        onPressed: () =>
+                            Navigator.pop(context, controller.text),
                         child: Text('확인'),
                       ),
                     ],
@@ -137,7 +143,9 @@ class BottomSheetMenu extends ConsumerWidget {
                 },
               );
               if (newName != null && newName.isNotEmpty) {
-                await ref.read(recordingViewModelProvider.notifier).renameRecording(recording.path, newName);
+                await ref
+                    .read(recordingViewModelProvider.notifier)
+                    .renameRecording(recording.path, newName);
               }
               Navigator.pop(context);
             },
@@ -174,7 +182,9 @@ class BottomSheetMenu extends ConsumerWidget {
           ),
           GestureDetector(
             onTap: () async {
-              await ref.read(recordingViewModelProvider.notifier).deleteRecording(recording.path);
+              await ref
+                  .read(recordingViewModelProvider.notifier)
+                  .deleteRecording(recording.path);
               Navigator.pop(context);
             },
             child: Container(

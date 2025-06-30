@@ -72,7 +72,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: Text(
                     '총 ${state.recordings.length}개',
                     style: TextStyle(
@@ -101,7 +102,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                                 topRight: Radius.circular(24),
                               ),
                             ),
-                            builder: (context) => BottomSheetMenu(recording: recording),
+                            builder: (context) =>
+                                BottomSheetMenu(recording: recording),
                           );
                         },
                       );
@@ -149,7 +151,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     );
   }
 
-  Future<void> _togglePlaybackControls(int index, RecordingInfo recording) async {
+  Future<void> _togglePlaybackControls(
+      int index, RecordingInfo recording) async {
     final viewModel = ref.read(recordingViewModelProvider.notifier);
     final currentState = ref.read(recordingViewModelProvider);
 
@@ -157,14 +160,16 @@ class _RecordPageState extends ConsumerState<RecordPage> {
       setState(() {
         selectedIndex = null;
       });
-      if (currentState.isPlaying && currentState.currentlyPlayingPath == recording.path) {
+      if (currentState.isPlaying &&
+          currentState.currentlyPlayingPath == recording.path) {
         viewModel.stopPlayback();
       }
     } else {
       setState(() {
         selectedIndex = index;
       });
-      if (currentState.currentlyPlayingPath != recording.path || !currentState.isPlaying) {
+      if (currentState.currentlyPlayingPath != recording.path ||
+          !currentState.isPlaying) {
         viewModel.playRecording(recording.path);
       }
     }
@@ -190,7 +195,8 @@ class _RecordingItem extends StatefulWidget {
   __RecordingItemState createState() => __RecordingItemState();
 }
 
-class __RecordingItemState extends State<_RecordingItem> with SingleTickerProviderStateMixin {
+class __RecordingItemState extends State<_RecordingItem>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _heightAnimation;
 
@@ -257,7 +263,10 @@ class __RecordingItemState extends State<_RecordingItem> with SingleTickerProvid
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.recording.path.split('/').last.replaceAll('.m4a', ''),
+                          widget.recording.path
+                              .split('/')
+                              .last
+                              .replaceAll('.m4a', ''),
                           style: TextStyle(
                             color: Color(0xFF191919),
                             fontSize: 16,
@@ -302,10 +311,10 @@ class __RecordingItemState extends State<_RecordingItem> with SingleTickerProvid
                         maxHeight: 90,
                         child: widget.isSelected
                             ? PlaybackControls(
-                          recording: widget.recording,
-                          position: state.currentPosition,
-                          duration: widget.recording.duration,
-                        )
+                                recording: widget.recording,
+                                position: state.currentPosition,
+                                duration: widget.recording.duration,
+                              )
                             : SizedBox.shrink(),
                       ),
                     );

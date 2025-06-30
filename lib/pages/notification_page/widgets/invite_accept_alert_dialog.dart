@@ -98,8 +98,10 @@ class InviteAcceptAlertDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
                 onPressed: () async {
-                  final viewModel = ref.read(notificationViewModelProvider.notifier);
-                  final success = await viewModel.declineInvitation(invitationId);
+                  final viewModel =
+                      ref.read(notificationViewModelProvider.notifier);
+                  final success =
+                      await viewModel.declineInvitation(invitationId);
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('초대를 거절했습니다.')),
@@ -133,7 +135,8 @@ class InviteAcceptAlertDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
                 onPressed: () async {
-                  final viewModel = ref.read(notificationViewModelProvider.notifier);
+                  final viewModel =
+                      ref.read(notificationViewModelProvider.notifier);
                   final success = await viewModel.acceptInvitation(
                     invitationId,
                     groupId,
