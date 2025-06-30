@@ -455,15 +455,6 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                 );
               },
             ),
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/Link.svg',
-                colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
-              ),
-              onPressed: () {
-                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
-              },
-            ),
             CompositedTransformTarget(
               link: _layerLink,
               child: IconButton(
