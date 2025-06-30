@@ -718,7 +718,7 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
   }
 
   Future<void> summarizeRecording(
-      String path, QuillController controller) async {
+      String path, String language, QuillController controller) async {
     try {
       final userId = await _userId;
       if (userId == null) {
@@ -751,24 +751,26 @@ class RecordingViewModel extends StateNotifier<RecordingState> {
       }
 
       final transcription = state.transcriptions[path];
+      String? textToSummarize;
       if (transcription == null) {
         final response = await ref
             .read(whisperServiceProvider)
-            .sendToWhisperAI(transcriptionPath, 'ko');
+            .sendToWhisperAI(transcriptionPath, language);
         if (response == null) {
           print('Transcription for summary failed');
           return;
         }
+        textToSummarize = response.transcription;
         state = state.copyWith(
-          transcriptions: {
-            ...state.transcriptions,
-            path: response.transcription
-          },
+          transcriptions: {...state.transcriptions, path: textToSummarize},
         );
+      } else {
+        textToSummarize = transcription;
       }
+
       final summary = await ref
           .read(gptServiceProvider)
-          .summarizeToMarkdown(state.transcriptions[path]!);
+          .summarizeToMarkdown(textToSummarize, language: language);
       if (summary != null) {
         final index = controller.selection.start;
         controller.document.insert(index, summary + '\n');

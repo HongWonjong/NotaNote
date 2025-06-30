@@ -78,7 +78,7 @@ class PopupMenuWidget extends ConsumerWidget {
               text: '이동하기',
               onTap: () {}, // TODO: Implement move functionality
             ),
-            if (role == 'owner')
+            if (role == 'owner' || role == 'editor')
               _buildMenuItem(
                 icon: 'assets/icons/Delete.svg',
                 text: '삭제하기',
