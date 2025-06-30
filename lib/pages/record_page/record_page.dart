@@ -34,7 +34,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('녹음 기록'),
-        leading: IconButton(
+        leading: Padding(padding: EdgeInsets.only(left: 20),
+        child: IconButton(
           icon: SvgPicture.asset(
             'assets/icons/Arrow.svg',
             width: 24,
@@ -44,8 +45,10 @@ class _RecordPageState extends ConsumerState<RecordPage> {
             Navigator.pop(context);
           },
         ),
+        ),
         actions: [
-          IconButton(
+          Padding(padding: EdgeInsets.only(right: 20),
+          child: IconButton(
             key: _settingsIconKey,
             icon: SvgPicture.asset(
               'assets/icons/DotCircle.svg',
@@ -58,6 +61,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                 _showSettings = !_showSettings;
               });
             },
+          ),
           ),
         ],
       ),
