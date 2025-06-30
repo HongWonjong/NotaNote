@@ -720,12 +720,6 @@ class _MainPageState extends ConsumerState<MainPage>
                               ? Center(
                             child: Column(
                               children: [
-                                Icon(
-                                  Icons.share,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: 16),
                                 Text(
                                   '공유된 그룹이 없습니다',
                                   style: TextStyle(
