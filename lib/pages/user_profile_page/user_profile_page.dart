@@ -45,31 +45,6 @@ class UserProfilePage extends ConsumerWidget {
           color: AppColors.gray700,
         ),
         actions: [
-          // 프로필 수정 버튼
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: TextButton(
-              onPressed: () async {
-                userAsync.whenOrNull(
-                  data: (user) async {
-                    if (user != null) {
-                      final changed = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => UserProfileEditPage(user: user)),
-                      );
-                      if (changed == true) {
-                        ref.invalidate(userProfileProvider(userId));
-                      }
-                    }
-                  },
-                );
-              },
-              child: Text('수정',
-                  style: PretendardTextStyles.bodyM
-                      .copyWith(color: Colors.grey[700])),
-            ),
-          ),
           TextButton(
             onPressed: () async {
               userAsync.whenOrNull(
