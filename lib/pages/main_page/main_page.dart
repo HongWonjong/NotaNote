@@ -596,7 +596,10 @@ class _MainPageState extends ConsumerState<MainPage>
               padding: EdgeInsets.only(left: 20),
               child: IconButton(
                 onPressed: _menuController.toggleMenu,
-                icon: SvgPicture.asset('assets/icons/List.svg'),
+                icon: SvgPicture.asset('assets/icons/List.svg',
+                width: 24,
+                height: 24,
+                fit: BoxFit.fill,),
               ),
             ),
             centerTitle: true,
