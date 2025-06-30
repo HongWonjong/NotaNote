@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/memo.dart';
 import 'package:uuid/uuid.dart';
 
-final memoViewModelProvider =
-Provider.family<MemoViewModel, String>((ref, groupId) => MemoViewModel(ref, groupId));
+final memoViewModelProvider = Provider.family<MemoViewModel, String>(
+    (ref, groupId) => MemoViewModel(ref, groupId));
 
 class MemoViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -20,8 +20,8 @@ class MemoViewModel {
         .collection('notes')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => Memo.fromFirestore(doc, _groupId))
-        .toList());
+            .map((doc) => Memo.fromFirestore(doc, _groupId))
+            .toList());
   }
 
   Future<String?> addMemo() async {
@@ -48,7 +48,8 @@ class MemoViewModel {
     }
   }
 
-  Future<void> updateMemoTitleAndContent(String noteId, String title, String content) async {
+  Future<void> updateMemoTitleAndContent(
+      String noteId, String title, String content) async {
     try {
       final docRef = _firestore
           .collection('notegroups')

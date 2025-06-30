@@ -53,9 +53,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight?.value == Color(0xFFF4C0C0).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -72,9 +72,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight?.value == Color(0xFFF3D3BA).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -91,9 +91,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight?.value == Color(0xFFEEDC9B).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -110,9 +110,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight?.value == Color(0xFFC7EBBC).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -129,9 +129,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight?.value == Color(0xFFCFE4F5).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -147,9 +147,9 @@ class HighlightPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedHighlight == null
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),

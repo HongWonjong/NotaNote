@@ -34,16 +34,20 @@ class PopupMenuWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: ShapeDecoration(
           color: const Color(0xFFF0F0F0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: _buildMenuContent(context, ref, providerParams),
       ),
     );
   }
 
-  Widget _buildMenuContent(BuildContext context, WidgetRef ref, Map<String, String> providerParams) {
+  Widget _buildMenuContent(
+      BuildContext context, WidgetRef ref, Map<String, String> providerParams) {
     return StreamBuilder<bool>(
-      stream: ref.read(pinViewModelProvider(providerParams).notifier).getPinStatusStream(),
+      stream: ref
+          .read(pinViewModelProvider(providerParams).notifier)
+          .getPinStatusStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -60,7 +64,9 @@ class PopupMenuWidget extends ConsumerWidget {
               icon: 'assets/icons/PushPin.svg',
               text: pinStatus ? '고정 해제하기' : '고정하기',
               iconColor: pinStatus ? const Color(0xFF61CFB2) : null,
-              onTap: () => ref.read(pinViewModelProvider(providerParams).notifier).togglePinStatus(),
+              onTap: () => ref
+                  .read(pinViewModelProvider(providerParams).notifier)
+                  .togglePinStatus(),
             ),
             _buildMenuItem(
               icon: 'assets/icons/Files.svg',

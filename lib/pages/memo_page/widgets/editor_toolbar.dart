@@ -49,7 +49,8 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     });
 
     _scrollController.addListener(() {
-      ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
+      ref.read(toolbarScrollOffsetProvider.notifier).state =
+          _scrollController.offset;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -164,7 +165,8 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   {'label': '본문', 'size': 16.0},
                   {'label': '작은 텍스트', 'size': 12.0},
                 ].map((option) {
-                  return _buildFontSizeOption(context, option['label'] as String, option['size'] as double);
+                  return _buildFontSizeOption(context,
+                      option['label'] as String, option['size'] as double);
                 }).toList(),
               ),
             ),
@@ -215,9 +217,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               final attribute = color == null
                   ? Attribute.clone(Attribute.background, null)
                   : Attribute.fromKeyValue(
-                'background',
-                '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
-              );
+                      'background',
+                      '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+                    );
               if (attribute != null) {
                 applyFormatsWithPlaceholder({'background': attribute});
               }
@@ -256,8 +258,8 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             color: isPressed
                 ? Colors.grey[200]
                 : isSelected
-                ? Colors.grey[300]
-                : Colors.white,
+                    ? Colors.grey[300]
+                    : Colors.white,
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Align(
               alignment: Alignment.centerLeft,
@@ -285,22 +287,26 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
 
   bool _isFormatActive(Attribute attribute) {
     final style = widget.controller.getSelectionStyle();
-    return style.attributes.containsKey(attribute.key) && style.attributes[attribute.key]!.value != null;
+    return style.attributes.containsKey(attribute.key) &&
+        style.attributes[attribute.key]!.value != null;
   }
 
   bool _isListActive(String listType) {
     final style = widget.controller.getSelectionStyle();
-    return style.attributes.containsKey(Attribute.list.key) && style.attributes[Attribute.list.key]!.value == listType;
+    return style.attributes.containsKey(Attribute.list.key) &&
+        style.attributes[Attribute.list.key]!.value == listType;
   }
 
   bool _isAlignActive(String alignType) {
     final style = widget.controller.getSelectionStyle();
-    return style.attributes.containsKey(Attribute.align.key) && style.attributes[Attribute.align.key]!.value == alignType;
+    return style.attributes.containsKey(Attribute.align.key) &&
+        style.attributes[Attribute.align.key]!.value == alignType;
   }
 
   void _toggleFormat(Attribute attribute) {
     final isActive = _isFormatActive(attribute);
-    final newAttribute = isActive ? Attribute.clone(attribute, null) : attribute;
+    final newAttribute =
+        isActive ? Attribute.clone(attribute, null) : attribute;
     if (newAttribute != null) {
       applyFormatsWithPlaceholder({attribute.key: newAttribute});
     }
@@ -375,7 +381,8 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   @override
   void dispose() {
     if (_scrollController.hasClients) {
-      ref.read(toolbarScrollOffsetProvider.notifier).state = _scrollController.offset;
+      ref.read(toolbarScrollOffsetProvider.notifier).state =
+          _scrollController.offset;
     }
     _scrollController.dispose();
     _overlayEntry?.remove();
@@ -406,17 +413,21 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   IconButton(
                     icon: recordingState.isRecording
                         ? SvgPicture.asset(
-                      'assets/icons/Stop.svg',
-                      colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
-                    )
+                            'assets/icons/Stop.svg',
+                            colorFilter:
+                                ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                          )
                         : SvgPicture.asset(
-                      'assets/icons/Mic.svg',
-                      colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                    ),
+                            'assets/icons/Mic.svg',
+                            colorFilter:
+                                ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                          ),
                     onPressed: () async {
                       if (recordingState.isRecording) {
                         await recordingViewModel.stopRecording();
-                        ref.read(recordingBoxVisibilityProvider.notifier).state = true;
+                        ref
+                            .read(recordingBoxVisibilityProvider.notifier)
+                            .state = true;
                       } else {
                         await recordingViewModel.startRecording();
                       }
@@ -478,7 +489,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               icon: SvgPicture.asset(
                 'assets/icons/Bold.svg',
                 colorFilter: ColorFilter.mode(
-                  _isFormatActive(Attribute.bold) ? Color(0xFF61CFB2) : Colors.black,
+                  _isFormatActive(Attribute.bold)
+                      ? Color(0xFF61CFB2)
+                      : Colors.black,
                   BlendMode.srcIn,
                 ),
               ),
@@ -491,7 +504,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               icon: SvgPicture.asset(
                 'assets/icons/Italic.svg',
                 colorFilter: ColorFilter.mode(
-                  _isFormatActive(Attribute.italic) ? Color(0xFF61CFB2) : Colors.black,
+                  _isFormatActive(Attribute.italic)
+                      ? Color(0xFF61CFB2)
+                      : Colors.black,
                   BlendMode.srcIn,
                 ),
               ),
@@ -504,7 +519,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               icon: SvgPicture.asset(
                 'assets/icons/Underline.svg',
                 colorFilter: ColorFilter.mode(
-                  _isFormatActive(Attribute.underline) ? Color(0xFF61CFB2) : Colors.black,
+                  _isFormatActive(Attribute.underline)
+                      ? Color(0xFF61CFB2)
+                      : Colors.black,
                   BlendMode.srcIn,
                 ),
               ),
@@ -517,7 +534,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               icon: SvgPicture.asset(
                 'assets/icons/TextStrikethrough.svg',
                 colorFilter: ColorFilter.mode(
-                  _isFormatActive(Attribute.strikeThrough) ? Color(0xFF61CFB2) : Colors.black,
+                  _isFormatActive(Attribute.strikeThrough)
+                      ? Color(0xFF61CFB2)
+                      : Colors.black,
                   BlendMode.srcIn,
                 ),
               ),
