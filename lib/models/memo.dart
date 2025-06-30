@@ -12,6 +12,7 @@ class Memo {
   final Map<String, String> permissions;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isDeleted;
 
   Memo({
     required this.noteId,
@@ -24,6 +25,7 @@ class Memo {
     this.permissions = const {},
     required this.createdAt,
     required this.updatedAt,
+    this.isDeleted = false,
   });
 
   factory Memo.fromFirestore(DocumentSnapshot doc, String groupId) {
@@ -33,13 +35,14 @@ class Memo {
       noteId: doc.id,
       groupId: groupId,
       title: data['title'] as String? ?? '제목 없음',
-      content: data['content'] as String? ?? '',  // null safe
+      content: data['content'] as String? ?? '', // null safe
       ownerId: data['ownerId'] as String? ?? '',
       isPublic: data['isPublic'] as bool? ?? false,
       tags: List<String>.from(data['tags'] ?? []),
       permissions: Map<String, String>.from(data['permissions'] ?? {}),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      isDeleted: data['isDeleted'] as bool? ?? false,
     );
   }
 
