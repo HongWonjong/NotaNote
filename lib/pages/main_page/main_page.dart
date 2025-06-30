@@ -629,7 +629,7 @@ class _MainPageState extends ConsumerState<MainPage>
               Stack(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(right: 20),
+                    padding: EdgeInsets.only(right: 15),
                     child: IconButton(
                       onPressed: () {
                         Navigator.push(
