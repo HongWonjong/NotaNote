@@ -1,58 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nota_note/pages/recoding_conversion_page/record_transcribe_flow.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:nota_note/pages/record_page/record_page.dart';
-import 'package:nota_note/providers/language_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class RecordingControllerBox extends ConsumerStatefulWidget {
   final QuillController? controller;
   final FocusNode? focusNode;
+  final VoidCallback? onTranscribeTapped; // 콜백 추가
 
-  const RecordingControllerBox({this.controller, this.focusNode, super.key});
+  const RecordingControllerBox({
+    this.controller,
+    this.focusNode,
+    this.onTranscribeTapped,
+    super.key,
+  });
 
   @override
   _RecordingControllerBoxState createState() => _RecordingControllerBoxState();
 }
 
-class _RecordingControllerBoxState
-    extends ConsumerState<RecordingControllerBox> {
+class _RecordingControllerBoxState extends ConsumerState<RecordingControllerBox> {
   bool _isMenuVisible = false;
-  bool _isLanguageMenuVisible = false;
   OverlayEntry? _menuOverlayEntry;
-  OverlayEntry? _languageMenuOverlayEntry;
   final LayerLink _layerLink = LayerLink();
-  final GlobalKey _languageButtonKey = GlobalKey();
-
-  String _mapLanguageToCode(String language) {
-    switch (language) {
-      case '한국어':
-        return 'ko';
-      case '영어':
-        return 'en';
-      default:
-        return 'ko';
-    }
-  }
-
-  String _mapCodeToLanguage(String code) {
-    switch (code) {
-      case 'ko':
-        return '한국어';
-      case 'en':
-        return '영어';
-      default:
-        return '한국어';
-    }
-  }
 
   void _toggleMenu(BuildContext context) {
     if (_isMenuVisible) {
-      _languageMenuOverlayEntry?.remove();
-      _languageMenuOverlayEntry = null;
-      _isLanguageMenuVisible = false;
       _menuOverlayEntry?.remove();
       _menuOverlayEntry = null;
       _isMenuVisible = false;
@@ -67,19 +44,6 @@ class _RecordingControllerBoxState
     }
   }
 
-  void _toggleLanguageMenu(BuildContext context) {
-    if (_isLanguageMenuVisible) {
-      _languageMenuOverlayEntry?.remove();
-      _languageMenuOverlayEntry = null;
-      _isLanguageMenuVisible = false;
-    } else {
-      _languageMenuOverlayEntry = _createLanguageMenuOverlayEntry(context);
-      Overlay.of(context).insert(_languageMenuOverlayEntry!);
-      _isLanguageMenuVisible = true;
-    }
-    setState(() {});
-  }
-
   OverlayEntry _createMenuOverlayEntry(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -88,7 +52,7 @@ class _RecordingControllerBoxState
     final buttonSize = buttonBox?.size ?? Size.zero;
 
     double menuWidth = 200.0;
-    double menuHeight = 270.0;
+    double menuHeight = 220.0; // 메뉴 높이 220.0 적용
     double left = buttonPosition.dx + buttonSize.width - menuWidth;
     double top = buttonPosition.dy - menuHeight - 10;
 
@@ -125,172 +89,74 @@ class _RecordingControllerBoxState
     );
   }
 
-  OverlayEntry _createLanguageMenuOverlayEntry(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final RenderBox? buttonBox =
-        _languageButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    final buttonPosition = buttonBox?.localToGlobal(Offset.zero) ?? Offset.zero;
-    final buttonSize = buttonBox?.size ?? Size.zero;
-
-    double menuWidth = buttonSize.width;
-    double maxMenuHeight = 120.0;
-    double left = buttonPosition.dx;
-    double top = buttonPosition.dy + buttonSize.height + 4;
-
-    if (top + maxMenuHeight > screenHeight - 8) {
-      top = buttonPosition.dy - maxMenuHeight - 4;
-      if (top < 8) {
-        top = 8;
-      }
-    }
-
-    if (left + menuWidth > screenWidth) {
-      left = screenWidth - menuWidth - 8;
-    }
-    if (left < 8) {
-      left = 8;
-    }
-
-    return OverlayEntry(
-      builder: (context) => Positioned(
-        left: left,
-        top: top,
-        width: menuWidth,
-        child: Material(
-          borderRadius: BorderRadius.circular(8.0),
-          elevation: 2.0,
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: maxMenuHeight,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Colors.grey[400]!, width: 1.0),
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildLanguageItem(context, '한국어', 'ko'),
-                  _buildLanguageItem(context, '영어', 'en'),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageItem(BuildContext context, String display, String code) {
-    return GestureDetector(
-      onTap: () {
-        ref.read(languageProvider.notifier).state = code;
-        _toggleLanguageMenu(context);
-        if (widget.focusNode != null && widget.focusNode!.canRequestFocus) {
-          widget.focusNode!.requestFocus();
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-        child: Text(
-          display,
-          style: TextStyle(
-            color: Color(0xFF191919),
-            fontSize: 14,
-            fontFamily: 'Pretendard',
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildMenuItems(BuildContext context) {
     final recordingState = ref.watch(recordingViewModelProvider);
     final recordingViewModel = ref.read(recordingViewModelProvider.notifier);
-    final selectedLanguageCode = ref.watch(languageProvider);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
-          key: _languageButtonKey,
-          onTap: () {
-            _toggleLanguageMenu(context);
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/Globe.svg',
-                  width: 20,
-                  height: 20,
-                ),
-                SizedBox(width: 8.0),
-                Text(
-                  '언어',
-                  style: TextStyle(
-                    color: Color(0xFF191919),
-                    fontSize: 14,
-                    fontFamily: 'Pretendard',
-                    height: 0.11,
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Expanded(
-                  child: Container(
-                    height: 32,
-                    padding:
-                        EdgeInsets.only(top: 4, left: 12, right: 8, bottom: 4),
-                    decoration: ShapeDecoration(
-                      color: Color(0xFFF0F0F0),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _mapCodeToLanguage(selectedLanguageCode),
-                          style: TextStyle(
-                            color: Color(0xFF191919),
-                            fontSize: 14,
-                            fontFamily: 'Pretendard',
-                            height: 0.11,
-                          ),
-                        ),
-                        SvgPicture.asset(
-                          'assets/icons/DropDownArrow.svg',
-                          width: 20,
-                          height: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         if (recordingState.recordings.isNotEmpty) ...[
+          // _buildMenuItem(
+          //   context,
+          //   svgPath: 'assets/icons/Edit.svg',
+          //   label: '텍스트로 변환',
+          //   onTap: () async {
+          //     _toggleMenu(context);
+
+          //     if (widget.controller != null &&
+          //         recordingState.recordings.isNotEmpty) {
+          //       final recording = recordingState.recordings.first;
+
+          //       // 1. 설정 다이얼로그 열기
+          //       final settings = await showTranscribeSettingsDialog(context);
+          //       if (settings == null) return;
+          //       final String language = settings['language'];
+          //       final String mode = settings['mode'];
+
+          //       // 2. 광고 보기 (있다면)
+          //       await showRewardedAd(context);
+
+          //       // 3. 변환 중 로딩창
+          //       showTranscribingDialog(context);
+
+          //       // 4. 실제 변환
+          //       if (mode == 'origin') {
+          //         await recordingViewModel.transcribeRecording(
+          //           recording.path,
+          //           language,
+          //           widget.controller!,
+          //         );
+          //       } else if (mode == 'summary') {
+          //         await recordingViewModel.summarizeRecording(
+          //           recording.path,
+          //           widget.controller!,
+          //         );
+          //       }
+
+          //       // 5. 로딩창 닫기
+          //       if (Navigator.of(context).canPop()) {
+          //         Navigator.of(context).pop();
+          //       }
+          //       setState(() {});
+          //     }
+          //   },
+          // ),
+
           _buildMenuItem(
             context,
             svgPath: 'assets/icons/Edit.svg',
             label: '텍스트로 변환',
-            onTap: () async {
+            onTap: () {
               _toggleMenu(context);
               if (widget.controller != null &&
                   recordingState.recordings.isNotEmpty) {
-                final recording = recordingState.recordings.first;
-                await recordingViewModel.transcribeRecording(
-                  recording.path,
-                  selectedLanguageCode,
-                  widget.controller!,
-                );
+                ref.read(recordingBoxVisibilityProvider.notifier).state = false;
+                if (widget.focusNode != null &&
+                    widget.focusNode!.hasFocus) {
+                  widget.focusNode!.unfocus();
+                }
+                widget.onTranscribeTapped?.call(); // 콜백 호출
               }
               setState(() {});
             },
@@ -335,7 +201,7 @@ class _RecordingControllerBoxState
                     .deleteRecording(recordingState.recordings.first.path);
                 if (ref.read(recordingViewModelProvider).recordings.isEmpty) {
                   ref.read(recordingBoxVisibilityProvider.notifier).state =
-                      false;
+                  false;
                 }
               }
               _toggleMenu(context);
@@ -349,12 +215,12 @@ class _RecordingControllerBoxState
   }
 
   Widget _buildMenuItem(
-    BuildContext context, {
-    required String svgPath,
-    required String label,
-    required VoidCallback onTap,
-    Color textColor = const Color(0xFF4C4C4C),
-  }) {
+      BuildContext context, {
+        required String svgPath,
+        required String label,
+        required VoidCallback onTap,
+        Color textColor = const Color(0xFF4C4C4C),
+      }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -388,7 +254,6 @@ class _RecordingControllerBoxState
                 color: textColor,
                 fontSize: 16,
                 fontFamily: 'Pretendard',
-                height: 0.09,
               ),
             ),
           ],
@@ -400,7 +265,6 @@ class _RecordingControllerBoxState
   @override
   void dispose() {
     _menuOverlayEntry?.remove();
-    _languageMenuOverlayEntry?.remove();
     super.dispose();
   }
 
@@ -439,99 +303,99 @@ class _RecordingControllerBoxState
                 Expanded(
                   child: recordingState.recordings.isNotEmpty
                       ? LayoutBuilder(
-                          builder: (context, constraints) {
-                            final recording = recordingState.recordings.first;
+                    builder: (context, constraints) {
+                      final recording = recordingState.recordings.first;
+                      print(
+                          'Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
+                      return Container(
+                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final state =
+                            ref.watch(recordingViewModelProvider);
+                            final isPlaying = recordingViewModel
+                                .isPlaying(recording.path);
+                            final currentPosition = state.currentPosition;
+                            final displayDuration = isPlaying
+                                ? currentPosition
+                                : (state.isCompleted &&
+                                state.currentlyPlayingPath ==
+                                    recording.path)
+                                ? recording.duration
+                                : recording.duration;
                             print(
-                                'Displaying recording: ${recording.path}, Duration: ${recording.duration}, CreatedAt: ${recording.createdAt.toIso8601String()}');
-                            return Container(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Consumer(
-                                builder: (context, ref, child) {
-                                  final state =
-                                      ref.watch(recordingViewModelProvider);
-                                  final isPlaying = recordingViewModel
-                                      .isPlaying(recording.path);
-                                  final currentPosition = state.currentPosition;
-                                  final displayDuration = isPlaying
-                                      ? currentPosition
-                                      : (state.isCompleted &&
-                                              state.currentlyPlayingPath ==
-                                                  recording.path)
-                                          ? recording.duration
-                                          : recording.duration;
-                                  print(
-                                      'isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
-                                  return Row(
-                                    children: [
-                                      IconButton(
-                                        icon: isPlaying
-                                            ? SvgPicture.asset(
-                                                'assets/icons/Pause.svg',
-                                                width: 24,
-                                                height: 24,
-                                              )
-                                            : SvgPicture.asset(
-                                                'assets/icons/Play.svg',
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: BoxConstraints(),
-                                        onPressed: () {
-                                          if (isPlaying) {
-                                            recordingViewModel.pausePlayback();
-                                          } else {
-                                            recordingViewModel
-                                                .playRecording(recording.path);
-                                          }
-                                          if (widget.focusNode != null &&
-                                              widget
-                                                  .focusNode!.canRequestFocus) {
-                                            widget.focusNode!.requestFocus();
-                                          }
-                                          setState(() {});
-                                        },
-                                      ),
-                                      Text(
-                                        '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
-                                        style: TextStyle(
-                                          fontSize: 14.0,
-                                          color: isPlaying
-                                              ? Color(0xFF61CFB2)
-                                              : Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                'isPlaying: $isPlaying, currentPosition: $currentPosition, displayDuration: $displayDuration');
+                            return Row(
+                              children: [
+                                IconButton(
+                                  icon: isPlaying
+                                      ? SvgPicture.asset(
+                                    'assets/icons/Pause.svg',
+                                    width: 24,
+                                    height: 24,
+                                  )
+                                      : SvgPicture.asset(
+                                    'assets/icons/Play.svg',
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: BoxConstraints(),
+                                  onPressed: () {
+                                    if (isPlaying) {
+                                      recordingViewModel.pausePlayback();
+                                    } else {
+                                      recordingViewModel
+                                          .playRecording(recording.path);
+                                    }
+                                    if (widget.focusNode != null &&
+                                        widget
+                                            .focusNode!.canRequestFocus) {
+                                      widget.focusNode!.requestFocus();
+                                    }
+                                    setState(() {});
+                                  },
+                                ),
+                                Text(
+                                  '${displayDuration.inMinutes.toString().padLeft(2, '0')}:${(displayDuration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    color: isPlaying
+                                        ? Color(0xFF61CFB2)
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ],
                             );
                           },
-                        )
-                      : Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '녹음된 파일이 없습니다.',
-                                style: TextStyle(
-                                    fontSize: 12.0, color: Colors.grey),
-                              ),
-                              SizedBox(width: 8.0),
-                              TextButton(
-                                onPressed: () {
-                                  recordingViewModel.startRecording();
-                                  setState(() {});
-                                },
-                                child: Text('녹음 시작'),
-                              ),
-                            ],
-                          ),
                         ),
+                      );
+                    },
+                  )
+                      : Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '녹음된 파일이 없습니다.',
+                          style: TextStyle(
+                              fontSize: 12.0, color: Colors.grey),
+                        ),
+                        SizedBox(width: 8.0),
+                        TextButton(
+                          onPressed: () {
+                            recordingViewModel.startRecording();
+                            setState(() {});
+                          },
+                          child: Text('녹음 시작'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 IconButton(
                   icon: Icon(Icons.more_horiz, size: 20.0),

@@ -17,11 +17,11 @@ class PageViewModel extends StateNotifier<page_model.Page> {
 
   PageViewModel(this.groupId, this.noteId, this.pageId)
       : super(page_model.Page(
-    noteId: noteId,
-    index: 0,
-    title: '새 메모 페이지',
-    content: [],
-  ));
+          noteId: noteId,
+          index: 0,
+          title: '새 메모 페이지',
+          content: [],
+        ));
 
   Future<void> loadFromFirestore(QuillController controller) async {
     if (_isLoaded) return;
@@ -77,7 +77,8 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     }
   }
 
-  void listenToFirestore(QuillController controller, {required bool isEditing}) {
+  void listenToFirestore(QuillController controller,
+      {required bool isEditing}) {
     _isEditing = isEditing;
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
@@ -99,10 +100,12 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     });
   }
 
-  Future<void> _processSnapshot(QuillController controller, DocumentSnapshot snapshot) async {
+  Future<void> _processSnapshot(
+      QuillController controller, DocumentSnapshot snapshot) async {
     final page = page_model.Page.fromFirestore(snapshot);
     final newContentJson = jsonEncode(page.content);
-    final currentContentJson = jsonEncode(controller.document.toDelta().toJson());
+    final currentContentJson =
+        jsonEncode(controller.document.toDelta().toJson());
 
     if (newContentJson != currentContentJson) {
       try {
@@ -113,9 +116,10 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           controller.document = Document();
         }
         final newLength = controller.document.length;
-        final newCursorPosition = cursorPosition >= 0 && cursorPosition <= newLength
-            ? cursorPosition
-            : newLength;
+        final newCursorPosition =
+            cursorPosition >= 0 && cursorPosition <= newLength
+                ? cursorPosition
+                : newLength;
         controller.updateSelection(
           TextSelection.collapsed(offset: newCursorPosition),
           ChangeSource.local,
@@ -165,8 +169,9 @@ class PageViewModel extends StateNotifier<page_model.Page> {
   }
 }
 
-final pageViewModelProvider = StateNotifierProvider.family<PageViewModel, page_model.Page, Map<String, String>>(
-      (ref, params) => PageViewModel(
+final pageViewModelProvider = StateNotifierProvider.family<PageViewModel,
+    page_model.Page, Map<String, String>>(
+  (ref, params) => PageViewModel(
     params['groupId']!,
     params['noteId']!,
     params['pageId']!,

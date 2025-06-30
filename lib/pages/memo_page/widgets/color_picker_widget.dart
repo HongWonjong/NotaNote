@@ -52,9 +52,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFFDC2828).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -71,9 +71,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFFDC7628).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -90,9 +90,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFFDCB528).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -109,9 +109,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFF2DA309).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -128,9 +128,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFF1535EA).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),
@@ -147,9 +147,9 @@ class ColorPickerWidget extends ConsumerWidget {
                   shape: OvalBorder(
                     side: selectedColor?.value == Color(0xFF000000).value
                         ? BorderSide(
-                      color: AppColors.primary300Main,
-                      width: 2,
-                    )
+                            color: AppColors.primary300Main,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                 ),

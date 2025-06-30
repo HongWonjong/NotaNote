@@ -121,7 +121,8 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
     return memos.where((memo) {
       final titleMatch = memo.title.toLowerCase().contains(query);
-      final tagMatch = memo.tags.any((tag) => tag.toLowerCase().contains(query));
+      final tagMatch =
+          memo.tags.any((tag) => tag.toLowerCase().contains(query));
       return titleMatch || tagMatch;
     }).toList();
   }
@@ -214,7 +215,9 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           TextButton(
             onPressed: () async {
               final count = selectedForDelete.length;
-              await ref.read(memoViewModelProvider(widget.groupId)).deleteMemos(selectedForDelete.toList());
+              await ref
+                  .read(memoViewModelProvider(widget.groupId))
+                  .deleteMemos(selectedForDelete.toList());
               cancelDelete();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -585,7 +588,8 @@ Text(
             onSharingSettingsToggle: () {},
             onGridToggle: toggleGridView,
             selectedDeleteCount: selectedForDelete.length,
-            onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+            onDeletePressed:
+                selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
             onSearchChanged: (String value) {},
             role: widget.role,
           ),
@@ -594,7 +598,8 @@ Text(
               ? null
               : RawMaterialButton(
                   onPressed: () async {
-                    final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+                    final memoViewModel =
+                        ref.read(memoViewModelProvider(widget.groupId));
                     final newNoteId = await memoViewModel.addMemo();
                     if (newNoteId != null && mounted) {
                       Navigator.push(
@@ -610,7 +615,8 @@ Text(
                       );
                     }
                   },
-                  constraints: const BoxConstraints.tightFor(width: 70, height: 70),
+                  constraints:
+                      const BoxConstraints.tightFor(width: 70, height: 70),
                   shape: const CircleBorder(),
                   fillColor: const Color(0xFF61CFB2),
                   elevation: 6,

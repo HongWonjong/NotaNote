@@ -31,7 +31,7 @@ class NotificationViewModel extends StateNotifier<NotificationViewModelState> {
         .where('status', isEqualTo: 'pending')
         .snapshots(includeMetadataChanges: true)
         .listen(
-          (snapshot) {
+      (snapshot) {
         state = state.copyWith(
           invitationCount: snapshot.docs.length,
           error: null,
@@ -46,7 +46,8 @@ class NotificationViewModel extends StateNotifier<NotificationViewModelState> {
     );
   }
 
-  Future<bool> acceptInvitation(String invitationId, String groupId, String role) async {
+  Future<bool> acceptInvitation(
+      String invitationId, String groupId, String role) async {
     try {
       final userId = ref.read(userIdProvider);
       if (userId == null) {
@@ -61,9 +62,8 @@ class NotificationViewModel extends StateNotifier<NotificationViewModelState> {
             .collection('invitations')
             .doc(invitationId);
 
-        final groupRef = FirebaseFirestore.instance
-            .collection('notegroups')
-            .doc(groupId);
+        final groupRef =
+            FirebaseFirestore.instance.collection('notegroups').doc(groupId);
 
         final invitationSnapshot = await transaction.get(invitationRef);
         if (!invitationSnapshot.exists) {
@@ -72,7 +72,8 @@ class NotificationViewModel extends StateNotifier<NotificationViewModelState> {
 
         final newRole = role == 'editor_waiting' ? 'editor' : 'guest';
         final groupSnapshot = await transaction.get(groupRef);
-        final permissions = List<Map<String, dynamic>>.from(groupSnapshot.data()?['permissions'] ?? []);
+        final permissions = List<Map<String, dynamic>>.from(
+            groupSnapshot.data()?['permissions'] ?? []);
         final updatedPermissions = permissions.map((perm) {
           if (perm['userId'] == userId) {
             return {'userId': userId, 'role': newRole};
@@ -141,6 +142,6 @@ class NotificationViewModelState {
 }
 
 final notificationViewModelProvider =
-StateNotifierProvider<NotificationViewModel, NotificationViewModelState>(
-      (ref) => NotificationViewModel(ref),
+    StateNotifierProvider<NotificationViewModel, NotificationViewModelState>(
+  (ref) => NotificationViewModel(ref),
 );

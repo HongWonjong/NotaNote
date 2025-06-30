@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/theme/colors.dart';
-import 'package:nota_note/pages/main_page/main_page.dart';
 
-class SharedMainItem extends ConsumerWidget {
+class SharedMainItem extends StatelessWidget {
   final String title;
   final String groupId;
   final int noteCount;
@@ -23,7 +21,7 @@ class SharedMainItem extends ConsumerWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final displayTitle =
     title.length > 15 ? '${title.substring(0, 15)}...' : title;
 
@@ -32,12 +30,12 @@ class SharedMainItem extends ConsumerWidget {
       child: Container(
         width: 335,
         height: 64,
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: ShapeDecoration(
-          color: AppColors.primary300Main,
+          color: const Color(0xFFF9F9F9),
           shape: RoundedRectangleBorder(
-            side: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+            side: const BorderSide(width: 1, color: Color(0xFFF0F0F0)),
             borderRadius: BorderRadius.circular(12),
           ),
         ),
@@ -46,35 +44,63 @@ class SharedMainItem extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
                   'assets/icons/group_folder_icon.svg',
                   width: 16,
                   height: 16,
-                  colorFilter:
-                  ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary300Main,
+                    BlendMode.srcIn,
+                  ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 (searchQuery != null &&
                     searchQuery!.isNotEmpty &&
-                    title
-                        .toLowerCase()
-                        .contains(searchQuery!.toLowerCase()))
+                    title.toLowerCase().contains(searchQuery!.toLowerCase()))
                     ? _highlightText(displayTitle, searchQuery!)
                     : Text(
                   displayTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
+                    color: Color(0xFF191919),
                     fontSize: 16,
-                    color: Colors.white,
+                    fontFamily: 'Pretendard',
+                    height: 0.09,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   '($noteCount)',
-                  style: TextStyle(
+                  style: const TextStyle(
+                    color: Color(0xFF999999),
                     fontSize: 14,
-                    overflow: TextOverflow.ellipsis,
-                    color: Colors.white70,
+                    fontFamily: 'Pretendard',
+                    height: 0.11,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '공유',
+                  style: TextStyle(
+                    color: Color(0xFF7F7F7F),
+                    fontSize: 12,
+                    fontFamily: 'Pretendard',
+                    height: 0.12,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                SvgPicture.asset(
+                  'assets/icons/User.svg', // Replace with actual share icon path
+                  width: 16,
+                  height: 16,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF7F7F7F),
+                    BlendMode.srcIn,
                   ),
                 ),
               ],
@@ -95,22 +121,35 @@ class SharedMainItem extends ConsumerWidget {
       if (index < 0) {
         spans.add(TextSpan(
           text: text.substring(start),
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(
+            color: Color(0xFF191919),
+            fontSize: 16,
+            fontFamily: 'Pretendard',
+            height: 0.09,
+          ),
         ));
         break;
       }
       if (index > start) {
         spans.add(TextSpan(
           text: text.substring(start, index),
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(
+            color: Color(0xFF191919),
+            fontSize: 16,
+            fontFamily: 'Pretendard',
+            height: 0.09,
+          ),
         ));
       }
       spans.add(TextSpan(
         text: text.substring(index, index + query.length),
-        style: TextStyle(
-            color: Colors.yellow,
-            fontSize: 16,
-            fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.yellow,
+          fontSize: 16,
+          fontFamily: 'Pretendard',
+          fontWeight: FontWeight.bold,
+          height: 0.09,
+        ),
       ));
       start = index + query.length;
     }
