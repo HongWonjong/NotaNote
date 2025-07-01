@@ -7,6 +7,7 @@ import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/utils/view_mode_prefs.dart';
+import 'package:nota_note/utils/string_utils.dart';
 
 String trimTitleForDisplay(String title, int maxLength) {
   if (title.length <= maxLength) {
@@ -283,7 +284,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               groupId: memo.groupId,
               noteId: memo.noteId,
               pageId: '1',
-              role: widget.role, // role 전달 (필요하면)
+              role: widget.role,
             ),
           ),
         );
@@ -297,9 +298,8 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
               left: 20,
               right: 20,
               bottom: 16,
-              top: isDeleteMode ? 22 : 16,  // 제목 위쪽 여백 조절
+              top: isDeleteMode ? 32 : 20,
             ),
-            constraints: const BoxConstraints(minHeight: 260),
             decoration: BoxDecoration(
               color: Colors.white,
               border: const Border(
@@ -319,42 +319,49 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Text.rich(
-  _highlightSearchText(
-    trimTitleForDisplay(memo.title, 8),
-    searchText,
-  ),
-  maxLines: 2,
-  overflow: TextOverflow.ellipsis,
-  style: const TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 16,
-  ),
-),
-const SizedBox(height: 18),
-Text(
-  memo.content,
-  maxLines: 3,
-  overflow: TextOverflow.ellipsis,
-  style: const TextStyle(
-    color: Color(0xFF333333),
-    fontSize: 13,
-    fontFamily: 'Pretendard',
-    height: 1.4,
-  ),
-),
+                        _highlightSearchText(
+                          trimTitleForDisplay(memo.title, 8),
+                          searchText,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Text(
+                            extractPlainText(memo.content), // 여기 수정
+                            style: const TextStyle(
+                              color: Color(0xFF333333),
+                              fontSize: 13,
+                              fontFamily: 'Pretendard',
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       if (memo.tags.isNotEmpty)
                         Wrap(
                           spacing: 6,
                           runSpacing: 6,
                           children: memo.tags.take(3).map((tag) {
-                            final bool isHighlighted = searchText.isNotEmpty && tag.contains(searchText);
+                            final bool isHighlighted =
+                                searchText.isNotEmpty && tag.contains(searchText);
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: ShapeDecoration(
-                                color: isHighlighted ? const Color(0xFFB1E7D9) : const Color(0xFFF0F0F0),
+                                color: isHighlighted
+                                    ? const Color(0xFFB1E7D9)
+                                    : const Color(0xFFF0F0F0),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -434,44 +441,47 @@ Text(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Text.rich(
-  _highlightSearchText(
-    trimTitleForDisplay(memo.title, 20),
-    searchText,
-  ),
-  maxLines: 1,
-  overflow: TextOverflow.ellipsis,
-  style: const TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 16,
-    color: Colors.black87,
-  ),
-),
-const SizedBox(height: 18),
-Text(
-  memo.content,
-  maxLines: 2,
-  overflow: TextOverflow.ellipsis,
-  style: const TextStyle(
-    color: Color(0xFF333333),
-    fontSize: 13,
-    fontFamily: 'Pretendard',
-    height: 1.3,
-  ),
-),
-
+                        _highlightSearchText(
+                          trimTitleForDisplay(memo.title, 20),
+                          searchText,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        extractPlainText(memo.content), // 여기 수정
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF333333),
+                          fontSize: 13,
+                          fontFamily: 'Pretendard',
+                          height: 1.3,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       if (memo.tags.isNotEmpty)
                         Wrap(
                           spacing: 6,
                           runSpacing: 6,
                           children: memo.tags.take(3).map((tag) {
-                            final bool isHighlighted = searchText.isNotEmpty && tag.contains(searchText);
+                            final bool isHighlighted =
+                                searchText.isNotEmpty && tag.contains(searchText);
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: ShapeDecoration(
-                                color: isHighlighted ? const Color(0xFFB1E7D9) : const Color(0xFFF0F0F0),
+                                color: isHighlighted
+                                    ? const Color(0xFFB1E7D9)
+                                    : const Color(0xFFF0F0F0),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -531,7 +541,6 @@ Text(
           ),
   );
 }
-
 
   @override
   Widget build(BuildContext context) {
