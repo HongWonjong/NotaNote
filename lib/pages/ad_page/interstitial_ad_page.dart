@@ -12,7 +12,6 @@ class InterstitialAdPage extends StatefulWidget {
 
 class _InterstitialAdPageState extends State<InterstitialAdPage> {
   InterstitialAd? _ad;
-  bool _isAdLoaded = false;
 
   @override
   void initState() {
@@ -22,29 +21,46 @@ class _InterstitialAdPageState extends State<InterstitialAdPage> {
 
   void _loadAd() {
     InterstitialAd.load(
-      adUnitId: 'ca-app-pub-8918591811866398/2218406512', //광고 단위 id
+      adUnitId: 'ca-app-pub-8918591811866398/2218406512', // 실제 광고 단위 ID 사용
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
           _ad = ad;
-          setState(() => _isAdLoaded = true);
+
+          // 전면 광고 콜백 설정
           _ad!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
-              if (widget.onAdComplete != null) widget.onAdComplete!();
-              Navigator.of(context).maybePop();
+              if (mounted) {
+                Navigator.of(context).pop(); // 광고 페이지 pop
+                if (widget.onAdComplete != null) {
+                  Future.microtask(
+                      () => widget.onAdComplete!()); // 광고 종료 후 콜백 호출
+                }
+              }
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               ad.dispose();
-              if (widget.onAdComplete != null) widget.onAdComplete!();
-              Navigator.of(context).maybePop();
+              if (mounted) {
+                Navigator.of(context).pop(); // 광고 페이지 pop
+                if (widget.onAdComplete != null) {
+                  Future.microtask(
+                      () => widget.onAdComplete!()); // 실패 시에도 콜백 호출
+                }
+              }
             },
           );
-          _ad!.show();
+
+          _ad!.show(); // 광고 표시
         },
         onAdFailedToLoad: (LoadAdError error) {
-          if (widget.onAdComplete != null) widget.onAdComplete!();
-          Navigator.of(context).maybePop();
+          // 광고 로드 실패 시 즉시 pop 및 콜백
+          if (mounted) {
+            Navigator.of(context).pop();
+            if (widget.onAdComplete != null) {
+              widget.onAdComplete!();
+            }
+          }
         },
       ),
     );
