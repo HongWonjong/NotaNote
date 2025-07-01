@@ -110,7 +110,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                               padding: EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Color(0xFFFFEEEE),
+                                color: Color(0xFFF0F0F0),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
