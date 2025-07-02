@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 
-class SettingsMenu extends StatelessWidget {
+class SettingsMenu extends ConsumerWidget {
   final VoidCallback onClose;
   final GlobalKey iconKey;
+  final VoidCallback onDeleteSelected;
 
   const SettingsMenu({
     required this.onClose,
     required this.iconKey,
+    required this.onDeleteSelected,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final RenderBox? renderBox =
-        iconKey.currentContext?.findRenderObject() as RenderBox?;
+    iconKey.currentContext?.findRenderObject() as RenderBox?;
     final Offset? iconPosition = renderBox?.localToGlobal(Offset.zero);
     final Size? iconSize = renderBox?.size;
 
@@ -67,6 +71,7 @@ class SettingsMenu extends StatelessWidget {
                       text: '삭제하기',
                       textColor: Color(0xFFFF2F2F),
                       onTap: () {
+                        onDeleteSelected();
                         onClose();
                       },
                     ),
