@@ -15,53 +15,107 @@ class _RecordPageState extends ConsumerState<RecordPage> {
   int? selectedIndex;
   bool _showSettings = false;
   GlobalKey _settingsIconKey = GlobalKey();
+  bool _isDeleteMode = false;
+  Set<int> _selectedItems = {};
 
   @override
   void initState() {
     super.initState();
-    print('RecordPage initState: Starting sync');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('RecordPage: Triggering syncRecordingsWithLoading');
       ref.read(recordingViewModelProvider.notifier).syncRecordingsWithLoading();
+    });
+  }
+
+  void _enterDeleteMode() {
+    setState(() {
+      _isDeleteMode = true;
+      _selectedItems.clear();
+      _showSettings = false;
+    });
+  }
+
+  void _exitDeleteMode() {
+    setState(() {
+      _isDeleteMode = false;
+      _selectedItems.clear();
+    });
+  }
+
+  void _toggleItemSelection(int index) {
+    setState(() {
+      if (_selectedItems.contains(index)) {
+        _selectedItems.remove(index);
+      } else {
+        _selectedItems.add(index);
+      }
+    });
+  }
+
+  void _deleteSelectedItems() {
+    final viewModel = ref.read(recordingViewModelProvider.notifier);
+    final recordings = ref.read(recordingViewModelProvider).recordings;
+    for (var index in _selectedItems.toList()) {
+      viewModel.deleteRecording(recordings[index].path);
+    }
+    setState(() {
+      _isDeleteMode = false;
+      _selectedItems.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print('RecordPage: Building UI');
     final state = ref.watch(recordingViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('녹음 기록'),
-        leading: Padding(padding: EdgeInsets.only(left: 20),
-        child: IconButton(
-          icon: SvgPicture.asset(
-            'assets/icons/Arrow.svg',
-            width: 24,
-            height: 24,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        ),
-        actions: [
-          Padding(padding: EdgeInsets.only(right: 20),
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
           child: IconButton(
-            key: _settingsIconKey,
             icon: SvgPicture.asset(
-              'assets/icons/DotCircle.svg',
-              color: Colors.black,
+              'assets/icons/Arrow.svg',
               width: 24,
               height: 24,
             ),
             onPressed: () {
-              setState(() {
-                _showSettings = !_showSettings;
-              });
+              Navigator.pop(context);
             },
           ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: _isDeleteMode
+                ? TextButton(
+              onPressed: _selectedItems.isEmpty
+                  ? null
+                  : _deleteSelectedItems,
+              child: Text(
+                '삭제',
+                style: TextStyle(
+                  color: _selectedItems.isNotEmpty
+                      ? Colors.red
+                      : Color(0xFF999999),
+                  fontSize: 16,
+                  fontFamily: 'Pretendard',
+                ),
+              ),
+            )
+                : IconButton(
+              key: _settingsIconKey,
+              icon: SvgPicture.asset(
+                'assets/icons/DotCircle.svg',
+                color: Colors.black,
+                width: 24,
+                height: 24,
+              ),
+              onPressed: () {
+                setState(() {
+                  _showSettings = !_showSettings;
+                });
+              },
+            ),
           ),
         ],
       ),
@@ -77,7 +131,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                 Container(
                   width: double.infinity,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: Text(
                     '총 ${state.recordings.length}개',
                     style: TextStyle(
@@ -96,6 +150,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                         recording: recording,
                         index: index,
                         isSelected: selectedIndex == index,
+                        isDeleteMode: _isDeleteMode,
+                        isItemSelected: _selectedItems.contains(index),
                         onTap: () => _togglePlaybackControls(index, recording),
                         onMenuTap: () {
                           showModalBottomSheet(
@@ -110,6 +166,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                                 BottomSheetMenu(recording: recording),
                           );
                         },
+                        onItemSelect: () => _toggleItemSelection(index),
                       );
                     },
                   ),
@@ -117,7 +174,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
               ],
             ),
           ),
-          if (_showSettings)
+          if (_showSettings && !_isDeleteMode)
             SettingsMenu(
               onClose: () {
                 setState(() {
@@ -125,6 +182,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                 });
               },
               iconKey: _settingsIconKey,
+              onDeleteSelected: _enterDeleteMode,
             ),
           if (state.isSyncing)
             Container(
@@ -157,6 +215,10 @@ class _RecordPageState extends ConsumerState<RecordPage> {
 
   Future<void> _togglePlaybackControls(
       int index, RecordingInfo recording) async {
+    if (_isDeleteMode) {
+      _toggleItemSelection(index);
+      return;
+    }
     final viewModel = ref.read(recordingViewModelProvider.notifier);
     final currentState = ref.read(recordingViewModelProvider);
 
@@ -184,15 +246,21 @@ class _RecordingItem extends StatefulWidget {
   final RecordingInfo recording;
   final int index;
   final bool isSelected;
+  final bool isDeleteMode;
+  final bool isItemSelected;
   final VoidCallback onTap;
   final VoidCallback onMenuTap;
+  final VoidCallback onItemSelect;
 
   const _RecordingItem({
     required this.recording,
     required this.index,
     required this.isSelected,
+    required this.isDeleteMode,
+    required this.isItemSelected,
     required this.onTap,
     required this.onMenuTap,
+    required this.onItemSelect,
   });
 
   @override
@@ -263,46 +331,86 @@ class __RecordingItemState extends State<_RecordingItem>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.recording.path
-                              .split('/')
-                              .last
-                              .replaceAll('.m4a', ''),
-                          style: TextStyle(
-                            color: Color(0xFF191919),
-                            fontSize: 16,
-                            fontFamily: 'Pretendard',
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (widget.isDeleteMode)
+                            Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: widget.onItemSelect,
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: ShapeDecoration(
+                                    color: widget.isItemSelected
+                                        ? Color(0xFF60CFB1)
+                                        : Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        width: 1,
+                                        color: Color(0xFF60CFB1),
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: widget.isItemSelected
+                                      ? Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: Colors.white,
+                                  )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.recording.path
+                                      .split('/')
+                                      .last
+                                      .replaceAll('.m4a', ''),
+                                  style: TextStyle(
+                                    color: Color(0xFF191919),
+                                    fontSize: 16,
+                                    fontFamily: 'Pretendard',
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  timeString,
+                                  style: TextStyle(
+                                    color: Color(0xFFB3B3B3),
+                                    fontSize: 14,
+                                    fontFamily: 'Pretendard',
+                                  ),
+                                ),
+                                Text(
+                                  '${widget.recording.createdAt.year}. ${widget.recording.createdAt.month}. ${widget.recording.createdAt.day}.',
+                                  style: TextStyle(
+                                    color: Color(0xFFB3B3B3),
+                                    fontSize: 14,
+                                    fontFamily: 'Pretendard',
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          timeString,
-                          style: TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 14,
-                            fontFamily: 'Pretendard',
-                          ),
-                        ),
-                        Text(
-                          '${widget.recording.createdAt.year}. ${widget.recording.createdAt.month}. ${widget.recording.createdAt.day}.',
-                          style: TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 14,
-                            fontFamily: 'Pretendard',
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: SvgPicture.asset(
-                        'assets/icons/DotsThree.svg',
-                        color: Colors.black,
+                        ],
                       ),
-                      onPressed: widget.onMenuTap,
                     ),
+                    if (!widget.isDeleteMode)
+                      IconButton(
+                        icon: SvgPicture.asset(
+                          'assets/icons/DotsThree.svg',
+                          color: Colors.black,
+                        ),
+                        onPressed: widget.onMenuTap,
+                      ),
                   ],
                 ),
                 AnimatedBuilder(
@@ -315,10 +423,10 @@ class __RecordingItemState extends State<_RecordingItem>
                         maxHeight: 90,
                         child: widget.isSelected
                             ? PlaybackControls(
-                                recording: widget.recording,
-                                position: state.currentPosition,
-                                duration: widget.recording.duration,
-                              )
+                          recording: widget.recording,
+                          position: state.currentPosition,
+                          duration: widget.recording.duration,
+                        )
                             : SizedBox.shrink(),
                       ),
                     );
