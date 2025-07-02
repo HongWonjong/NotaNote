@@ -44,7 +44,7 @@ class AccountDeletedPage extends StatelessWidget {
                       '계정 탈퇴가 완료되었습니다.',
                       textAlign: TextAlign.center,
                       style: PretendardTextStyles.headS.copyWith(
-                        color: Colors.grey[900],
+                        color: AppColors.gray900,
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -52,7 +52,7 @@ class AccountDeletedPage extends StatelessWidget {
                       '지금까지 노타노트를 이용해주셔서 감사합니다.\n앞으로 더 나은 서비스를 제공하기 위해 노력하겠습니다.',
                       textAlign: TextAlign.center,
                       style: PretendardTextStyles.labelM.copyWith(
-                        color: Colors.grey[600],
+                        color: AppColors.gray600,
                       ),
                     ),
                   ],

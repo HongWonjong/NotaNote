@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
 
 class TermsPage extends StatefulWidget {
@@ -30,11 +31,14 @@ class _TermsPageState extends State<TermsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('이용약관',
-            style:
-                PretendardTextStyles.titleS.copyWith(color: Colors.grey[900])),
+            style: PretendardTextStyles.titleS.copyWith(
+              color: AppColors.gray900,
+            )),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.grey[700]),
+        iconTheme: IconThemeData(
+          color: AppColors.gray700,
+        ),
       ),
       body: _markdownData == null
           ? const Center(child: CircularProgressIndicator())
