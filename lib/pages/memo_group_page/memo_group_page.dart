@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/models/memo.dart';
 import 'package:nota_note/models/sort_options.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/utils/view_mode_prefs.dart';
 import 'package:nota_note/utils/string_utils.dart';
+import 'package:nota_note/viewmodels/memo_active_users_viewmodel.dart';
+import 'widgets/active_users_widget.dart';
 
 String trimTitleForDisplay(String title, int maxLength) {
   if (title.length <= maxLength) {
@@ -40,10 +43,11 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
   final TextEditingController _searchController = TextEditingController();
   String searchText = '';
-
   SortOption selectedSort = SortOption.dateDesc;
-
   Set<String> selectedForDelete = {};
+
+  // 활성 뷰모델 인스턴스 추적용
+  final Set<String> _activeNoteIds = {};
 
   @override
   void initState() {
@@ -66,6 +70,13 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    // 모든 MemoActiveUsersViewModel 인스턴스 정리
+    for (final noteId in _activeNoteIds) {
+      ref.invalidate(memoActiveUsersViewModelProvider({
+        'groupId': widget.groupId,
+        'noteId': noteId,
+      }));
+    }
     super.dispose();
   }
 
@@ -122,8 +133,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
 
     return memos.where((memo) {
       final titleMatch = memo.title.toLowerCase().contains(query);
-      final tagMatch =
-          memo.tags.any((tag) => tag.toLowerCase().contains(query));
+      final tagMatch = memo.tags.any((tag) => tag.toLowerCase().contains(query));
       return titleMatch || tagMatch;
     }).toList();
   }
@@ -252,295 +262,308 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
   }
 
   Widget _buildMemoCard(Memo memo) {
-  final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
+    final isSelectedForDelete = selectedForDelete.contains(memo.noteId);
 
-  Widget buildCheckCircle() {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isSelectedForDelete ? const Color(0xFF61CFB2) : Colors.transparent,
-        border: Border.all(
-          color: const Color(0xFF61CFB2),
-          width: 2,
-        ),
-      ),
-      child: isSelectedForDelete
-          ? const Icon(Icons.check, color: Colors.white, size: 16)
-          : null,
-    );
-  }
+    // 메모 ID를 활성 뷰모델 추적용으로 추가
+    _activeNoteIds.add(memo.noteId);
 
-  return GestureDetector(
-    onTap: () {
-      if (isDeleteMode) {
-        toggleSelectForDelete(memo.noteId);
-      } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MemoPage(
-              groupId: memo.groupId,
-              noteId: memo.noteId,
-              pageId: '1',
-              role: widget.role,
-            ),
+    Widget buildCheckCircle() {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelectedForDelete ? const Color(0xFF61CFB2) : Colors.transparent,
+          border: Border.all(
+            color: const Color(0xFF61CFB2),
+            width: 2,
           ),
-        );
-      }
-    },
-    child: isGrid
-        ? Container(
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              bottom: 16,
-              top: isDeleteMode ? 32 : 20,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: const Border(
-                left: BorderSide(color: Color(0xFFF0F0F0)),
-                top: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
-                right: BorderSide(color: Color(0xFFF0F0F0)),
-                bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+        ),
+        child: isSelectedForDelete
+            ? const Icon(Icons.check, color: Colors.white, size: 16)
+            : null,
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (isDeleteMode) {
+          toggleSelectForDelete(memo.noteId);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MemoPage(
+                groupId: memo.groupId,
+                noteId: memo.noteId,
+                pageId: '1',
+                role: widget.role,
               ),
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: isDeleteMode ? 32 : 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text.rich(
-                        _highlightSearchText(
-                          trimTitleForDisplay(memo.title, 8),
-                          searchText,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Flexible(
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Text(
-                            extractPlainText(memo.content), // 여기 수정
-                            style: const TextStyle(
-                              color: Color(0xFF333333),
-                              fontSize: 13,
-                              fontFamily: 'Pretendard',
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (memo.tags.isNotEmpty)
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: memo.tags.take(3).map((tag) {
-                            final bool isHighlighted =
-                                searchText.isNotEmpty && tag.contains(searchText);
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: ShapeDecoration(
-                                color: isHighlighted
-                                    ? const Color(0xFFB1E7D9)
-                                    : const Color(0xFFF0F0F0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: Color(0xFF191919),
-                                  fontSize: 12,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.2,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      if (memo.tags.length > 3)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            '+${memo.tags.length - 3}',
-                            style: const TextStyle(
-                              color: Color(0xFF7F7F7F),
-                              fontSize: 12,
-                              fontFamily: 'Pretendard',
-                              height: 1.2,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 16),
-                      Text(
-                        formatTimeAgo(memo.updatedAt),
-                        style: const TextStyle(
-                          color: Color(0xFF999999),
-                          fontSize: 14,
-                          fontFamily: 'Pretendard',
-                          height: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isDeleteMode)
-                  Positioned(
-                    top: -12,
-                    left: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        toggleSelectForDelete(memo.noteId);
-                      },
-                      child: buildCheckCircle(),
+          );
+        }
+      },
+      child: isGrid
+          ? Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: 16,
+          top: isDeleteMode ? 32 : 20,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(
+            left: BorderSide(color: Color(0xFFF0F0F0)),
+            top: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+            right: BorderSide(color: Color(0xFFF0F0F0)),
+            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: isDeleteMode ? 32 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 6),
+                  Text.rich(
+                    _highlightSearchText(
+                      trimTitleForDisplay(memo.title, 8),
+                      searchText,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-              ],
-            ),
-          )
-        : Container(
-            constraints: const BoxConstraints(minHeight: 130),
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              bottom: 12,
-              top: isDeleteMode ? 20 : 12,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
-              ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: isDeleteMode ? 32 : 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text.rich(
-                        _highlightSearchText(
-                          trimTitleForDisplay(memo.title, 20),
-                          searchText,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        extractPlainText(memo.content), // 여기 수정
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 18),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Text(
+                        extractPlainText(memo.content),
                         style: const TextStyle(
                           color: Color(0xFF333333),
                           fontSize: 13,
                           fontFamily: 'Pretendard',
-                          height: 1.3,
+                          height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      if (memo.tags.isNotEmpty)
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: memo.tags.take(3).map((tag) {
-                            final bool isHighlighted =
-                                searchText.isNotEmpty && tag.contains(searchText);
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: ShapeDecoration(
-                                color: isHighlighted
-                                    ? const Color(0xFFB1E7D9)
-                                    : const Color(0xFFF0F0F0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: Color(0xFF191919),
-                                  fontSize: 12,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.2,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      if (memo.tags.length > 3)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (memo.tags.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: memo.tags.take(3).map((tag) {
+                        final bool isHighlighted =
+                            searchText.isNotEmpty && tag.contains(searchText);
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: ShapeDecoration(
+                            color: isHighlighted
+                                ? const Color(0xFFB1E7D9)
+                                : const Color(0xFFF0F0F0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                           child: Text(
-                            '+${memo.tags.length - 3}',
+                            tag,
                             style: const TextStyle(
-                              color: Color(0xFF7F7F7F),
+                              color: Color(0xFF191919),
                               fontSize: 12,
                               fontFamily: 'Pretendard',
                               height: 1.2,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      const SizedBox(height: 16),
-                      Text(
-                        formatTimeAgo(memo.updatedAt),
+                        );
+                      }).toList(),
+                    ),
+                  if (memo.tags.length > 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '+${memo.tags.length - 3}',
                         style: const TextStyle(
-                          color: Color(0xFF191919),
-                          fontSize: 14,
+                          color: Color(0xFF7F7F7F),
+                          fontSize: 12,
                           fontFamily: 'Pretendard',
                           height: 1.2,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                if (isDeleteMode)
-                  Positioned(
-                    top: -12,
-                    left: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        toggleSelectForDelete(memo.noteId);
-                      },
-                      child: buildCheckCircle(),
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    formatTimeAgo(memo.updatedAt),
+                    style: const TextStyle(
+                      color: Color(0xFF999999),
+                      fontSize: 14,
+                      fontFamily: 'Pretendard',
+                      height: 1.2,
                     ),
                   ),
-              ],
+                  const SizedBox(height: 8),
+                  ActiveUsersWidget(
+                    groupId: widget.groupId,
+                    noteId: memo.noteId,
+                  ),
+                ],
+              ),
             ),
+            if (isDeleteMode)
+              Positioned(
+                top: -12,
+                left: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    toggleSelectForDelete(memo.noteId);
+                  },
+                  child: buildCheckCircle(),
+                ),
+              ),
+          ],
+        ),
+      )
+          : Container(
+        constraints: const BoxConstraints(minHeight: 130),
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: 12,
+          top: isDeleteMode ? 20 : 12,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(width: 1, color: Color(0xFFF0F0F0)),
           ),
-  );
-}
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: isDeleteMode ? 32 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 6),
+                  Text.rich(
+                    _highlightSearchText(
+                      trimTitleForDisplay(memo.title, 20),
+                      searchText,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    extractPlainText(memo.content),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF333333),
+                      fontSize: 13,
+                      fontFamily: 'Pretendard',
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (memo.tags.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: memo.tags.take(3).map((tag) {
+                        final bool isHighlighted =
+                            searchText.isNotEmpty && tag.contains(searchText);
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: ShapeDecoration(
+                            color: isHighlighted
+                                ? const Color(0xFFB1E7D9)
+                                : const Color(0xFFF0F0F0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            tag,
+                            style: const TextStyle(
+                              color: Color(0xFF191919),
+                              fontSize: 12,
+                              fontFamily: 'Pretendard',
+                              height: 1.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  if (memo.tags.length > 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '+${memo.tags.length - 3}',
+                        style: const TextStyle(
+                          color: Color(0xFF7F7F7F),
+                          fontSize: 12,
+                          fontFamily: 'Pretendard',
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    formatTimeAgo(memo.updatedAt),
+                    style: const TextStyle(
+                      color: Color(0xFF191919),
+                      fontSize: 14,
+                      fontFamily: 'Pretendard',
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ActiveUsersWidget(
+                    groupId: widget.groupId,
+                    noteId: memo.noteId,
+                  ),
+                ],
+              ),
+            ),
+            if (isDeleteMode)
+              Positioned(
+                top: -12,
+                left: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    toggleSelectForDelete(memo.noteId);
+                  },
+                  child: buildCheckCircle(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -561,20 +584,20 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           currentMemoCount = memos.length;
           content = isGrid
               ? GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.9,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: currentMemoCount,
-                  itemBuilder: (context, index) => _buildMemoCard(memos[index]),
-                )
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.9,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: currentMemoCount,
+            itemBuilder: (context, index) => _buildMemoCard(memos[index]),
+          )
               : ListView.builder(
-                  itemCount: currentMemoCount,
-                  itemBuilder: (context, index) => _buildMemoCard(memos[index]),
-                );
+            itemCount: currentMemoCount,
+            itemBuilder: (context, index) => _buildMemoCard(memos[index]),
+          );
         }
 
         return Scaffold(
@@ -597,8 +620,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
             onSharingSettingsToggle: () {},
             onGridToggle: toggleGridView,
             selectedDeleteCount: selectedForDelete.length,
-            onDeletePressed:
-                selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
+            onDeletePressed: selectedForDelete.isEmpty ? null : _confirmDeleteDialog,
             onSearchChanged: (String value) {},
             role: widget.role,
           ),
@@ -606,36 +628,34 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           floatingActionButton: isDeleteMode || widget.role == 'guest'
               ? null
               : RawMaterialButton(
-                  onPressed: () async {
-                    final memoViewModel =
-                        ref.read(memoViewModelProvider(widget.groupId));
-                    final newNoteId = await memoViewModel.addMemo();
-                    if (newNoteId != null && mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MemoPage(
-                            groupId: widget.groupId,
-                            noteId: newNoteId,
-                            pageId: '1',
-                            role: widget.role, // role 전달
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  constraints:
-                      const BoxConstraints.tightFor(width: 70, height: 70),
-                  shape: const CircleBorder(),
-                  fillColor: const Color(0xFF61CFB2),
-                  elevation: 6,
-                  child: SvgPicture.asset(
-                    'assets/icons/FilePlus.svg',
-                    width: 28,
-                    height: 28,
-                    color: Colors.white,
+            onPressed: () async {
+              final memoViewModel = ref.read(memoViewModelProvider(widget.groupId));
+              final newNoteId = await memoViewModel.addMemo();
+              if (newNoteId != null && mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MemoPage(
+                      groupId: widget.groupId,
+                      noteId: newNoteId,
+                      pageId: '1',
+                      role: widget.role,
+                    ),
                   ),
-                ),
+                );
+              }
+            },
+            constraints: const BoxConstraints.tightFor(width: 70, height: 70),
+            shape: const CircleBorder(),
+            fillColor: const Color(0xFF61CFB2),
+            elevation: 6,
+            child: SvgPicture.asset(
+              'assets/icons/FilePlus.svg',
+              width: 28,
+              height: 28,
+              color: Colors.white,
+            ),
+          ),
         );
       },
     );
