@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:nota_note/pages/login_page/login_page.dart';
 import 'package:nota_note/pages/login_page/shared_prefs_helper.dart';
@@ -28,16 +30,21 @@ class UserProfilePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(color: Colors.grey),
+        leading: Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: const BackButton(color: Colors.grey),
+        ),
         title: Text('프로필',
-            style:
-                PretendardTextStyles.titleS.copyWith(color: Colors.grey[900])),
+            style: PretendardTextStyles.titleS.copyWith(
+              color: AppColors.gray900,
+            )),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.grey[700]),
+        iconTheme: IconThemeData(
+          color: AppColors.gray700,
+        ),
         actions: [
-          // 프로필 수정 버튼
           TextButton(
             onPressed: () async {
               userAsync.whenOrNull(
@@ -56,8 +63,9 @@ class UserProfilePage extends ConsumerWidget {
               );
             },
             child: Text('수정',
-                style: PretendardTextStyles.bodyM
-                    .copyWith(color: Colors.grey[700])),
+                style: PretendardTextStyles.bodyM.copyWith(
+                  color: AppColors.gray700,
+                )),
           )
         ],
       ),
@@ -93,8 +101,9 @@ class UserProfilePage extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('닉네임',
-                          style: PretendardTextStyles.bodyMEmphasis
-                              .copyWith(color: Colors.grey[800])),
+                          style: PretendardTextStyles.bodyMEmphasis.copyWith(
+                            color: AppColors.gray800,
+                          )),
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
@@ -104,18 +113,22 @@ class UserProfilePage extends ConsumerWidget {
                               horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(
+                              color: AppColors.gray300,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(user.displayName,
-                              style: PretendardTextStyles.bodyM
-                                  .copyWith(color: Colors.grey[900])),
+                              style: PretendardTextStyles.bodyM.copyWith(
+                                color: AppColors.gray900,
+                              )),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text('이메일',
-                          style: PretendardTextStyles.bodyMEmphasis
-                              .copyWith(color: Colors.grey[800])),
+                          style: PretendardTextStyles.bodyMEmphasis.copyWith(
+                            color: AppColors.gray800,
+                          )),
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
@@ -125,22 +138,107 @@ class UserProfilePage extends ConsumerWidget {
                               horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(
+                              color: AppColors.gray300,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(user.email,
-                              style: PretendardTextStyles.bodyM
-                                  .copyWith(color: Colors.grey[900])),
+                              style: PretendardTextStyles.bodyM.copyWith(
+                                color: AppColors.gray900,
+                              )),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 30),
-                Divider(color: Colors.grey[200], thickness: 6),
-                const SizedBox(height: 10),
 
-                // 로그아웃/탈퇴 버튼은 별도 위젯으로 분리
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 위 실선
+                    Container(
+                      height: 1.5,
+                      color: AppColors.gray100,
+                    ),
+                    // 초대태그 박스 (좌우패딩)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 4),
+                      child: SizedBox(
+                        height: 48,
+                        child: Row(
+                          children: [
+                            // 라벨
+                            SizedBox(
+                              width: 74,
+                              height: 24,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '내 초대태그',
+                                  style: PretendardTextStyles.bodyM.copyWith(
+                                    color: AppColors.gray900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            // 해시태그 + 복사아이콘
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      user.hashTag.isEmpty ? '-' : user.hashTag,
+                                      style: PretendardTextStyles.bodyMEmphasis
+                                          .copyWith(
+                                        color: AppColors.gray700,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        if (user.hashTag.isNotEmpty) {
+                                          await Clipboard.setData(
+                                            ClipboardData(text: user.hashTag),
+                                          );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content:
+                                                    Text('초대태그가 복사되었습니다!')),
+                                          );
+                                        }
+                                      },
+                                      child: SvgPicture.asset(
+                                        'assets/icons/Copy.svg',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 아래 실선
+                    Container(
+                      height: 1.5,
+                      color: AppColors.gray100,
+                    ),
+                  ],
+                ),
+
+                // 로그아웃,탈퇴 버튼은 별도 위젯으로 분리
                 ProfileActionButtons(
                   onLogout: () => _showLogoutDialog(context),
                   onDeleteAccount: () =>
@@ -178,7 +276,7 @@ class UserProfilePage extends ConsumerWidget {
                   child: Text(
                     '로그아웃 하시겠습니까?',
                     style: PretendardTextStyles.bodyM.copyWith(
-                      color: Colors.grey[900],
+                      color: AppColors.gray900,
                       fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
@@ -200,7 +298,7 @@ class UserProfilePage extends ConsumerWidget {
                           onPressed: () => Navigator.of(context).pop(),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            foregroundColor: Colors.grey[600],
+                            foregroundColor: AppColors.gray600,
                             textStyle: PretendardTextStyles.bodyM,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -276,7 +374,7 @@ class UserProfilePage extends ConsumerWidget {
                       Text(
                         '정말 탈퇴하시겠습니까?',
                         style: PretendardTextStyles.bodyL.copyWith(
-                          color: Colors.grey[900],
+                          color: AppColors.gray900,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -284,7 +382,7 @@ class UserProfilePage extends ConsumerWidget {
                       Text(
                         '메모와 공유된 내용은 모두 삭제되며 복구할 수 없습니다.',
                         style: PretendardTextStyles.bodyM.copyWith(
-                          color: Colors.grey[900],
+                          color: AppColors.gray900,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -305,7 +403,7 @@ class UserProfilePage extends ConsumerWidget {
                           onPressed: () => Navigator.of(context).pop(),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            foregroundColor: Colors.grey[600],
+                            foregroundColor: AppColors.gray600,
                             textStyle: PretendardTextStyles.bodyM,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

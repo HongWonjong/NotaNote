@@ -83,7 +83,13 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                 alignment: Alignment.topRight,
                 child: TextButton(
                   onPressed: _skipToLast,
-                  child: const Text('건너뛰기', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    '건너뛰기',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF555555),
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -99,35 +105,84 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                     final content = _onBoardingContents[index];
                     return Column(
                       children: [
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 40),
                         Text(
                           content['title'] ?? '',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         Text(
-                          content['subtitle'] ?? '',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+  content['subtitle'] ?? '',
+  textAlign: TextAlign.center,
+  style: const TextStyle(
+    fontSize: 16,             // Label/m에 맞는 크기 (예: 14)
+    color: Color(0xFF757575), // Gray/600 
+    fontWeight: FontWeight.w400, // 보통 굵기
+  ),
+),
+                        const SizedBox(height: 44),
                         Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            alignment: Alignment.center,
-                            child: content['image'] != null
-                                ? Image.asset(content['image']!, fit: BoxFit.contain)
-                                : const Text('이미지 없음'),
+                          child: Column(
+                            children: [
+                              if (content['image'] != null)
+                                SizedBox(
+                                  height: 420,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: Image.asset(
+                                            content['image']!,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          left: 0,
+                                          right: 0,
+                                          bottom: 0,
+                                          height: 80, // 그라디언트 높이 조절
+                                          child: IgnorePointer(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.bottomCenter,
+                                                  end: Alignment.topCenter,
+                                                  colors: [
+                                                    Colors.white,
+                                                    Colors.white.withOpacity(0.0),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(_onBoardingContents.length, (i) {
+                                  final isActive = _currentStep == i;
+                                  return AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                                    width: isActive ? 24 : 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: isActive ? Color(0xFF61CFB2) : Colors.grey[400],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -135,30 +190,14 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_onBoardingContents.length, (index) {
-                  final isActive = _currentStep == index;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    width: isActive ? 24 : 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: isActive ? themeColor : Colors.grey[400],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  );
-                }),
-              ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _onNext,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _currentStep == _onBoardingContents.length - 1
-                      ? themeColor
-                      : Colors.black,
+                  backgroundColor:
+                      _currentStep == _onBoardingContents.length - 1
+                          ? themeColor
+                          : Colors.black,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 48),
                   shape: RoundedRectangleBorder(
@@ -166,7 +205,9 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
                   ),
                 ),
                 child: Text(
-                  _currentStep == _onBoardingContents.length - 1 ? '시작하기' : '다음',
+                  _currentStep == _onBoardingContents.length - 1
+                      ? '시작하기'
+                      : '다음',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -177,3 +218,4 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
     );
   }
 }
+

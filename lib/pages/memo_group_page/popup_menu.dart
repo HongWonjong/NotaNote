@@ -16,7 +16,7 @@ class SettingsMenu extends ConsumerStatefulWidget {
   final Function(bool) onGridToggle;
   final String groupId;
   final String groupTitle;
-  final String role; // role 파라미터
+  final String role;
 
   const SettingsMenu({
     super.key,
@@ -39,15 +39,20 @@ class SettingsMenu extends ConsumerStatefulWidget {
 class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   @override
   Widget build(BuildContext context) {
-    final isOwner = widget.role == 'owner';
+    final isOwnerOrEditor = widget.role == 'owner' || widget.role == 'editor';
 
     return PopupMenuButton<int>(
-      icon: SvgPicture.asset('assets/icons/DotsThreeCircle.svg', width: 24, height: 24),
+      icon: Padding(
+        padding: EdgeInsets.only(right: 20),
+        child: SvgPicture.asset('assets/icons/DotsThreeCircle.svg',
+            width: 24, height: 24),
+      ),
       tooltip: '설정 메뉴',
       color: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       offset: const Offset(0, 40),
-      constraints: const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
+      constraints:
+          const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
       onSelected: (value) {
         switch (value) {
           case 1:
@@ -57,10 +62,10 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
             _showSortOptionsDialog();
             break;
           case 3:
-            if (isOwner) _showSharingSettings();
+            if (widget.role == 'owner') _showSharingSettings();
             break;
           case 4:
-            if (isOwner) {
+            if (widget.role == 'owner') {
               showRenameGroupBottomSheet(
                 context: context,
                 ref: ref,
@@ -70,7 +75,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
             }
             break;
           case 5:
-            if (isOwner) widget.onDeleteModeStart();
+            if (isOwnerOrEditor) widget.onDeleteModeStart();
             break;
         }
       },
@@ -80,7 +85,9 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
           child: Row(
             children: [
               SvgPicture.asset(
-                widget.isGrid ? 'assets/icons/ListDashes.svg' : 'assets/icons/GridFour.svg',
+                widget.isGrid
+                    ? 'assets/icons/ListDashes.svg'
+                    : 'assets/icons/GridFour.svg',
                 width: 24,
                 height: 24,
               ),
@@ -93,7 +100,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
           value: 2,
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/ArrowsDownUp.svg', width: 24, height: 24),
+              SvgPicture.asset('assets/icons/ArrowsDownUp.svg',
+                  width: 24, height: 24),
               const SizedBox(width: 12),
               const Text('정렬'),
             ],
@@ -101,38 +109,40 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
         ),
         PopupMenuItem(
           value: 3,
-          enabled: isOwner, // owner만 활성화
+          enabled: widget.role == 'owner',
           child: Row(
             children: [
               SvgPicture.asset(
                 'assets/icons/Share.svg',
                 width: 24,
                 height: 24,
-                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+                color: widget.role == 'owner' ? null : Colors.grey,
               ),
               const SizedBox(width: 12),
               Text(
                 '공유',
-                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+                style: TextStyle(
+                    color: widget.role == 'owner' ? Colors.black : Colors.grey),
               ),
             ],
           ),
         ),
         PopupMenuItem(
           value: 4,
-          enabled: isOwner, // owner만 활성화
+          enabled: widget.role == 'owner',
           child: Row(
             children: [
               SvgPicture.asset(
                 'assets/icons/PencilSimple.svg',
                 width: 24,
                 height: 24,
-                color: isOwner ? null : Colors.grey, // 비활성화 시 회색
+                color: widget.role == 'owner' ? null : Colors.grey,
               ),
               const SizedBox(width: 12),
               Text(
                 '이름변경',
-                style: TextStyle(color: isOwner ? Colors.black : Colors.grey),
+                style: TextStyle(
+                    color: widget.role == 'owner' ? Colors.black : Colors.grey),
               ),
             ],
           ),
@@ -140,19 +150,20 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 5,
-          enabled: isOwner, // owner만 활성화
+          enabled: isOwnerOrEditor,
           child: Row(
             children: [
               SvgPicture.asset(
                 'assets/icons/Delete.svg',
                 width: 24,
                 height: 24,
-                color: isOwner ? Colors.red : Colors.grey, // 비활성화 시 회색
+                color: isOwnerOrEditor ? Colors.red : Colors.grey,
               ),
               const SizedBox(width: 12),
               Text(
                 '삭제',
-                style: TextStyle(color: isOwner ? Colors.red : Colors.grey),
+                style: TextStyle(
+                    color: isOwnerOrEditor ? Colors.red : Colors.grey),
               ),
             ],
           ),
@@ -225,17 +236,22 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                         title: Text(
                           label,
                           style: TextStyle(
-                            color: isSelected ? const Color(0xFF61CFB2) : Colors.black,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? const Color(0xFF61CFB2)
+                                : Colors.black,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                         trailing: isSelected
                             ? SvgPicture.asset(
-                          'assets/icons/Check.svg',
-                          width: 20,
-                          height: 20,
-                          colorFilter: const ColorFilter.mode(Color(0xFF61CFB2), BlendMode.srcIn),
-                        )
+                                'assets/icons/Check.svg',
+                                width: 20,
+                                height: 20,
+                                colorFilter: const ColorFilter.mode(
+                                    Color(0xFF61CFB2), BlendMode.srcIn),
+                              )
                             : null,
                         onTap: () {
                           setState(() {

@@ -5,16 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/editor_toolbar.dart';
 import 'package:nota_note/pages/memo_page/widgets/recording_controller_box.dart';
+import 'package:nota_note/pages/memo_page/widgets/transcribe_dialog.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/pages/memo_page/widgets/tag_widget.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:nota_note/viewmodels/image_upload_viewmodel.dart';
 import 'package:nota_note/viewmodels/memo_viewmodel.dart';
-import 'widgets/color_picker_widget.dart';
-import 'widgets/highlight_picker_widget.dart';
+import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/widgets/popup_menu_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/theme/pretendard_text_styles.dart';
+import 'package:nota_note/theme/colors.dart';
 import 'dart:async';
+
+// selectedColorProvider 정의
+final selectedColorProvider = StateProvider<Color?>((ref) => null);
 
 class MemoPage extends ConsumerStatefulWidget {
   final String groupId;
@@ -47,7 +52,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
   @override
   void initState() {
     super.initState();
-    // role에 따라 QuillController의 readOnly 설정
     _controller.readOnly = widget.role == 'guest';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -55,17 +59,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         ref.read(selectedColorProvider.notifier).state = null;
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .loadFromFirestore(_controller);
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .listenToFirestore(_controller, isEditing: _isEditing);
       }
     });
@@ -79,26 +83,27 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       }
       ref
           .read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier)
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
           .listenToFirestore(_controller, isEditing: _isEditing);
       if (!_isEditing) {
         ref
             .read(pageViewModelProvider({
-          'groupId': widget.groupId,
-          'noteId': widget.noteId,
-          'pageId': widget.pageId,
-        }).notifier)
+              'groupId': widget.groupId,
+              'noteId': widget.noteId,
+              'pageId': widget.pageId,
+            }).notifier)
             .processPendingSnapshot(_controller);
       }
     });
+
     _controller.addListener(() {
       ref.read(recordingBoxVisibilityProvider.notifier).state = false;
       if (!mounted) return;
       final currentDeltaJson =
-      _controller.document.toDelta().toJson().toString();
+          _controller.document.toDelta().toJson().toString();
       if (currentDeltaJson == _lastDeltaJson) return;
       _autoSaveTimer?.cancel();
       _autoSaveTimer = Timer(Duration(milliseconds: 1000), () {
@@ -106,12 +111,15 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         _saveContentAndTitle();
       });
       _adjustScrollForCursor();
+      setState(() {});
     });
+
     _scrollController.addListener(() {
       setState(() {
         _isTagVisible = _scrollController.offset <= 0;
       });
     });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
@@ -131,10 +139,10 @@ class _MemoPageState extends ConsumerState<MemoPage> {
       }
       await ref
           .read(pageViewModelProvider({
-        'groupId': widget.groupId,
-        'noteId': widget.noteId,
-        'pageId': widget.pageId,
-      }).notifier)
+            'groupId': widget.groupId,
+            'noteId': widget.noteId,
+            'pageId': widget.pageId,
+          }).notifier)
           .saveToFirestore(_controller);
       _lastDeltaJson = deltaJson.toString();
 
@@ -169,7 +177,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         await ref
             .read(memoViewModelProvider(widget.groupId))
             .updateMemoTitleAndContent(
-            widget.noteId, firstText, secondText ?? '');
+                widget.noteId, firstText, secondText ?? '');
       }
     } catch (e) {
       debugPrint('Save failed: $e');
@@ -182,6 +190,13 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     });
   }
 
+  void _dismissKeyboard() {
+    _focusNode.unfocus();
+    setState(() {
+      _isEditing = false;
+    });
+  }
+
   void _adjustScrollForCursor() {
     if (!_focusNode.hasFocus) return;
     final cursorPosition = _controller.selection.baseOffset;
@@ -189,7 +204,7 @@ class _MemoPageState extends ConsumerState<MemoPage> {
 
     final editorKey = GlobalKey();
     final renderObject =
-    (editorKey.currentContext?.findRenderObject() as RenderBox?);
+        (editorKey.currentContext?.findRenderObject() as RenderBox?);
     if (renderObject == null) return;
 
     final cursorHeight = 20.0;
@@ -211,6 +226,17 @@ class _MemoPageState extends ConsumerState<MemoPage> {
         }
       }
     });
+  }
+
+  void _showTranscribeDialog(String recordingPath) {
+    showDialog(
+      context: context,
+      builder: (context) => TranscribeDialog(
+        recordingPath: recordingPath,
+        controller: _controller,
+        recordingViewModel: ref.read(recordingViewModelProvider.notifier),
+      ),
+    );
   }
 
   @override
@@ -240,7 +266,6 @@ class _MemoPageState extends ConsumerState<MemoPage> {
     }));
     final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
 
-    // Guest일 경우 툴바, 더보기 버튼 비활성화
     final showToolbar = widget.role != 'guest';
     final showPopupMenu = widget.role != 'guest';
 
@@ -298,18 +323,68 @@ class _MemoPageState extends ConsumerState<MemoPage> {
           ),
         ),
         actions: [
-          if (showPopupMenu)
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: IconButton(
-                icon: SvgPicture.asset(
-                  'assets/icons/DotCircle.svg',
-                  width: 24,
-                  height: 24,
-                ),
-                onPressed: _togglePopupMenu,
-              ),
+          KeyboardVisibilityBuilder(
+            builder: (context, isKeyboardVisible) => Row(
+              children: [
+                if (showToolbar && isKeyboardVisible)
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/icons/Undo.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        _controller.hasUndo ? AppColors.gray700 : Colors.grey,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    onPressed: _controller.hasUndo
+                        ? () {
+                            _controller.undo();
+                            setState(() {});
+                          }
+                        : null,
+                  ),
+                if (showToolbar && isKeyboardVisible)
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/icons/Redo.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        _controller.hasRedo ? AppColors.gray700 : Colors.grey,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    onPressed: _controller.hasRedo
+                        ? () {
+                            _controller.redo();
+                            setState(() {});
+                          }
+                        : null,
+                  ),
+                SizedBox(width: 10),
+                if (showPopupMenu)
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: isKeyboardVisible
+                        ? TextButton(
+                            onPressed: _dismissKeyboard,
+                            child: Text('완료',
+                                style: PretendardTextStyles.bodyM
+                                    .copyWith(color: AppColors.gray700)),
+                          )
+                        : IconButton(
+                            icon: SvgPicture.asset(
+                              'assets/icons/DotCircle.svg',
+                              width: 24,
+                              height: 24,
+                            ),
+                            onPressed: _togglePopupMenu,
+                          ),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
       body: Stack(
@@ -326,7 +401,8 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(
-                          bottom: isKeyboardVisible && showToolbar ? 55.0 : 0.0),
+                          bottom:
+                              isKeyboardVisible && showToolbar ? 55.0 : 0.0),
                       child: quill.QuillEditor(
                         controller: _controller,
                         focusNode: _focusNode,
@@ -384,6 +460,14 @@ class _MemoPageState extends ConsumerState<MemoPage> {
                       RecordingControllerBox(
                         controller: _controller,
                         focusNode: _focusNode,
+                        onTranscribeTapped: () {
+                          final recordingState =
+                              ref.read(recordingViewModelProvider);
+                          if (recordingState.recordings.isNotEmpty) {
+                            _showTranscribeDialog(
+                                recordingState.recordings.first.path);
+                          }
+                        },
                       ),
                     SizedBox(height: 10),
                     if (isKeyboardVisible && showToolbar)

@@ -126,6 +126,7 @@ class NoteViewModel extends StateNotifier<Note?> {
   }
 }
 
-final noteViewModelProvider = StateNotifierProvider.family<NoteViewModel, Note?, Map<String, String>>(
-      (ref, params) => NoteViewModel(params['groupId']!, params['noteId']!),
+final noteViewModelProvider =
+    StateNotifierProvider.family<NoteViewModel, Note?, Map<String, String>>(
+  (ref, params) => NoteViewModel(params['groupId']!, params['noteId']!),
 );

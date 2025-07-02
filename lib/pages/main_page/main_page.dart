@@ -378,16 +378,6 @@ class _MainPageState extends ConsumerState<MainPage>
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              // Text(
-                              //   user?.hashTag ?? '@해시태그',
-                              //   style: TextStyle(
-                              //     color: Color(0xFF666666),
-                              //     fontSize: 12,
-                              //     fontFamily: 'Pretendard',
-                              //     height: 1.5,
-                              //   ),
-                              // ),
-                              // const SizedBox(height: 2),
                               Text(
                                 user?.email ?? '이메일',
                                 style: TextStyle(
@@ -606,9 +596,13 @@ class _MainPageState extends ConsumerState<MainPage>
           AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: IconButton(
+            leading: Padding(
+              padding: EdgeInsets.only(left: 20),
+              child: IconButton(
                 onPressed: _menuController.toggleMenu,
-                icon: SvgPicture.asset('assets/icons/List.svg')),
+                icon: SvgPicture.asset('assets/icons/List.svg'),
+              ),
+            ),
             centerTitle: true,
             actions: [
               _isSearching
@@ -638,20 +632,23 @@ class _MainPageState extends ConsumerState<MainPage>
                     ),
               Stack(
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const NotificationPage()),
-                      );
-                    },
-                    icon: SvgPicture.asset(
-                      'assets/icons/Bell.svg',
-                      width: 24,
-                      height: 24,
-                      colorFilter: const ColorFilter.mode(
-                          Color(0xFF616161), BlendMode.srcIn),
+                  Padding(
+                    padding: EdgeInsets.only(right: 15),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const NotificationPage()),
+                        );
+                      },
+                      icon: SvgPicture.asset(
+                        'assets/icons/Bell.svg',
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                            Color(0xFF616161), BlendMode.srcIn),
+                      ),
                     ),
                   ),
                   if (invitationCount > 0)
@@ -719,13 +716,73 @@ class _MainPageState extends ConsumerState<MainPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '내 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredOwnedGroups.length : ownedGroups.length)}개)',
-                            style: TextStyle(
+                            '    총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredSharedGroupsWithRole.length + ref.watch(groupViewModelProvider).filteredOwnedGroups.length : sharedGroupsWithRole.length + ownedGroups.length)}개',
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(height: 16),
+                          (_isSearching
+                                      ? ref
+                                          .watch(groupViewModelProvider)
+                                          .filteredSharedGroupsWithRole
+                                      : sharedGroupsWithRole)
+                                  .isEmpty
+                              ? Center(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        '공유된 그룹이 없습니다',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.zero,
+                                  itemCount: _isSearching
+                                      ? ref
+                                          .watch(groupViewModelProvider)
+                                          .filteredSharedGroupsWithRole
+                                          .length
+                                      : sharedGroupsWithRole.length,
+                                  separatorBuilder: (context, index) =>
+                                      Container(),
+                                  itemBuilder: (context, index) {
+                                    final sharedGroup = _isSearching
+                                        ? ref
+                                            .watch(groupViewModelProvider)
+                                            .filteredSharedGroupsWithRole[index]
+                                        : sharedGroupsWithRole[index];
+                                    return SharedMainItem(
+                                      title: sharedGroup.group.name,
+                                      groupId: sharedGroup.group.id,
+                                      noteCount: sharedGroup.group.noteCount,
+                                      role: sharedGroup.role,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MemoGroupPage(
+                                              groupId: sharedGroup.group.id,
+                                              groupName: sharedGroup.group.name,
+                                              role: sharedGroup.role,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      searchQuery: _isSearching
+                                          ? _searchController.text
+                                          : null,
+                                    );
+                                  },
+                                ),
                           (_isSearching
                                       ? ref
                                           .watch(groupViewModelProvider)
@@ -790,81 +847,6 @@ class _MainPageState extends ConsumerState<MainPage>
                                               groupId: group.id,
                                               groupName: group.name,
                                               role: Role.owner.value,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      searchQuery: _isSearching
-                                          ? _searchController.text
-                                          : null,
-                                    );
-                                  },
-                                ),
-                          SizedBox(height: 24),
-                          Text(
-                            '공유된 그룹 (총 ${(_isSearching ? ref.watch(groupViewModelProvider).filteredSharedGroupsWithRole.length : sharedGroupsWithRole.length)}개)',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 16),
-                          (_isSearching
-                                      ? ref
-                                          .watch(groupViewModelProvider)
-                                          .filteredSharedGroupsWithRole
-                                      : sharedGroupsWithRole)
-                                  .isEmpty
-                              ? Center(
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.share,
-                                        size: 48,
-                                        color: Colors.grey[400],
-                                      ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        '공유된 그룹이 없습니다',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.zero,
-                                  itemCount: _isSearching
-                                      ? ref
-                                          .watch(groupViewModelProvider)
-                                          .filteredSharedGroupsWithRole
-                                          .length
-                                      : sharedGroupsWithRole.length,
-                                  separatorBuilder: (context, index) =>
-                                      Container(),
-                                  itemBuilder: (context, index) {
-                                    final sharedGroup = _isSearching
-                                        ? ref
-                                            .watch(groupViewModelProvider)
-                                            .filteredSharedGroupsWithRole[index]
-                                        : sharedGroupsWithRole[index];
-                                    return SharedMainItem(
-                                      title: sharedGroup.group.name,
-                                      groupId: sharedGroup.group.id,
-                                      noteCount: sharedGroup.group.noteCount,
-                                      role: sharedGroup.role,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => MemoGroupPage(
-                                              groupId: sharedGroup.group.id,
-                                              groupName: sharedGroup.group.name,
-                                              role: sharedGroup.role,
                                             ),
                                           ),
                                         );

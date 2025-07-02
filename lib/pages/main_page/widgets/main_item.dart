@@ -53,7 +53,7 @@ class MainItem extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(dialogContext);
               final success =
-              await ref.read(groupViewModelProvider).deleteGroup(groupId);
+                  await ref.read(groupViewModelProvider).deleteGroup(groupId);
 
               if (success) {
                 scaffoldMessenger.showSnackBar(
@@ -99,7 +99,7 @@ class MainItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayTitle =
-    title.length > 15 ? '${title.substring(0, 15)}...' : title;
+        title.length > 15 ? '${title.substring(0, 15)}...' : title;
 
     return GestureDetector(
       onTap: onTap ?? () => _showBottomSheet(context, ref),
@@ -126,22 +126,22 @@ class MainItem extends ConsumerWidget {
                   width: 16,
                   height: 16,
                   colorFilter:
-                  ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
+                      ColorFilter.mode(Color(0xFF60CFB1), BlendMode.srcIn),
                 ),
                 SizedBox(width: 8),
                 (searchQuery != null &&
-                    searchQuery!.isNotEmpty &&
-                    title
-                        .toLowerCase()
-                        .contains(searchQuery!.toLowerCase()))
+                        searchQuery!.isNotEmpty &&
+                        title
+                            .toLowerCase()
+                            .contains(searchQuery!.toLowerCase()))
                     ? _highlightText(displayTitle, searchQuery!)
                     : Text(
-                  displayTitle,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF191919),
-                  ),
-                ),
+                        displayTitle,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF191919),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Text(
                   '($noteCount)',
@@ -264,7 +264,7 @@ class MainItem extends ConsumerWidget {
                         SvgPicture.asset(
                           'assets/icons/trash_red_icon.svg',
                           colorFilter:
-                          ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                              ColorFilter.mode(Colors.red, BlendMode.srcIn),
                         ),
                       ],
                     ),
