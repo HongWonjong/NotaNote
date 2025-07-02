@@ -12,6 +12,7 @@ Future<String?> showRenameGroupBottomSheet({
   final TextEditingController controller = TextEditingController(text: currentTitle);
 
   final result = await showModalBottomSheet<String>(
+    backgroundColor: Colors.white,
     context: context,
     isScrollControlled: true,
     shape: RoundedRectangleBorder(
