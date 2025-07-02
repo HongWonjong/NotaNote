@@ -19,7 +19,7 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
   <img src="https://github.com/user-attachments/assets/e29448a9-b15f-4292-a686-c736c8af9ec7" width="200" />
 </div>
 
-# Firestore 데이터 구조 📚✨
+# Firestore 데이터 구조 📚✨ 
 
 이 문서는 NotaNote 앱의 Firebase Firestore 데이터베이스 구조를 정의합니다. Firestore의 NoSQL 문서 기반 구조를 활용하여 유저, 메모장, 메모지 페이지, 위젯, 댓글, 태그, 공유 콘텐츠를 관리합니다. 메모장은 여러 메모지 페이지로 구성되며, 위젯은 각 페이지 내에서 상대적 위치(xFactor, yFactor)와 상대적 크기(widthFactor, heightFactor)를 비율(0.0~1.0)로 저장하여 스크롤 가능한 긴 메모장의 배치 문제를 해결합니다. 메모지 페이지에는 크기 필드가 없으며, 클라이언트에서 페이지의 실제 크기를 동적으로 결정합니다.
 
@@ -134,3 +134,22 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 
 - **유저 프로필 이미지** 🖼️: `string` (경로: `profilePhotos/{userId}_{timestamp}.jpg`, Firestore의 photoUrl 필드에 저장)
 - **메모장-메모지-이미지 위젯** 🖼️: `string` (경로: `notegroups/{groupId}/notes/{noteId}/pages/{pageId}/widgets/{widgetId}_{timestamp}.jpg`, Firestore의 imageUrl 필드에 저장)
+
+## 8. Redis 데이터베이스 데이터
+
+Redis 데이터베이스는 메모장 내 사용자 접속 상태를 실시간으로 추적하고 관리하기 위해 사용됩니다. 
+Upstash Redis를 활용하여 키-값 쌍으로 데이터를 저장하며, 주로 activeUsers 정보를 4초 간격으로 갱신합니다. 
+데이터는 HTTP REST API를 통해 접근되며, TTL(만료 시간)을 설정하여 오래된 접속 정보를 자동으로 제거합니다. 
+
+- **키 형식**: `activeUsers:{groupId}:{noteId}`
+    - `groupId`: 메모 그룹의 고유 ID.
+    - `noteId`: 메모장의 고유 ID.
+    - 예: `activeUsers:YSzg2ueWRddFMWws6qZv:10e0521a-2230-4efc-b716-675617e72733`
+
+- **값 형식**: Redis Hash (필드-값 쌍)
+    - **필드**: `userId` (문자열, 예: `ysJJparHGjf6x3lISEvqxoYrTxE2`)
+    - **값**: `timestamp` (ISO 8601 형식의 타임스탬프, 예: `2025-07-02T12:15:20.169456`)
+    - 예: `{"ysJJparHGjf6x3lISEvqxoYrTxE2": "2025-07-02T12:15:20.169456"}`
+
+- **TTL (Time to Live)**: 10초
+    - 각 키에 대해 10초 후에 데이터가 자동으로 만료되도록 설정되어, 최근 10초 이내에 접속한 사용자만 유지됩니다.

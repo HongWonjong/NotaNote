@@ -1,10 +1,10 @@
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/services.dart';
 import 'package:nota_note/models/page_model.dart' as page_model;
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class PageViewModel extends StateNotifier<page_model.Page> {
   final String groupId;
@@ -14,14 +14,15 @@ class PageViewModel extends StateNotifier<page_model.Page> {
   StreamSubscription? _subscription;
   bool _isEditing = false;
   DocumentSnapshot? _pendingSnapshot;
+  String? _lastProcessedContent;
 
   PageViewModel(this.groupId, this.noteId, this.pageId)
       : super(page_model.Page(
-          noteId: noteId,
-          index: 0,
-          title: '새 메모 페이지',
-          content: [],
-        ));
+    noteId: noteId,
+    index: 0,
+    title: '새 메모 페이지',
+    content: [],
+  ));
 
   Future<void> loadFromFirestore(QuillController controller) async {
     if (_isLoaded) return;
@@ -48,6 +49,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           } else {
             controller.document = Document();
           }
+          _lastProcessedContent = jsonEncode(page.content);
         } catch (e) {
           print('Failed to parse Delta JSON: $e');
           controller.document = Document();
@@ -70,6 +72,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
             .set(newPage.toFirestore());
         state = newPage;
         controller.document = Document();
+        _lastProcessedContent = jsonEncode([]);
       }
       _isLoaded = true;
     } catch (e) {
@@ -104,12 +107,34 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       QuillController controller, DocumentSnapshot snapshot) async {
     final page = page_model.Page.fromFirestore(snapshot);
     final newContentJson = jsonEncode(page.content);
-    final currentContentJson =
-        jsonEncode(controller.document.toDelta().toJson());
 
-    if (newContentJson != currentContentJson) {
-      try {
-        final cursorPosition = controller.selection.baseOffset;
+    if (_lastProcessedContent == newContentJson) return;
+
+    try {
+      final currentContentJson =
+      jsonEncode(controller.document.toDelta().toJson());
+      if (newContentJson != currentContentJson && _isEditing) {
+        final currentLine = _getCurrentLineNumber(controller);
+        final mergedContent = _mergeContent(
+          controller.document.toDelta().toJson(),
+          page.content,
+          currentLine,
+        );
+        if (mergedContent.isNotEmpty) {
+          final previousSelection = controller.selection;
+          controller.document = Document.fromJson(mergedContent);
+          final newLength = controller.document.length;
+          final newCursorPosition =
+          previousSelection.baseOffset.clamp(0, newLength);
+          controller.updateSelection(
+            TextSelection.collapsed(offset: newCursorPosition),
+            ChangeSource.local,
+          );
+          state = page.copyWith(content: mergedContent);
+          _lastProcessedContent = jsonEncode(mergedContent);
+        }
+      } else {
+        final previousSelection = controller.selection;
         if (page.content.isNotEmpty) {
           controller.document = Document.fromJson(page.content);
         } else {
@@ -117,19 +142,103 @@ class PageViewModel extends StateNotifier<page_model.Page> {
         }
         final newLength = controller.document.length;
         final newCursorPosition =
-            cursorPosition >= 0 && cursorPosition <= newLength
-                ? cursorPosition
-                : newLength;
+        previousSelection.baseOffset.clamp(0, newLength);
         controller.updateSelection(
           TextSelection.collapsed(offset: newCursorPosition),
           ChangeSource.local,
         );
         state = page;
-      } catch (e) {
-        print('Failed to update document: $e');
+        _lastProcessedContent = newContentJson;
+      }
+      _pendingSnapshot = null;
+    } catch (e) {
+      print('Failed to update document: $e');
+    }
+  }
+
+  int _getCurrentLineNumber(QuillController controller) {
+    final plainText = controller.document.toPlainText();
+    final cursorPosition = controller.selection.baseOffset;
+    if (cursorPosition < 0 || cursorPosition > plainText.length) return 0;
+
+    final textBeforeCursor = plainText.substring(0, cursorPosition);
+    return textBeforeCursor.split('\n').length - 1;
+  }
+
+  List<Map<String, dynamic>> _mergeContent(
+      List<dynamic> localContent,
+      List<Map<String, dynamic>> remoteContent,
+      int currentLine,
+      ) {
+    final localOps = _splitIntoOperationsWithAttributes(localContent);
+    final remoteOps = _splitIntoOperationsWithAttributes(remoteContent);
+    final localLines = _groupOperationsByLine(localOps);
+    final remoteLines = _groupOperationsByLine(remoteOps);
+
+    final mergedLines = <List<Map<String, dynamic>>>[];
+    final maxLines = localLines.length > remoteLines.length
+        ? localLines.length
+        : remoteLines.length;
+
+    for (int i = 0; i < maxLines; i++) {
+      if (i == currentLine && localLines.length > i) {
+        mergedLines.add(localLines[i]);
+      } else if (remoteLines.length > i) {
+        mergedLines.add(remoteLines[i]);
+      } else if (localLines.length > i) {
+        mergedLines.add(localLines[i]);
       }
     }
-    _pendingSnapshot = null;
+
+    final mergedContent = <Map<String, dynamic>>[];
+    for (var line in mergedLines) {
+      mergedContent.addAll(line);
+    }
+    return mergedContent;
+  }
+
+  List<Map<String, dynamic>> _splitIntoOperationsWithAttributes(
+      List<dynamic> content) {
+    final operations = <Map<String, dynamic>>[];
+    for (var op in content) {
+      if (op['insert'] is String) {
+        final text = op['insert'] as String;
+        final attributes = op['attributes'] as Map<String, dynamic>?;
+        final splitLines = text.split('\n');
+        for (int i = 0; i < splitLines.length; i++) {
+          final insertText = splitLines[i] + (i < splitLines.length - 1 ? '\n' : '');
+          if (insertText.isNotEmpty || i < splitLines.length - 1) {
+            operations.add({
+              'insert': insertText,
+              if (attributes != null) 'attributes': attributes,
+            });
+          }
+        }
+      } else {
+        operations.add(Map<String, dynamic>.from(op));
+      }
+    }
+    return operations;
+  }
+
+  List<List<Map<String, dynamic>>> _groupOperationsByLine(
+      List<Map<String, dynamic>> operations) {
+    final lines = <List<Map<String, dynamic>>>[];
+    var currentLine = <Map<String, dynamic>>[];
+
+    for (var op in operations) {
+      if (op['insert'] is String && (op['insert'] as String).endsWith('\n')) {
+        currentLine.add(op);
+        lines.add(currentLine);
+        currentLine = <Map<String, dynamic>>[];
+      } else {
+        currentLine.add(op);
+      }
+    }
+    if (currentLine.isNotEmpty) {
+      lines.add(currentLine);
+    }
+    return lines;
   }
 
   void processPendingSnapshot(QuillController controller) async {
@@ -143,6 +252,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       print('Save skipped: PageViewModel is disposed');
       return;
     }
+    _isEditing = true; // 포맷팅 작업 시작 시 편집 상태로 설정
     final deltaJson = controller.document.toDelta().toJson();
     final page = state.copyWith(content: deltaJson);
 
@@ -156,10 +266,18 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .doc(pageId)
           .set(page.toFirestore());
       state = page;
+      _lastProcessedContent = jsonEncode(deltaJson);
+      _isEditing = false; // 저장 완료 후 편집 상태 해제
+      processPendingSnapshot(controller);
     } catch (e, stackTrace) {
       print('Save failed: $e');
       print('Stack trace: $stackTrace');
+      _isEditing = false;
     }
+  }
+
+  void setEditing(bool isEditing) {
+    _isEditing = isEditing;
   }
 
   @override
@@ -171,7 +289,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
 
 final pageViewModelProvider = StateNotifierProvider.family<PageViewModel,
     page_model.Page, Map<String, String>>(
-  (ref, params) => PageViewModel(
+      (ref, params) => PageViewModel(
     params['groupId']!,
     params['noteId']!,
     params['pageId']!,

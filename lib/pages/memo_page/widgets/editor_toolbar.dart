@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/viewmodels/recording_viewmodel.dart';
 import 'package:nota_note/providers/recording_box_visibility_provider.dart';
 import 'package:nota_note/providers/toolbar_scroll_offset_provider.dart';
+import 'package:nota_note/viewmodels/page_viewmodel.dart';
 import 'camera_selection_dialog.dart';
 import 'color_picker_widget.dart';
 import 'highlight_picker_widget.dart';
@@ -67,9 +68,20 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
     });
   }
 
-  void applyFormatsWithPlaceholder(Map<String, Attribute> attributes) {
+  void applyFormatsWithPlaceholder(Map<String, Attribute> attributes) async {
+    final viewModel = ref.read(pageViewModelProvider({
+      'groupId': widget.groupId,
+      'noteId': widget.noteId,
+      'pageId': widget.pageId,
+    }).notifier);
+
+    viewModel.setEditing(true); // 포맷팅 시작 시 편집 상태로 설정
+
     final selection = widget.controller.selection;
-    if (!selection.isValid) return;
+    if (!selection.isValid) {
+      viewModel.setEditing(false);
+      return;
+    }
 
     final document = widget.controller.document;
 
@@ -98,6 +110,12 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
         ChangeSource.local,
       );
     }
+
+    // Firestore에 저장
+    await viewModel.saveToFirestore(widget.controller);
+
+    viewModel.setEditing(false); // 저장 완료 후 편집 상태 해제
+
     if (mounted) setState(() {});
   }
 
@@ -217,9 +235,9 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
               final attribute = color == null
                   ? Attribute.clone(Attribute.background, null)
                   : Attribute.fromKeyValue(
-                      'background',
-                      '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
-                    );
+                'background',
+                '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+              );
               if (attribute != null) {
                 applyFormatsWithPlaceholder({'background': attribute});
               }
@@ -245,7 +263,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             setState(() => isPressed = true);
             final attribute = Attribute.fromKeyValue('size', size.toInt());
             if (attribute != null) {
-              applyFormatsWithPlaceholder({'size': attribute});
+              applyFormatsWithPlaceholder({'size': attribute}); // await 제거
             }
             await Future.delayed(Duration(milliseconds: 100));
             setState(() => isPressed = false);
@@ -258,8 +276,8 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
             color: isPressed
                 ? Colors.grey[200]
                 : isSelected
-                    ? Colors.grey[300]
-                    : Colors.white,
+                ? Colors.grey[300]
+                : Colors.white,
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Align(
               alignment: Alignment.centerLeft,
@@ -306,7 +324,7 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
   void _toggleFormat(Attribute attribute) {
     final isActive = _isFormatActive(attribute);
     final newAttribute =
-        isActive ? Attribute.clone(attribute, null) : attribute;
+    isActive ? Attribute.clone(attribute, null) : attribute;
     if (newAttribute != null) {
       applyFormatsWithPlaceholder({attribute.key: newAttribute});
     }
@@ -375,6 +393,13 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
         ChangeSource.local,
       );
     }
+    ref
+        .read(pageViewModelProvider({
+      'groupId': widget.groupId,
+      'noteId': widget.noteId,
+      'pageId': widget.pageId,
+    }).notifier)
+        .saveToFirestore(widget.controller);
     if (mounted) setState(() {});
   }
 
@@ -413,15 +438,15 @@ class _EditorToolbarState extends ConsumerState<EditorToolbar> {
                   IconButton(
                     icon: recordingState.isRecording
                         ? SvgPicture.asset(
-                            'assets/icons/Stop.svg',
-                            colorFilter:
-                                ColorFilter.mode(Colors.red, BlendMode.srcIn),
-                          )
+                      'assets/icons/Stop.svg',
+                      colorFilter:
+                      ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                    )
                         : SvgPicture.asset(
-                            'assets/icons/Mic.svg',
-                            colorFilter:
-                                ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                          ),
+                      'assets/icons/Mic.svg',
+                      colorFilter:
+                      ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                    ),
                     onPressed: () async {
                       if (recordingState.isRecording) {
                         await recordingViewModel.stopRecording();
