@@ -52,7 +52,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       offset: const Offset(0, 40),
       constraints:
-          const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
+      const BoxConstraints(minWidth: 200, maxWidth: 220, maxHeight: 300),
       onSelected: (value) {
         switch (value) {
           case 1:
@@ -62,7 +62,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
             _showSortOptionsDialog();
             break;
           case 3:
-            if (widget.role == 'owner') _showSharingSettings();
+            _showSharingSettings();
             break;
           case 4:
             if (widget.role == 'owner') {
@@ -109,21 +109,15 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
         ),
         PopupMenuItem(
           value: 3,
-          enabled: widget.role == 'owner',
           child: Row(
             children: [
               SvgPicture.asset(
                 'assets/icons/Share.svg',
                 width: 24,
                 height: 24,
-                color: widget.role == 'owner' ? null : Colors.grey,
               ),
               const SizedBox(width: 12),
-              Text(
-                '공유',
-                style: TextStyle(
-                    color: widget.role == 'owner' ? Colors.black : Colors.grey),
-              ),
+              const Text('공유'),
             ],
           ),
         ),
@@ -246,12 +240,12 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                         ),
                         trailing: isSelected
                             ? SvgPicture.asset(
-                                'assets/icons/Check.svg',
-                                width: 20,
-                                height: 20,
-                                colorFilter: const ColorFilter.mode(
-                                    Color(0xFF61CFB2), BlendMode.srcIn),
-                              )
+                          'assets/icons/Check.svg',
+                          width: 20,
+                          height: 20,
+                          colorFilter: const ColorFilter.mode(
+                              Color(0xFF61CFB2), BlendMode.srcIn),
+                        )
                             : null,
                         onTap: () {
                           setState(() {
@@ -288,6 +282,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
           groupId: widget.groupId,
           members: members,
           initialSelectedIndex: members.isNotEmpty ? 1 : 0,
+          role: widget.role,
         );
       },
     );

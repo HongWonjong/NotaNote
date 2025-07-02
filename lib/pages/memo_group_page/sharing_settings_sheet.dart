@@ -8,12 +8,14 @@ class SharingSettingsSheet extends StatefulWidget {
   final List<Member> members;
   final int initialSelectedIndex;
   final String groupId;
+  final String role;
 
   const SharingSettingsSheet({
     super.key,
     required this.members,
     required this.groupId,
     this.initialSelectedIndex = 0,
+    required this.role,
   });
 
   @override
@@ -69,6 +71,8 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isOwner = widget.role == 'owner';
+
     return Container(
       height: 500,
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -102,48 +106,48 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () async {
-                    if (_hasHashTagInput) {
-                      final hashTag = _hashTagController.text.trim();
-                      if (hashTag.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('해시태그를 입력해주세요.')),
-                        );
-                        return;
-                      }
-                      final currentUserId = await _userId;
-                      if (currentUserId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('현재 사용자 정보를 가져올 수 없습니다.')),
-                        );
-                        return;
-                      }
-                      final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
-                      final success = await viewModel.inviteMember(hashTag, _selectedInviteRole, currentUserId);
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('초대가 완료되었습니다.')),
-                        );
-                        _hashTagController.clear();
-                        final updatedMembers = await viewModel.getMembers();
-                        setState(() {
-                          members.clear();
-                          members.addAll(updatedMembers);
-                          selectedMemberIndex = members.isNotEmpty ? 0 : 0;
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('초대 실패: 사용자를 찾을 수 없거나 이미 초대된 사용자입니다.'),
-                          ),
-                        );
-                      }
-                    } else {
-                      Navigator.pop(context);
+                  onTap: isOwner && _hasHashTagInput
+                      ? () async {
+                    final hashTag = _hashTagController.text.trim();
+                    if (hashTag.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('해시태그를 입력해주세요.')),
+                      );
+                      return;
                     }
+                    final currentUserId = await _userId;
+                    if (currentUserId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('현재 사용자 정보를 가져올 수 없습니다.')),
+                      );
+                      return;
+                    }
+                    final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+                    final success = await viewModel.inviteMember(hashTag, _selectedInviteRole, currentUserId);
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('초대가 완료되었습니다.')),
+                      );
+                      _hashTagController.clear();
+                      final updatedMembers = await viewModel.getMembers();
+                      setState(() {
+                        members.clear();
+                        members.addAll(updatedMembers);
+                        selectedMemberIndex = members.isNotEmpty ? 0 : 0;
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('초대 실패: 사용자를 찾을 수 없거나 이미 초대된 사용자입니다.'),
+                        ),
+                      );
+                    }
+                  }
+                      : () {
+                    Navigator.pop(context);
                   },
                   child: Text(
-                    _hasHashTagInput ? '초대하기' : '완료',
+                    isOwner && _hasHashTagInput ? '초대하기' : '완료',
                     style: const TextStyle(
                       color: Color(0xFF60CFB1),
                       fontSize: 16,
@@ -156,99 +160,100 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          // 멤버 추가 섹션
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '멤버 추가',
-                  style: TextStyle(
-                    color: Color(0xFF191919),
-                    fontSize: 16,
-                    fontFamily: 'Pretendard',
-                    fontWeight: FontWeight.w600
+          // 멤버 추가 섹션 (소유자만 표시)
+          if (isOwner)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '멤버 추가',
+                    style: TextStyle(
+                      color: Color(0xFF191919),
+                      fontSize: 16,
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 44,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(width: 1, color: Color(0xFFB3B3B3)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: TextField(
-                          controller: _hashTagController,
-                          decoration: const InputDecoration(
-                            hintText: '초대태그를 입력해주세요',
-                            hintStyle: TextStyle(
-                              color: Color(0xFF999999),
-                              fontSize: 14,
-                              fontFamily: 'Pretendard',
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              side: const BorderSide(width: 1, color: Color(0xFFB3B3B3)),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            border: InputBorder.none,
+                          ),
+                          child: TextField(
+                            controller: _hashTagController,
+                            decoration: const InputDecoration(
+                              hintText: '초대태그를 입력해주세요',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF999999),
+                                fontSize: 14,
+                                fontFamily: 'Pretendard',
+                              ),
+                              border: InputBorder.none,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 20),
-                    DropdownButton<String>(
-                      dropdownColor: Colors.white,
-                      value: _selectedInviteRole,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'guest',
-                          child: Text(
-                            '읽기 권한',
-                            style: TextStyle(
-                              color: Color(0xFF4C4C4C),
-                              fontSize: 14,
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
+                      const SizedBox(width: 20),
+                      DropdownButton<String>(
+                        dropdownColor: Colors.white,
+                        value: _selectedInviteRole,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'guest',
+                            child: Text(
+                              '읽기 권한',
+                              style: TextStyle(
+                                color: Color(0xFF4C4C4C),
+                                fontSize: 14,
+                                fontFamily: 'Pretendard',
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'editor',
-                          child: Text(
-                            '편집 권한',
-                            style: TextStyle(
-                              color: Color(0xFF4C4C4C),
-                              fontSize: 14,
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
+                          DropdownMenuItem(
+                            value: 'editor',
+                            child: Text(
+                              '편집 권한',
+                              style: TextStyle(
+                                color: Color(0xFF4C4C4C),
+                                fontSize: 14,
+                                fontFamily: 'Pretendard',
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _selectedInviteRole = value;
+                            });
+                          }
+                        },
+                        style: const TextStyle(
+                          color: Color(0xFF4C4C4C),
+                          fontSize: 14,
+                          fontFamily: 'Pretendard',
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedInviteRole = value;
-                          });
-                        }
-                      },
-                      style: const TextStyle(
-                        color: Color(0xFF4C4C4C),
-                        fontSize: 14,
-                        fontFamily: 'Pretendard',
-                        fontWeight: FontWeight.w600,
+                        underline: const SizedBox(),
                       ),
-                      underline: const SizedBox(),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           // 멤버 목록 섹션
           Padding(
@@ -308,9 +313,9 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                                 ? NetworkImage(member.imageUrl)
                                 : null,
                             backgroundColor: _getAvatarColor(index),
-                            child: member.imageUrl.isEmpty
-                                ? const Icon(Icons.person, size: 18, color: Colors.white)
-                                : null,
+                            child: member.imageUrl.isNotEmpty
+                                ? null
+                                : const Icon(Icons.person, size: 18, color: Colors.white),
                           ),
                           const SizedBox(width: 12),
                           Column(
@@ -358,42 +363,36 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                       // 권한 및 액션
                       Row(
                         children: [
-                          if (member.role == 'owner')
+                          if (member.role == 'owner' || !isOwner)
                             Text(
                               roleDisplayMap[member.role] ?? member.role,
                               style: const TextStyle(
                                 color: Color(0xFF191919),
                                 fontSize: 14,
                                 fontFamily: 'Pretendard',
-                                fontWeight: FontWeight.bold
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          if (member.role.contains('waiting'))
+                          if (member.role.contains('waiting') && isOwner)
                             GestureDetector(
                               onTap: () async {
-                                final viewModel = SharingSettingsViewModel(
-                                    groupId: widget.groupId);
-                                final userId = await _getUserIdFromHashTag(
-                                    member.hashTag);
+                                final viewModel = SharingSettingsViewModel(groupId: widget.groupId);
+                                final userId = await _getUserIdFromHashTag(member.hashTag);
                                 if (userId != null) {
-                                  final success = await viewModel
-                                      .cancelInvitation(userId);
+                                  final success = await viewModel.cancelInvitation(userId);
                                   if (success) {
                                     setState(() {
                                       members.removeAt(index);
                                       selectedMemberIndex = members.isNotEmpty
-                                          ? selectedMemberIndex.clamp(
-                                          0, members.length - 1)
+                                          ? selectedMemberIndex.clamp(0, members.length - 1)
                                           : 0;
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('초대가 취소되었습니다.')),
+                                      const SnackBar(content: Text('초대가 취소되었습니다.')),
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('초대 취소에 실패했습니다.')),
+                                      const SnackBar(content: Text('초대 취소에 실패했습니다.')),
                                     );
                                   }
                                 }
@@ -409,12 +408,11 @@ class _SharingSettingsSheetState extends State<SharingSettingsSheet> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(
-                                      Icons.close, color: Colors.red, size: 24),
+                                  const Icon(Icons.close, color: Colors.red, size: 24),
                                 ],
                               ),
                             )
-                          else if (member.role == 'editor' || member.role == 'guest')
+                          else if ((member.role == 'editor' || member.role == 'guest') && isOwner)
                             DropdownButton<String>(
                               dropdownColor: Colors.white,
                               value: roleDisplayMap[member.role] ?? '열람자',
