@@ -31,8 +31,15 @@ class UserProfilePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
-          padding: EdgeInsets.only(left: 20),
-          child: const BackButton(color: Colors.grey),
+          padding: const EdgeInsets.only(left: 20),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: SvgPicture.asset(
+              'assets/icons/CaretLeft.svg',
+              width: 24,
+              height: 24,
+            ),
+          ),
         ),
         title: Text('프로필',
             style: PretendardTextStyles.titleS.copyWith(
@@ -239,10 +246,13 @@ class UserProfilePage extends ConsumerWidget {
                 ),
 
                 // 로그아웃,탈퇴 버튼은 별도 위젯으로 분리
-                ProfileActionButtons(
-                  onLogout: () => _showLogoutDialog(context),
-                  onDeleteAccount: () =>
-                      _showAccountDeleteDialog(context, userId),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ProfileActionButtons(
+                    onLogout: () => _showLogoutDialog(context),
+                    onDeleteAccount: () =>
+                        _showAccountDeleteDialog(context, userId),
+                  ),
                 ),
               ],
             ),

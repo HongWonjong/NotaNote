@@ -6,7 +6,7 @@ import 'package:nota_note/pages/terms_page/terms_page.dart';
 import 'package:nota_note/pages/user_profile_page/user_profile_page.dart';
 import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/theme/pretendard_text_styles.dart';
-import 'package:nota_note/viewmodels/auth/auth_common.dart' hide userIdProvider;
+import 'package:nota_note/viewmodels/auth/auth_common.dart';
 import 'package:nota_note/viewmodels/auth/user_id_provider.dart';
 
 /// 설정 페이지
@@ -33,16 +33,14 @@ class SettingsPage extends ConsumerWidget {
           color: AppColors.gray700,
         ),
         leading: Padding(
-          padding: EdgeInsets.only(left: 20), // 원하는 패딩 값
-          child: IconButton(
-            icon: SvgPicture.asset(
-              'assets/icons/Arrow.svg',
+          padding: const EdgeInsets.only(left: 20),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: SvgPicture.asset(
+              'assets/icons/CaretLeft.svg',
               width: 24,
               height: 24,
             ),
-            onPressed: () {
-              Navigator.pop(context); // 뒤로가기 동작
-            },
           ),
         ),
       ),
@@ -147,13 +145,15 @@ class _SettingsTile extends StatelessWidget {
         width: 24,
         height: 24,
         colorFilter: ColorFilter.mode(
-          Colors.grey[500]!, // 아이콘 색상: gray.500
+          AppColors.gray500,
           BlendMode.srcIn,
         ),
       ),
       title: Text(
         label,
-        style: PretendardTextStyles.bodyS.copyWith(color: Colors.grey[900]),
+        style: PretendardTextStyles.bodyM.copyWith(
+          color: AppColors.gray900,
+        ),
       ),
       onTap: onTap,
     );

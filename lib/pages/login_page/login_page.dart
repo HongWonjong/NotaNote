@@ -120,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               textWidth: 89,
               textHeight: 21,
               color: const Color(0xFFFEE500),
-              textColor: Colors.grey[800]!,
+              textColor: AppColors.gray800,
               iconPath: 'assets/icons/Kakao.svg',
               text: '카카오로 로그인',
               onTap: () async {
