@@ -7,7 +7,6 @@ import 'memo_group_app_bar.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota_note/utils/view_mode_prefs.dart';
-import 'package:nota_note/utils/string_utils.dart';
 
 String trimTitleForDisplay(String title, int maxLength) {
   if (title.length <= maxLength) {
@@ -325,8 +324,6 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                           trimTitleForDisplay(memo.title, 8),
                           searchText,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -337,7 +334,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
                           child: Text(
-                            extractPlainText(memo.content), // 여기 수정
+                            memo.content,  // 줄 수 제한 없이 원본 내용 그대로 표시
                             style: const TextStyle(
                               color: Color(0xFF333333),
                               fontSize: 13,
@@ -447,8 +444,6 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                           trimTitleForDisplay(memo.title, 20),
                           searchText,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -456,15 +451,16 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Text(
-                        extractPlainText(memo.content), // 여기 수정
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF333333),
-                          fontSize: 13,
-                          fontFamily: 'Pretendard',
-                          height: 1.3,
+                      SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Text(
+                          memo.content,  // 줄 수 제한 없이 원본 내용 그대로 표시
+                          style: const TextStyle(
+                            color: Color(0xFF333333),
+                            fontSize: 13,
+                            fontFamily: 'Pretendard',
+                            height: 1.3,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -541,6 +537,7 @@ class _MemoGroupPageState extends ConsumerState<MemoGroupPage> {
           ),
   );
 }
+
 
   @override
   Widget build(BuildContext context) {

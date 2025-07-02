@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
@@ -14,10 +15,11 @@ import 'package:logger/logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'dart:async';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
-void main() async {
-  // Logger 초기화
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final logger = Logger(
     printer: PrettyPrinter(
       methodCount: 2,
@@ -28,97 +30,104 @@ void main() async {
       printTime: true,
     ),
   );
-  logger.i('main() 함수 시작');
 
-  // 글로벌 에러 핸들링 설정
-  runZonedGuarded(() async {
-    // Flutter 프레임워크 에러 핸들링
-    FlutterError.onError = (FlutterErrorDetails details) {
-      logger.e('Flutter 프레임워크 에러: ${details.exception}',
-          stackTrace: details.stack);
-      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-    };
+  // .env 먼저 로드
+  try {
+    await dotenv.load(fileName: ".env");
+    logger.i('.env 로드 완료');
+  } catch (e, stack) {
+    logger.e('.env 로드 실패: $e', stackTrace: stack);
+    FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+  }
 
-    WidgetsFlutterBinding.ensureInitialized();
-    logger.i('WidgetsFlutterBinding 초기화 완료');
+  // DSN 변수에 담기
+  final sentryDsn = dotenv.env['SENTRY_DSN'];
+  logger.i('SENTRY_DSN: $sentryDsn');
 
-    // Firebase 및 Crashlytics 초기화
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      // Crashlytics 활성화
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-      logger.i('Firebase 및 Crashlytics 초기화 완료');
-    } catch (e, stack) {
-      logger.e('Firebase 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
-    }
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = sentryDsn;
+      options.debug = true;
+      options.tracesSampleRate = 1.0;
+    },
+    appRunner: () {
+      runZonedGuarded(() async {
+        FlutterError.onError = (FlutterErrorDetails details) {
+          logger.e('Flutter 프레임워크 에러: ${details.exception}',
+              stackTrace: details.stack);
+          FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+          Sentry.captureException(details.exception, stackTrace: details.stack);
+        };
 
-    // .env 파일 로드
-    try {
-      await dotenv.load(fileName: ".env");
-      logger.i('dotenv 로드 완료');
-    } catch (e, stack) {
-      logger.e('dotenv 로드 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // Firebase 초기화
+        try {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+          await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+          logger.i('Firebase 및 Crashlytics 초기화 완료');
+        } catch (e, stack) {
+          logger.e('Firebase 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
+        }
 
-    // Kakao SDK 초기화
-    try {
-      KakaoSdk.init(
-        nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
-        javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
-      );
-      logger.i('Kakao SDK 초기화 완료');
-    } catch (e, stack) {
-      logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // Kakao SDK 초기화
+        try {
+          KakaoSdk.init(
+            nativeAppKey: '3994ba43bdfc5a2ac995b7743b33b320',
+            javaScriptAppKey: '20b47f3f4ea59df1cdea65af1725c34a',
+          );
+          logger.i('Kakao SDK 초기화 완료');
+        } catch (e, stack) {
+          logger.e('Kakao SDK 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+        }
 
-    // AdMob 초기화
-    try {
-      await MobileAds.instance.initialize();
-      logger.i('AdMob 초기화 완료');
-    } catch (e, stack) {
-      logger.e('AdMob 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // AdMob 초기화
+        try {
+          await MobileAds.instance.initialize();
+          logger.i('AdMob 초기화 완료');
+        } catch (e, stack) {
+          logger.e('AdMob 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+        }
 
-    // 알림 서비스 초기화
-    try {
-      await NotificationService().initialize();
-      logger.i('알림 서비스 초기화 완료');
-    } catch (e, stack) {
-      logger.e('알림 서비스 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // 알림 서비스 초기화
+        try {
+          await NotificationService().initialize();
+          logger.i('알림 서비스 초기화 완료');
+        } catch (e, stack) {
+          logger.e('알림 서비스 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+        }
 
-    // 로컬 데이터베이스 초기화
-    try {
-      await LocalStorageService().database;
-      logger.i('로컬 데이터베이스 초기화 완료');
-    } catch (e, stack) {
-      logger.e('로컬 데이터베이스 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // 로컬 DB 초기화
+        try {
+          await LocalStorageService().database;
+          logger.i('로컬 DB 초기화 완료');
+        } catch (e, stack) {
+          logger.e('로컬 DB 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+        }
 
-    try {
-      await SharedPreferences.getInstance();
-      logger.i('SharedPreferences 초기화 완료');
-    } catch (e, stack) {
-      logger.e('SharedPreferences 초기화 실패: $e', stackTrace: stack);
-      FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
-    }
+        // SharedPreferences 초기화
+        try {
+          await SharedPreferences.getInstance();
+          logger.i('SharedPreferences 초기화 완료');
+        } catch (e, stack) {
+          logger.e('SharedPreferences 초기화 실패: $e', stackTrace: stack);
+          FirebaseCrashlytics.instance.recordError(e, stack, fatal: false);
+        }
 
-    // ProviderScope로 앱 실행
-    logger.i('앱 실행 시작');
-    runApp(const ProviderScope(child: MyApp()));
-  }, (error, stack) {
-    // 비동기 및 기타 예외 처리
-    logger.e('글로벌 에러: $error', stackTrace: stack);
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  });
+        logger.i('앱 실행 시작');
+        runApp(const ProviderScope(child: MyApp()));
+      }, (error, stack) {
+        logger.e('글로벌 에러: $error', stackTrace: stack);
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        Sentry.captureException(error, stackTrace: stack);
+      });
+    },
+  );
 }
 
 class MyApp extends ConsumerWidget {
