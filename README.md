@@ -89,7 +89,6 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 - **permissions** 🔒: `map<string, string>` (유저별 권한, 예: { "uid123": "owner", "uid456": "editor" })
 - **createdAt** 🕒: `timestamp` (메모장 생성 시간)
 - **updatedAt** 🔄: `timestamp` (메모장 수정 시간)
-- **activeUsers** 👥: `map<string, timestamp>` (현재 접속 중인 사용자, 예: { "uid123": 2025-07-01T19:00:00Z, "uid456": 2025-07-01T19:00:15Z })
 
 ## 3. 메모지 페이지 데이터 📄
 
@@ -135,3 +134,22 @@ NotaNote는 노션, 클러버코드, 릴리스AI, 위키피디아 등의 다양�
 
 - **유저 프로필 이미지** 🖼️: `string` (경로: `profilePhotos/{userId}_{timestamp}.jpg`, Firestore의 photoUrl 필드에 저장)
 - **메모장-메모지-이미지 위젯** 🖼️: `string` (경로: `notegroups/{groupId}/notes/{noteId}/pages/{pageId}/widgets/{widgetId}_{timestamp}.jpg`, Firestore의 imageUrl 필드에 저장)
+
+## 8. Redis 데이터베이스 데이터
+
+Redis 데이터베이스는 메모장 내 사용자 접속 상태를 실시간으로 추적하고 관리하기 위해 사용됩니다. 
+Upstash Redis를 활용하여 키-값 쌍으로 데이터를 저장하며, 주로 activeUsers 정보를 4초 간격으로 갱신합니다. 
+데이터는 HTTP REST API를 통해 접근되며, TTL(만료 시간)을 설정하여 오래된 접속 정보를 자동으로 제거합니다. 
+
+- **키 형식**: `activeUsers:{groupId}:{noteId}`
+    - `groupId`: 메모 그룹의 고유 ID.
+    - `noteId`: 메모장의 고유 ID.
+    - 예: `activeUsers:YSzg2ueWRddFMWws6qZv:10e0521a-2230-4efc-b716-675617e72733`
+
+- **값 형식**: Redis Hash (필드-값 쌍)
+    - **필드**: `userId` (문자열, 예: `ysJJparHGjf6x3lISEvqxoYrTxE2`)
+    - **값**: `timestamp` (ISO 8601 형식의 타임스탬프, 예: `2025-07-02T12:15:20.169456`)
+    - 예: `{"ysJJparHGjf6x3lISEvqxoYrTxE2": "2025-07-02T12:15:20.169456"}`
+
+- **TTL (Time to Live)**: 10초
+    - 각 키에 대해 10초 후에 데이터가 자동으로 만료되도록 설정되어, 최근 10초 이내에 접속한 사용자만 유지됩니다.
