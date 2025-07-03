@@ -44,39 +44,51 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          leading: Padding(padding: EdgeInsets.only(left: 20),
-          child: const BackButton(color: Colors.grey),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: SvgPicture.asset(
+                'assets/icons/CaretLeft.svg',
+                width: 24,
+                height: 24,
+              ),
+            ),
           ),
           title: Text(
             '프로필',
-            style:
-                PretendardTextStyles.titleS.copyWith(color: Colors.grey[900]),
+            style: PretendardTextStyles.titleS.copyWith(
+              color: AppColors.gray900,
+            ),
           ),
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.grey[700]),
+          iconTheme: IconThemeData(
+            color: AppColors.gray700,
+          ),
           actions: [
-            Padding(padding: EdgeInsets.only(right: 20),
-            child: TextButton(
-              onPressed: () async {
-                if (!_formKey.currentState!.validate()) return;
-                // 프로필 업데이트 함수 호출
-                await updateUserProfile(
-                  userId: widget.user.userId,
-                  displayName: _nameController.text.trim(),
-                  email: _emailController.text.trim(),
-                );
-                if (mounted) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: Text(
-                '완료',
-                style: PretendardTextStyles.bodyM
-                    .copyWith(color: AppColors.primary300Main),
+            Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: TextButton(
+                onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
+                  // 프로필 업데이트 함수 호출
+                  await updateUserProfile(
+                    userId: widget.user.userId,
+                    displayName: _nameController.text.trim(),
+                    email: _emailController.text.trim(),
+                  );
+                  if (mounted) {
+                    Navigator.pop(context, true);
+                  }
+                },
+                child: Text(
+                  '완료',
+                  style: PretendardTextStyles.bodyM
+                      .copyWith(color: AppColors.primary300Main),
+                ),
               ),
-            ),
             ),
           ],
         ),
@@ -112,7 +124,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                             height: 30,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: Colors.grey[200]!),
+                              border: Border.all(
+                                color: AppColors.gray200,
+                              ),
                               borderRadius: BorderRadius.circular(15),
                             ),
                             child: Center(
@@ -135,8 +149,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('닉네임',
-                          style: PretendardTextStyles.bodyMEmphasis
-                              .copyWith(color: Colors.grey[800])),
+                          style: PretendardTextStyles.bodyMEmphasis.copyWith(
+                            color: AppColors.gray800,
+                          )),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 52,
@@ -150,7 +165,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                               style: PretendardTextStyles.bodyM.copyWith(
                                 color: _nameFocusNode.hasFocus
                                     ? AppColors.gray400
-                                    : Colors.grey[900],
+                                    : AppColors.gray900,
                               ),
                               decoration: InputDecoration(
                                 counterText: '',
@@ -161,7 +176,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: Colors.grey[300]!,
+                                    color: AppColors.gray300,
                                   ),
                                 ),
                                 //포커스 시 테두리
@@ -179,8 +194,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                               right: 16,
                               child: Text(
                                 '${_nameController.text.length}/10',
-                                style: PretendardTextStyles.labelS
-                                    .copyWith(color: Colors.grey[400]),
+                                style: PretendardTextStyles.labelS.copyWith(
+                                  color: AppColors.gray400,
+                                ),
                               ),
                             ),
                           ],
@@ -188,8 +204,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                       ),
                       const SizedBox(height: 16),
                       Text('이메일',
-                          style: PretendardTextStyles.bodyMEmphasis
-                              .copyWith(color: Colors.grey[800])),
+                          style: PretendardTextStyles.bodyMEmphasis.copyWith(
+                            color: AppColors.gray800,
+                          )),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 52,
@@ -199,7 +216,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                           style: PretendardTextStyles.bodyM.copyWith(
                             color: _emailFocusNode.hasFocus
                                 ? AppColors.gray400
-                                : Colors.grey[900],
+                                : AppColors.gray900,
                           ),
                           decoration: InputDecoration(
                             contentPadding: const EdgeInsets.symmetric(
@@ -208,7 +225,9 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                             fillColor: Colors.white,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(
+                                color: AppColors.gray300,
+                              ),
                             ),
                             //포커스 시 테두리
                             focusedBorder: OutlineInputBorder(

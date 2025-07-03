@@ -378,16 +378,6 @@ class _MainPageState extends ConsumerState<MainPage>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                user?.hashTag ?? '@해시태그',
-                                style: TextStyle(
-                                  color: Color(0xFF666666),
-                                  fontSize: 12,
-                                  fontFamily: 'Pretendard',
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
                                 user?.email ?? '이메일',
                                 style: TextStyle(
                                   color: Color(0xFF666666),
@@ -630,47 +620,54 @@ class _MainPageState extends ConsumerState<MainPage>
                 children: [
                   Padding(
                     padding: EdgeInsets.only(right: 15),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const NotificationPage()),
-                        );
-                      },
-                      icon: SvgPicture.asset(
-                        'assets/icons/Bell.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: const ColorFilter.mode(
-                            Color(0xFF616161), BlendMode.srcIn),
-                      ),
-                    ),
-                  ),
-                  if (invitationCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF60CFB1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$invitationCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.bold,
+                    child: Stack(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NotificationPage()),
+                            );
+                          },
+                          icon: SvgPicture.asset(
+                            'assets/icons/Bell.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFF616161),
+                              BlendMode.srcIn,
                             ),
                           ),
                         ),
-                      ),
+                        if (invitationCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF60CFB1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '$invitationCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontFamily: 'Pretendard',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ],
@@ -705,6 +702,24 @@ class _MainPageState extends ConsumerState<MainPage>
                       error,
                       style: TextStyle(color: Colors.red),
                     )
+                  else if (_isSearching &&
+                      ref
+                          .watch(groupViewModelProvider)
+                          .filteredSharedGroupsWithRole
+                          .isEmpty &&
+                      ref
+                          .watch(groupViewModelProvider)
+                          .filteredOwnedGroups
+                          .isEmpty)
+                    Center(
+                      child: Text(
+                        '검색결과가 없습니다',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
                   else
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -729,7 +744,9 @@ class _MainPageState extends ConsumerState<MainPage>
                                   child: Column(
                                     children: [
                                       Text(
-                                        '공유된 그룹이 없습니다',
+                                        sharedGroupsWithRole.isEmpty
+                                            ? '공유된 그룹이 없습니다'
+                                            : '',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey[600],

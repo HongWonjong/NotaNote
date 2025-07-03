@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:nota_note/services/firebase_storage_service.dart';
+import 'package:nota_note/theme/colors.dart';
 
 /// 프로필 이미지 위젯 (이미지 선택 및 업로드 기능 포함)
 class ProfileImageWidget extends ConsumerStatefulWidget {
@@ -92,7 +93,7 @@ class _ProfileImageWidgetState extends ConsumerState<ProfileImageWidget> {
               _isUploading || !widget.isEditable ? null : _pickAndUploadImage,
           child: CircleAvatar(
             radius: 43,
-            backgroundColor: Colors.grey[300],
+            backgroundColor: AppColors.gray300,
             backgroundImage:
                 _photoUrl.isNotEmpty ? NetworkImage(_photoUrl) : null,
             child: _photoUrl.isEmpty
