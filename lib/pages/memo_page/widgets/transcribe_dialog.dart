@@ -363,43 +363,6 @@ class _TranscribeDialogState extends ConsumerState<TranscribeDialog> {
                     ),
                   );
                 },
-                //   // 광고 페이지 push (ad 종료 후에 로딩페이지 push)
-                //   await Navigator.of(context).push(MaterialPageRoute(
-                //     fullscreenDialog: true,
-                //     builder: (context) => InterstitialAdPage(
-                //       onAdComplete: () async {
-                //         // 광고 끝나면 InterstitialAdPage를 pop하고,
-                //         // 그 다음 LoadingPage를 "push"가 아니라 "pushReplacement"로 실행!
-                //         Navigator.of(context).pushReplacement(MaterialPageRoute(
-                //           builder: (context) => LoadingPage(
-                //             recordingPath: widget.recordingPath,
-                //             language: selectedLanguage,
-                //             mode: selectedMode,
-                //             controller: widget.controller,
-                //             recordingViewModel: widget.recordingViewModel,
-                //           ),
-                //         ));
-                //       },
-                //     ),
-                //   ));
-                // },
-                // onPressed: () {
-                //   // 키보드 포커스 해제
-                //   FocusScope.of(context).unfocus();
-                //   // 다이얼로그 닫고 LoadingPage로 이동
-                //   Navigator.of(context).pop();
-                //   Navigator.of(context).push(
-                //     MaterialPageRoute(
-                //       builder: (context) => LoadingPage(
-                //         recordingPath: widget.recordingPath,
-                //         language: selectedLanguage,
-                //         mode: selectedMode,
-                //         controller: widget.controller,
-                //         recordingViewModel: widget.recordingViewModel,
-                //       ),
-                //     ),
-                //   );
-                // },
                 child: Text(
                   '변환하기',
                   style: TextStyle(
