@@ -48,3 +48,5 @@ app.*.map.json
 /firebase.json
 /devtools_options.yaml
 google-services.json
+/code_analysis_report.txt
+/run_dart_analysis.sh
