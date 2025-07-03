@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota_note/pages/memo_page/widgets/pdf_loading_page.dart';
+import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/viewmodels/pin_viewmodel.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:nota_note/pages/memo_page/widgets/pdf_helper.dart';
+import 'package:nota_note/pages/memo_page/widgets/quill_to_pdf_converter.dart';
 
 class PopupMenuWidget extends ConsumerWidget {
   final VoidCallback onClose;
@@ -94,7 +95,14 @@ class PopupMenuWidget extends ConsumerWidget {
               text: '내보내기',
               onTap: () {
                 onClose();
-                PdfGenerator.exportToPdf(quillController.document);
+                // 로딩 및 PDF 생성 페이지로 이동
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => PdfLoadingPage(
+                      document: quillController.document,
+                    ),
+                  ),
+                );
               },
             ),
           ],

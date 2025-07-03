@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:http/http.dart' as http;
@@ -6,13 +5,25 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 
 class PdfGenerator {
   // 폰트 캐싱을 위한 변수
   static pw.Font? _koreanFont;
   static pw.Font? _monoFont;
+
+  // SVG 아이콘 데이터
+  static const String _checkedSvg = '''
+<svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  <rect width="18" height="18" fill="#61CFB2" rx="4"/>
+  <path d="M5 9.5L8 12.5L14 6.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+''';
+  static const String _uncheckedSvg = '''
+<svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1" y="1" width="16" height="16" fill="white" stroke="#CCCCCC" stroke-width="2" rx="4"/>
+</svg>
+''';
 
   // 폰트 로드 및 캐싱
   static Future<void> _loadFonts() async {
@@ -28,8 +39,8 @@ class PdfGenerator {
     }
   }
 
-  // 공개 메소드: Document를 받아 PDF 생성 및 공유를 시작
-  static Future<void> exportToPdf(Document document) async {
+  // 공개 메소드: Document를 받아 PDF 파일을 생성하고 File 객체를 반환
+  static Future<File?> createPdfFile(Document document) async {
     try {
       await _loadFonts();
       final pdf = pw.Document();
@@ -48,13 +59,14 @@ class PdfGenerator {
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(await pdf.save());
 
-      await Share.shareXFiles([XFile(file.path)], subject: fileName);
+      return file; // 생성된 파일 객체를 반환
     } catch (e) {
-      print("PDF 생성 실패: $e");
+      print("PDF 파일 생성 실패: $e");
+      return null; // 실패 시 null 반환
     }
   }
 
-  // Delta를 분석하여 위젯 리스트로 변환하는 최종 로직
+  // Delta를 분석하여 위젯 리스트로 변환하는 로직
   static Future<List<pw.Widget>> _deltaToPdfWidgets(Delta delta) async {
     final List<pw.Widget> widgets = [];
     final List<pw.InlineSpan> currentLineSpans = [];
@@ -65,7 +77,6 @@ class PdfGenerator {
       final data = op.data;
       final attributes = op.attributes ?? <String, dynamic>{};
 
-      // 이미지 처리
       if (data is Map<String, dynamic> && data['image'] != null) {
         if (currentLineSpans.isNotEmpty) {
           widgets
@@ -110,7 +121,6 @@ class PdfGenerator {
         }
       }
     }
-    // 루프가 끝난 후 마지막 라인 처리
     if (currentLineSpans.isNotEmpty) {
       widgets.add(_createLineWidget(currentLineSpans, currentBlockAttributes));
     }
@@ -127,79 +137,103 @@ class PdfGenerator {
         softWrap: true,
         textAlign: textAlign);
 
+    final indentLevel = attributes['indent'] as int? ?? 0;
+    final indentPadding = pw.EdgeInsets.only(left: indentLevel * 20.0);
+
     if (spans.isEmpty) {
-      return pw.SizedBox(height: 14 * 0.5);
+      return pw.Padding(
+          padding: indentPadding, child: pw.SizedBox(height: 14 * 0.5));
     }
 
     final alignment = _getAlignment(attributes);
 
-    // 헤더
     if (attributes.containsKey('header')) {
       return pw.Container(
         alignment: alignment,
-        padding: const pw.EdgeInsets.only(top: 12, bottom: 4),
+        padding: pw.EdgeInsets.only(top: 12, bottom: 4).add(indentPadding),
         child: pw.DefaultTextStyle(
             style: _getHeadlineStyle(attributes['header']), child: richText),
       );
     }
-    // 코드 블럭
     if (attributes.containsKey('code-block')) {
-      return pw.Container(
-        width: double.infinity,
-        decoration: pw.BoxDecoration(
-            color: PdfColor.fromHex('#F5F5F5'),
-            borderRadius: pw.BorderRadius.circular(4)),
-        padding: const pw.EdgeInsets.all(10),
-        margin: const pw.EdgeInsets.symmetric(vertical: 4),
-        child: pw.DefaultTextStyle(
-          style: pw.TextStyle(font: _monoFont, fontSize: 12),
-          child: richText,
-          textAlign: textAlign,
+      return pw.Padding(
+        padding: indentPadding,
+        child: pw.Container(
+          width: double.infinity,
+          decoration: pw.BoxDecoration(
+              color: PdfColor.fromHex('#F5F5F5'),
+              borderRadius: pw.BorderRadius.circular(4)),
+          padding: const pw.EdgeInsets.all(10),
+          margin: const pw.EdgeInsets.symmetric(vertical: 4),
+          child: pw.DefaultTextStyle(
+              style: pw.TextStyle(font: _monoFont, fontSize: 12),
+              child: richText,
+              textAlign: textAlign),
         ),
       );
     }
-    // 인용문
     if (attributes.containsKey('blockquote')) {
-      return pw.Container(
-        width: double.infinity,
-        decoration: pw.BoxDecoration(
-            border: pw.Border(
-                left: pw.BorderSide(color: PdfColors.grey, width: 2))),
-        padding: const pw.EdgeInsets.only(left: 10, top: 4, bottom: 4),
-        margin: const pw.EdgeInsets.symmetric(vertical: 2),
-        child: pw.DefaultTextStyle(
-            style: pw.TextStyle(color: PdfColors.grey700, font: _koreanFont),
-            child: richText),
+      return pw.Padding(
+        padding: indentPadding,
+        child: pw.Container(
+          width: double.infinity,
+          decoration: pw.BoxDecoration(
+              border: pw.Border(
+                  left: pw.BorderSide(color: PdfColors.grey, width: 2))),
+          padding: const pw.EdgeInsets.only(left: 10, top: 4, bottom: 4),
+          margin: const pw.EdgeInsets.symmetric(vertical: 2),
+          child: pw.DefaultTextStyle(
+              style: pw.TextStyle(color: PdfColors.grey700, font: _koreanFont),
+              child: richText),
+        ),
       );
     }
-    // 리스트
     if (attributes.containsKey('list')) {
-      String prefix = attributes['list'] == 'bullet' ? '•' : '${counter ?? 1}.';
+      final itemStyle = spans.isNotEmpty && spans.first.style != null
+          ? spans.first.style!
+          : _getTextStyle({});
 
-      // 첫 번째 텍스트 조각의 스타일을 가져와서 리스트 기호에 적용
-      final pw.TextStyle prefixStyle =
-          spans.isNotEmpty && spans.first.style != null
-              ? spans.first.style!
-              : pw.TextStyle(font: _koreanFont);
+      pw.Widget prefix;
+      if (attributes['list'] == 'checked' ||
+          attributes['list'] == 'unchecked') {
+        prefix = _buildCheckbox(attributes['list'] == 'checked', itemStyle);
+      } else {
+        String prefixText =
+            attributes['list'] == 'bullet' ? '•' : '${counter ?? 1}.';
+        prefix = pw.Container(
+            width: 20,
+            child: pw.Text(prefixText,
+                style: itemStyle, textAlign: pw.TextAlign.right));
+      }
 
-      return pw.Container(
-        padding: const pw.EdgeInsets.only(left: 16, top: 1.5, bottom: 1.5),
-        child:
-            pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Container(
-              width: 20,
-              alignment: pw.Alignment.topRight,
-              child: pw.Text(prefix, style: prefixStyle)),
-          pw.SizedBox(width: 5),
-          pw.Expanded(child: richText),
-        ]),
+      return pw.Padding(
+        padding: indentPadding,
+        child: pw.Container(
+          padding: const pw.EdgeInsets.only(top: 2.5, bottom: 2.5),
+          child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                prefix,
+                pw.SizedBox(width: 8),
+                pw.Expanded(child: richText),
+              ]),
+        ),
       );
     }
-    // 일반 텍스트
     return pw.Container(
         alignment: alignment,
-        padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
+        padding: pw.EdgeInsets.symmetric(vertical: 1.5).add(indentPadding),
         child: richText);
+  }
+
+  static pw.Widget _buildCheckbox(bool isChecked, pw.TextStyle style) {
+    final boxSize = (style.fontSize ?? 14) * 1.1;
+    return pw.Container(
+      width: boxSize,
+      height: boxSize,
+      margin: const pw.EdgeInsets.only(top: 2.5),
+      child: pw.SvgImage(svg: isChecked ? _checkedSvg : _uncheckedSvg),
+    );
   }
 
   static pw.TextAlign? _getTextAlign(Map<String, dynamic> attributes) {
@@ -248,17 +282,16 @@ class PdfGenerator {
   static pw.TextStyle _getTextStyle(Map<String, dynamic> attributes) {
     if (attributes.containsKey('link')) {
       return pw.TextStyle(
-        font: _koreanFont,
-        color: PdfColors.blue,
-        decoration: pw.TextDecoration.underline,
-      );
+          font: _koreanFont,
+          color: PdfColors.blue,
+          decoration: pw.TextDecoration.underline);
     }
 
     PdfColor? color;
     if (attributes['color'] is String) {
       try {
         color = PdfColor.fromHex(attributes['color']);
-      } catch (e) {}
+      } catch (_) {}
     }
 
     PdfColor? background;
@@ -273,6 +306,13 @@ class PdfGenerator {
       fontSize = (attributes['size'] as num).toDouble();
     }
 
+    List<pw.TextDecoration> decorations = [];
+    if (attributes['underline'] == true)
+      decorations.add(pw.TextDecoration.underline);
+    if (attributes['list'] == 'checked' || attributes['strike'] == true) {
+      decorations.add(pw.TextDecoration.lineThrough);
+    }
+
     return pw.TextStyle(
       font: _koreanFont,
       fontWeight: attributes['bold'] == true
@@ -283,10 +323,7 @@ class PdfGenerator {
           : pw.FontStyle.normal,
       color: color,
       background: pw.BoxDecoration(color: background),
-      decoration: pw.TextDecoration.combine([
-        if (attributes['underline'] == true) pw.TextDecoration.underline,
-        if (attributes['strike'] == true) pw.TextDecoration.lineThrough,
-      ]),
+      decoration: pw.TextDecoration.combine(decorations),
       fontSize: fontSize,
     );
   }
