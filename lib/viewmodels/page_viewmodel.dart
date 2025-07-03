@@ -113,8 +113,9 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     try {
       final currentContentJson =
       jsonEncode(controller.document.toDelta().toJson());
+      final currentLine = _getCurrentLineNumber(controller);
+
       if (newContentJson != currentContentJson && _isEditing) {
-        final currentLine = _getCurrentLineNumber(controller);
         final mergedContent = _mergeContent(
           controller.document.toDelta().toJson(),
           page.content,
@@ -181,12 +182,17 @@ class PageViewModel extends StateNotifier<page_model.Page> {
         : remoteLines.length;
 
     for (int i = 0; i < maxLines; i++) {
+      // 사용자가 편집 중인 라인은 로컬 데이터를 유지
       if (i == currentLine && localLines.length > i) {
         mergedLines.add(localLines[i]);
-      } else if (remoteLines.length > i) {
-        mergedLines.add(remoteLines[i]);
-      } else if (localLines.length > i) {
-        mergedLines.add(localLines[i]);
+      } else {
+        // 편집 중이지 않은 라인은 원격 데이터를 우선 사용
+        if (remoteLines.length > i) {
+          mergedLines.add(remoteLines[i]);
+        } else if (localLines.length > i) {
+          // 원격 데이터가 없으면 로컬 데이터를 사용
+          mergedLines.add(localLines[i]);
+        }
       }
     }
 
@@ -194,6 +200,12 @@ class PageViewModel extends StateNotifier<page_model.Page> {
     for (var line in mergedLines) {
       mergedContent.addAll(line);
     }
+
+    // 병합된 콘텐츠가 비어있지 않은지 확인
+    if (mergedContent.isEmpty) {
+      mergedContent.add({'insert': '\n'});
+    }
+
     return mergedContent;
   }
 
@@ -252,7 +264,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
       print('Save skipped: PageViewModel is disposed');
       return;
     }
-    _isEditing = true; // 포맷팅 작업 시작 시 편집 상태로 설정
+    _isEditing = true;
     final deltaJson = controller.document.toDelta().toJson();
     final page = state.copyWith(content: deltaJson);
 
@@ -267,7 +279,7 @@ class PageViewModel extends StateNotifier<page_model.Page> {
           .set(page.toFirestore());
       state = page;
       _lastProcessedContent = jsonEncode(deltaJson);
-      _isEditing = false; // 저장 완료 후 편집 상태 해제
+      _isEditing = false;
       processPendingSnapshot(controller);
     } catch (e, stackTrace) {
       print('Save failed: $e');
