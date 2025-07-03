@@ -626,7 +626,9 @@ class _MainPageState extends ConsumerState<MainPage>
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const NotificationPage()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NotificationPage()),
                             );
                           },
                           icon: SvgPicture.asset(
@@ -700,6 +702,24 @@ class _MainPageState extends ConsumerState<MainPage>
                       error,
                       style: TextStyle(color: Colors.red),
                     )
+                  else if (_isSearching &&
+                      ref
+                          .watch(groupViewModelProvider)
+                          .filteredSharedGroupsWithRole
+                          .isEmpty &&
+                      ref
+                          .watch(groupViewModelProvider)
+                          .filteredOwnedGroups
+                          .isEmpty)
+                    Center(
+                      child: Text(
+                        '검색결과가 없습니다',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
                   else
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -724,7 +744,9 @@ class _MainPageState extends ConsumerState<MainPage>
                                   child: Column(
                                     children: [
                                       Text(
-                                        '공유된 그룹이 없습니다',
+                                        sharedGroupsWithRole.isEmpty
+                                            ? '공유된 그룹이 없습니다'
+                                            : '',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey[600],
