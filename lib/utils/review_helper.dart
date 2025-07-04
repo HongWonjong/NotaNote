@@ -1,6 +1,6 @@
-// lib/utils/review_helper.dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:flutter/foundation.dart'; // kDebugMode 사용
 
 class ReviewHelper {
   static const _launchCountKey = 'launch_count';
@@ -11,27 +11,29 @@ class ReviewHelper {
     final prefs = await SharedPreferences.getInstance();
 
     final hasRequestedReview = prefs.getBool(_hasRequestedReviewKey) ?? false;
+    int launchCount = prefs.getInt(_launchCountKey) ?? 0;
+
+    if (kDebugMode) {
+      debugPrint('✅ [리뷰체크] 실행 횟수: $launchCount / 리뷰 요청함?: $hasRequestedReview');
+    }
+
     if (hasRequestedReview) return;
 
-    int launchCount = prefs.getInt(_launchCountKey) ?? 0;
     launchCount++;
     await prefs.setInt(_launchCountKey, launchCount);
 
-    // 조건: 앱 3회 실행 시 리뷰 요청
     if (launchCount == 3) {
       final inAppReview = InAppReview.instance;
       if (await inAppReview.isAvailable()) {
+        if (kDebugMode) {
+          debugPrint('🎯 [리뷰체크] 조건 만족! 리뷰 요청 시도');
+        }
         await inAppReview.requestReview();
         await prefs.setBool(_hasRequestedReviewKey, true);
+        if (kDebugMode) {
+          debugPrint('🙌 [리뷰체크] 리뷰 요청 완료 및 플래그 저장');
+        }
       }
-    }
-  }
-
-  /// 수동 리뷰 요청 (리뷰 남기기 버튼 등에서 사용)
-  static Future<void> forceRequestReview() async {
-    final inAppReview = InAppReview.instance;
-    if (await inAppReview.isAvailable()) {
-      await inAppReview.requestReview();
     }
   }
 }

@@ -24,6 +24,8 @@ import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 import 'package:nota_note/pages/memo_page/memo_page.dart';
 import 'package:nota_note/models/role.dart';
 import 'package:nota_note/models/shared_group_with_role.dart';
+import 'package:nota_note/utils/review_helper.dart';
+
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -49,6 +51,7 @@ class _MainPageState extends ConsumerState<MainPage>
   @override
   void initState() {
     super.initState();
+  ReviewHelper.checkAndRequestReview();
     _loadUserInfo();
     _searchController.addListener(_onSearchChanged);
     _fabAnimationController = AnimationController(
