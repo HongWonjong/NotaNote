@@ -6,6 +6,7 @@ import 'package:nota_note/theme/colors.dart';
 import 'package:nota_note/viewmodels/pin_viewmodel.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:nota_note/pages/memo_page/widgets/quill_to_pdf_converter.dart';
+import 'package:nota_note/viewmodels/memo_viewmodel.dart';
 
 class PopupMenuWidget extends ConsumerWidget {
   final VoidCallback onClose;
@@ -35,8 +36,7 @@ class PopupMenuWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: ShapeDecoration(
           color: const Color(0xFFF0F0F0),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: _buildMenuContent(context, ref, providerParams),
       ),
@@ -84,7 +84,9 @@ class PopupMenuWidget extends ConsumerWidget {
                 icon: 'assets/icons/Delete.svg',
                 text: '삭제하기',
                 textColor: const Color(0xFFFF2F2F),
-                onTap: () {}, // TODO: Implement delete functionality
+                onTap: () {
+                  _showDeleteConfirmationDialog(context, ref);
+                },
               ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
@@ -95,7 +97,6 @@ class PopupMenuWidget extends ConsumerWidget {
               text: '내보내기',
               onTap: () {
                 onClose();
-                // 로딩 및 PDF 생성 페이지로 이동
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => PdfLoadingPage(
@@ -104,6 +105,51 @@ class PopupMenuWidget extends ConsumerWidget {
                   ),
                 );
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('메모 삭제'),
+          content: const Text('이 메모를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await ref
+                      .read(memoViewModelProvider(groupId))
+                      .deleteMemos([noteId]);
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                  onClose(); // 팝업 메뉴 닫기
+                  Navigator.of(context).pop(); // 메모 페이지에서 나가기
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('메모가 삭제되었습니다.')),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('메모 삭제 실패: $e')),
+                  );
+                }
+              },
+              child: const Text(
+                '삭제',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
